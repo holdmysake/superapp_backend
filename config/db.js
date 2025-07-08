@@ -8,7 +8,7 @@ const sequelize = new Sequelize(
     process.env.DB_USER,
     process.env.DB_PASS,
     {
-        host: process.env.DB_HOST,
+        host: process.env.DB_HOST || '127.0.0.1',
         dialect: process.env.DB_DIALECT,
         logging: false,
         timezone: '+07:00',
