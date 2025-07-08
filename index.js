@@ -6,6 +6,9 @@ import userRoute from './routes/user.route.js'
 import cors from 'cors'
 import { models } from './models/index.js'
 import defineAssociations from './models/association.js'
+import dotenv from 'dotenv'
+
+dotenv.config()
 
 defineAssociations(models)
 
@@ -18,11 +21,13 @@ app.use('/api', spotRoute)
 app.use('/api', pressRoute)
 app.use('/api', userRoute)
 
+const PORT = process.env.PORT
+
 sequelize.sync({ force: false })
     .then(() => console.log('Database connected'))
     .catch(err => console.error('Database error:', err))
 
 
-app.listen(3000, () => {
-    console.log('Server running on http://localhost:3000')
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`)
 })
