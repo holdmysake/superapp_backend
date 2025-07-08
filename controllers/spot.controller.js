@@ -187,7 +187,9 @@ export const getAllSpots = async (req, res) => {
                     },
                     {
                         model: Spot,
-                        as: 'spots'
+                        as: 'spots',
+                        separate: true,
+                        order: [['sort', 'ASC']]
                     }
                 ]
             }
