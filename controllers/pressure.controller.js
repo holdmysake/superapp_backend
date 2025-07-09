@@ -48,15 +48,12 @@ export const storeBulk = async (req, res) => {
         const pressData = []
 
         for (const p of press) {
-            const {
-                psi,
-                timestamp
-            } = p
+            const tsJakarta = moment(p.timestamp).tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
 
             const pressEntry = await Pressure.create({
                 spot_id,
-                psi,
-                timestamp
+                psi: p.psi,
+                timestamp: tsJakarta
             })
 
             pressData.push(pressEntry)
