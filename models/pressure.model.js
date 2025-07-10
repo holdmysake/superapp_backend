@@ -28,7 +28,7 @@ const defineUserDataModel = (tableName) => {
             allowNull: false,
             get() {
                 const raw = this.getDataValue('timestamp')
-                return raw ? moment(raw).tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss') : null
+                return raw ? moment(raw).format('YYYY-MM-DD HH:mm:ss') : null
             }
         }
     }, {
