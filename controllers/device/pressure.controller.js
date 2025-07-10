@@ -13,7 +13,7 @@ export const store = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        const timestamp = moment().format('YYYY-MM-DD HH:mm:ss')
+        const timestamp = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
 
         const press = await Pressure.create({
             spot_id,
