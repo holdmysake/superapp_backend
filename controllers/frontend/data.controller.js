@@ -8,16 +8,21 @@ export const getAllData = async (req, res) => {
         const pressureTableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(pressureTableName)
 
-        const date = new Date(timestamp)
-        const nextDate = Date(timestamp).setDate(new Date(timestamp).getDate() + 1)
+        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta')
+                            .startOf('day')
+                            .toDate()
+        const endOfDay   = moment(startOfDay)
+                            .add(1, 'day')
+                            .toDate()
 
         const press = await Pressure.findAll({
             where: {
                 timestamp: {
-                    [Op.gte]: date,
-                    [Op.lt]: nextDate
+                    [Op.gte]: startOfDay,
+                    [Op.lt]: endOfDay
                 }
-            }
+            },
+            order: [['timestamp','ASC']]
         })
 
         res.json(press)
