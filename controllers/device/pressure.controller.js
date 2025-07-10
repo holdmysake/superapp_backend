@@ -66,7 +66,9 @@ export const storeBulk = async (req, res) => {
             })
         }
 
-        res.json({ pressData, battery })
+        const timestamp = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
+
+        res.json({ pressData, battery, timestamp })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
