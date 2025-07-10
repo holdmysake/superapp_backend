@@ -1,10 +1,10 @@
-import defineUserDataModel from '../models/pressure.model.js'
-import Field from '../models/field.model.js'
-import Spot from '../models/spot.model.js'
-import Trunkline from '../models/trunkline.model.js'
+import defineUserDataModel from '../../models/pressure.model.js'
+import Field from '../../models/field.model.js'
+import Spot from '../../models/spot.model.js'
+import Trunkline from '../../models/trunkline.model.js'
 import jwt from 'jsonwebtoken'
-import User from '../models/user.model.js'
-import PredValue from '../models/pred_value.model.js'
+import User from '../../models/user.model.js'
+import PredValue from '../../models/pred_value.model.js'
 import { Op } from 'sequelize'
 
 const JWT_SECRET = process.env.JWT_SECRET

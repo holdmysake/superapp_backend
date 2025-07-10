@@ -1,5 +1,5 @@
-import Battery from "../models/battery.model.js"
-import defineUserDataModel from "../models/pressure.model.js"
+import Battery from "../../models/battery.model.js"
+import defineUserDataModel from "../../models/pressure.model.js"
 import moment from 'moment-timezone'
 
 export const getTimestamp = (req, res) => {

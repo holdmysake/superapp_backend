@@ -1,7 +1,7 @@
-import User from '../models/user.model.js'
+import User from '../../models/user.model.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import Field from '../models/field.model.js'
+import Field from '../../models/field.model.js'
 
 const JWT_SECRET = process.env.JWT_SECRET
 

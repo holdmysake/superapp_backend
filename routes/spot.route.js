@@ -11,7 +11,7 @@ import {
     updateSpot,
     deleteSpot,
     updateTrunkline
-} from '../controllers/spot.controller.js'
+} from '../controllers/panel/spot.controller.js'
 import {
     verifyTokenSA,
     verifyTokenAdmin,

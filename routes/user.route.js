@@ -7,7 +7,7 @@ import {
     deleteUser,
     getUsers,
     getRole
-} from '../controllers/user.controller.js'
+} from '../controllers/panel/user.controller.js'
 import {
     verifyTokenSA,
     verifyTokenAdmin,
