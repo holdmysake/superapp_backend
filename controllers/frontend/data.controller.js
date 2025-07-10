@@ -9,7 +9,7 @@ export const getAllData = async (req, res) => {
         const pressureTableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(pressureTableName)
 
-        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta')
+        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD')
                             .startOf('day')
                             .toDate()
         const endOfDay   = moment(startOfDay)
