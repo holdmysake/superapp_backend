@@ -55,7 +55,7 @@ export const storeBulk = async (req, res) => {
 
             if (
                 ts.isBefore(now.clone().subtract(7, 'days')) ||
-                ts.isAfter(now.clone().add(1,   'hour'))
+                ts.isAfter(now.clone().add(1,   'days'))
             ) {
                 skipped++
                 continue
