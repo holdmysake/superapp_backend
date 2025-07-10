@@ -3,7 +3,7 @@ import {
     getTimestamp,
     store,
     storeBulk
-} from '../controllers/device/pressure.controller.js'
+} from '../../controllers/device/pressure.controller.js'
 
 const router = express.Router()
 

@@ -7,12 +7,12 @@ import {
     deleteUser,
     getUsers,
     getRole
-} from '../controllers/panel/user.controller.js'
+} from '../../controllers/panel/user.controller.js'
 import {
     verifyTokenSA,
     verifyTokenAdmin,
     verifyTokenUser
-} from '../middlewares/user.middleware.js'
+} from '../../middlewares/user.middleware.js'
 
 const router = express.Router()
 

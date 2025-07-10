@@ -11,12 +11,12 @@ import {
     updateSpot,
     deleteSpot,
     updateTrunkline
-} from '../controllers/panel/spot.controller.js'
+} from '../../controllers/panel/spot.controller.js'
 import {
     verifyTokenSA,
     verifyTokenAdmin,
     verifyTokenUser
-} from '../middlewares/user.middleware.js'
+} from '../../middlewares/user.middleware.js'
 
 const router = express.Router()
 

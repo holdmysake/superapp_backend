@@ -1,8 +1,9 @@
 import express from 'express'
 import sequelize from './config/db.js'
-import spotRoute from './routes/spot.route.js'
-import pressRoute from './routes/pressure.route.js'
-import userRoute from './routes/user.route.js'
+import spotRoute from './routes/panel/spot.route.js'
+import pressRoute from './routes/device/pressure.route.js'
+import userRoute from './routes/panel/user.route.js'
+import dataRoute from './routes/frontend/data.controller.js'
 import cors from 'cors'
 import { models } from './models/index.js'
 import defineAssociations from './models/association.js'
@@ -17,9 +18,10 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 
-app.use('/api', spotRoute)
+app.use('/api/panel/', spotRoute)
+app.use('/api/panel/', userRoute)
 app.use('/api', pressRoute)
-app.use('/api', userRoute)
+app.use('/api/fe/', dataRoute)
 
 const PORT = process.env.PORT
 
