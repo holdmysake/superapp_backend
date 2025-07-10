@@ -12,7 +12,7 @@ const sequelize = new Sequelize(
         port: process.env.DB_PORT,
         dialect: process.env.DB_DIALECT,
         logging: false,
-        timezone: '+07:00',
+        // timezone: '+07:00',
         pool: {
             max: 10,
             min: 0,
