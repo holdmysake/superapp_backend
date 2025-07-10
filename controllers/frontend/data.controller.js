@@ -1,5 +1,5 @@
 import { Op } from "sequelize"
-import defineUserDataModel from "../../models/pressure.model"
+import defineUserDataModel from "../../models/pressure.model.js"
 
 export const getAllData = async (req, res) => {
     try {
