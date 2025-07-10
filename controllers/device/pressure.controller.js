@@ -43,11 +43,23 @@ export const storeBulk = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        const timestampBatt = new Date()
+        const timestampBatt = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
+        const now = moment().tz('Asia/Jakarta')
 
         const pressData = []
+        let skipped = 0
 
         for (const p of press) {
+            const ts = moment.tz(p.timestamp, 'YYYY-MM-DD HH:mm:ss', 'Asia/Jakarta')
+
+            if (
+                ts.isBefore(now.clone().subtract(7, 'days')) ||
+                ts.isAfter(now.clone().add(1,   'hour'))
+            ) {
+                skipped++
+                continue
+            }
+
             const pressEntry = await Pressure.create({
                 spot_id,
                 psi: p.psi,
