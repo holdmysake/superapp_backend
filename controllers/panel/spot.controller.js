@@ -378,7 +378,19 @@ export const getSpotsByField = async (req, res) => {
             attributes: ['spot_id', 'spot_name', 'sort']
         })
 
-        res.json(spots)
+        const grouped = spots.reduce((acc, spot) => {
+            const fid = spot.field_id
+            if (!acc[fid]) {
+                acc[fid] = {
+                    field_id: fid,
+                    spots: []
+                }
+            }
+            acc[fid].spots.push(spot)
+            return acc
+        }, {})
+
+        res.json(grouped)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
