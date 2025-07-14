@@ -355,58 +355,56 @@ export const deleteSpot = async (req, res) => {
 
 export const getSpotsByField = async (req, res) => {
     try {
+        // 1) Auth & role check
         const token = req.headers.authorization?.split(' ')[1]
-
         const decoded = jwt.verify(token, JWT_SECRET)
-
-        const user = await User.findOne({
-            where: {
-                user_id: decoded.user_id
-            }
-        })
-
+        const user = await User.findOne({ where: { user_id: decoded.user_id } })
         const isSA = user.role === 'superadmin'
 
-        const fields = await Field.findAll({
-            where: isSA ? {} : { field_id: user.field_id },
-            attributes: ['field_id','field_name'],
+        // 2) Query semua Spot, join Trunkline → Field
+        const spots = await Spot.findAll({
+            attributes: ['spot_id', 'spot_name', 'sort'],
             include: [{
                 model: Trunkline,
-                as: 'trunklines',
-                attributes: [],
+                as: 'trunkline',
+                attributes: ['tline_id', 'tline_name', 'field_id'],
                 include: [{
-                    model: Spot,
-                    as: 'spots',
-                    attributes: ['spot_id','spot_name','sort'],
-                    // include: {
-                    //     model: Trunkline,
-                    //     as: 'trunkline',
-                    //     attributes: ['tline_id', 'tline_name']
-                    // }
+                    model: Field,
+                    as: 'field',
+                    attributes: ['field_id', 'field_name']
                 }]
-            }]
+            }],
+            where: isSA
+                ? {}
+                : { '$trunkline.field_id$': user.field_id },
+            order: [['sort', 'ASC']]
         })
 
-        const result = fields.map(f => {
-            const flatSpots = f.trunklines
-                .flatMap(t => t.spots)
-                .sort((a,b) => a.sort - b.sort)
-                .map(s => ({
-                    spot_id:   s.spot_id,
-                    spot_name: s.spot_name,
-                    sort:      s.sort
-                }))
-
-            return {
-                field_id:   f.field_id,
-                field_name: f.field_name,
-                spots:      flatSpots
+        // 3) Group by field_id in JS
+        const grouped = {}
+        for (const spot of spots) {
+            const fld = spot.trunkline.field
+            if (!grouped[fld.field_id]) {
+                grouped[fld.field_id] = {
+                    field_id: fld.field_id,
+                    field_name: fld.field_name,
+                    spots: []
+                }
             }
-        })
+            grouped[fld.field_id].spots.push({
+                spot_id: spot.spot_id,
+                spot_name: spot.spot_name,
+                sort: spot.sort,
+                tline_id: spot.trunkline.tline_id,
+                tline_name: spot.trunkline.tline_name
+            })
+        }
 
-        res.json(result)
+        // 4) Kirim array hasil grouping
+        const result = Object.values(grouped)
+        return res.json(result)
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: error.message })
+        return res.status(500).json({ message: error.message })
     }
 }
