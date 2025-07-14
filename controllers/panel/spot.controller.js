@@ -368,29 +368,22 @@ export const getSpotsByField = async (req, res) => {
         const isSA = user.role === 'superadmin'
         const where = isSA ? {} : { field_id: user.field_id }
 
-        const spots = await Spot.findAll({
+        const fields = await Field.findAll({
             where,
-            include: {
+            attributes: ['field_id','field_name'],
+            include: [{
+              model: Spot,
+              as: 'spots',
+              attributes: ['spot_id','spot_name','sort'],
+              include: [{
                 model: Trunkline,
                 as: 'trunkline',
-                attributes: ['tline_id', 'tline_name']
-            },
-            attributes: ['spot_id', 'spot_name', 'sort']
-        })
+                attributes: ['tline_id','tline_name']
+              }]
+            }]
+          })
 
-        const grouped = spots.reduce((acc, spot) => {
-            const fid = spot.field_id
-            if (!acc[fid]) {
-                acc[fid] = {
-                    field_id: fid,
-                    spots: []
-                }
-            }
-            acc[fid].spots.push(spot)
-            return acc
-        }, {})
-
-        res.json(grouped)
+        res.json(fields)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
