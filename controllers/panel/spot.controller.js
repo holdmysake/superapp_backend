@@ -373,10 +373,7 @@ export const getSpotsByField = async (req, res) => {
             include: {
                 model: Trunkline,
                 as: 'trunkline',
-                include: {
-                    model: PredValue,
-                    as: 'pred_value'
-                }
+                attributes: ['tline_id', 'tline_name']
             }
         })
 
