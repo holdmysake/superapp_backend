@@ -366,7 +366,6 @@ export const getSpotsByField = async (req, res) => {
         })
 
         const isSA = user.role === 'superadmin'
-        const where = isSA ? {} : { field_id: user.field_id }
 
         const fields = await Field.findAll({
             where: isSA ? {} : { field_id: user.field_id },
@@ -379,11 +378,11 @@ export const getSpotsByField = async (req, res) => {
                     model: Spot,
                     as: 'spots',
                     attributes: ['spot_id','spot_name','sort'],
-                    include: {
-                        model: Trunkline,
-                        as: 'trunkline',
-                        attributes: ['tline_id', 'tline_name']
-                    }
+                    // include: {
+                    //     model: Trunkline,
+                    //     as: 'trunkline',
+                    //     attributes: ['tline_id', 'tline_name']
+                    // }
                 }]
             }]
         })
