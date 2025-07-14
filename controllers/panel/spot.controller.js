@@ -352,3 +352,37 @@ export const deleteSpot = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const getSpotsByField = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1]
+
+        const decoded = jwt.verify(token, JWT_SECRET)
+
+        const user = await User.findOne({
+            where: {
+                user_id: decoded.user_id
+            }
+        })
+
+        const isSA = user.role === 'superadmin'
+        const where = isSA ? {} : { field_id: user.field_id }
+
+        const spots = await Spot.findAll({
+            where,
+            include: {
+                model: Trunkline,
+                as: 'trunklines',
+                include: {
+                    model: PredValue,
+                    as: 'pred_value'
+                }
+            }
+        })
+
+        res.json(spots)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}

@@ -10,7 +10,8 @@ import {
     createSpot,
     updateSpot,
     deleteSpot,
-    updateTrunkline
+    updateTrunkline,
+    getSpotsByField
 } from '../../controllers/panel/spot.controller.js'
 import {
     verifyTokenSA,
@@ -31,5 +32,6 @@ router.post('/createSpot', verifyTokenAdmin, createSpot)
 router.post('/updateSpot', verifyTokenAdmin, updateSpot)
 router.post('/deleteSpot', verifyTokenAdmin, deleteSpot)
 router.post('/updateTrunkline', verifyTokenAdmin, updateTrunkline)
+router.post('/getSpotsByField', verifyTokenAdmin, getSpotsByField)
 
 export default router
