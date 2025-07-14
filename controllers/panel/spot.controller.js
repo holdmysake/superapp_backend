@@ -374,7 +374,8 @@ export const getSpotsByField = async (req, res) => {
                 model: Trunkline,
                 as: 'trunkline',
                 attributes: ['tline_id', 'tline_name']
-            }
+            },
+            attributes: ['spot_id', 'spot_name', 'sort']
         })
 
         res.json(spots)
