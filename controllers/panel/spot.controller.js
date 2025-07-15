@@ -355,13 +355,11 @@ export const deleteSpot = async (req, res) => {
 
 export const getSpotsByField = async (req, res) => {
     try {
-        // 1) Auth & role check
         const token = req.headers.authorization?.split(' ')[1]
         const decoded = jwt.verify(token, JWT_SECRET)
         const user = await User.findOne({ where: { user_id: decoded.user_id } })
         const isSA = user.role === 'superadmin'
 
-        // 2) Query semua Spot, join Trunkline → Field
         const spots = await Spot.findAll({
             attributes: ['spot_id', 'spot_name', 'sort'],
             include: [{
@@ -380,7 +378,6 @@ export const getSpotsByField = async (req, res) => {
             order: [['sort', 'ASC']]
         })
 
-        // 3) Group by field_id in JS
         const grouped = {}
         for (const spot of spots) {
             const fld = spot.trunkline.field
@@ -400,7 +397,6 @@ export const getSpotsByField = async (req, res) => {
             })
         }
 
-        // 4) Kirim array hasil grouping
         const result = Object.values(grouped)
         return res.json(result)
     } catch (error) {
