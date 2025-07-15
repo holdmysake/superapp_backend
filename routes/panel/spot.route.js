@@ -9,6 +9,7 @@ import {
     getAllSpots,
     createSpot,
     updateSpot,
+    updateSort,
     deleteSpot,
     updateTrunkline,
     getSpotsByField
@@ -30,6 +31,7 @@ router.post('/deleteTline', verifyTokenAdmin, deleteTline)
 router.post('/getAllSpots', verifyTokenAdmin, getAllSpots)
 router.post('/createSpot', verifyTokenAdmin, createSpot)
 router.post('/updateSpot', verifyTokenAdmin, updateSpot)
+router.post('/updateSort', verifyTokenAdmin, updateSort)
 router.post('/deleteSpot', verifyTokenAdmin, deleteSpot)
 router.post('/updateTrunkline', verifyTokenAdmin, updateTrunkline)
 router.post('/getSpotsByField', verifyTokenAdmin, getSpotsByField)

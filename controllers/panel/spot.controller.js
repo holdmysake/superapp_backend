@@ -321,6 +321,51 @@ export const updateSpot = async (req, res) => {
     }
 }
 
+export const updateSort = async (req, res) => {
+    try {
+        const { spot_id, sort: requestedSort } = req.body
+
+        const target = await Spot.findOne({ where: { spot_id } })
+
+        const prefix  = Math.floor(requestedSort / 100)
+        const desired = requestedSort % 100
+
+        const minSort = prefix * 100 + 1
+        const maxSort = prefix * 100 + 99
+
+        let siblings = await Spot.findAll({
+            where: {
+                sort: { [Op.between]: [minSort, maxSort] }
+            },
+            order: [['sort', 'ASC']]
+        })
+        siblings = siblings.filter(s => s.spot_id !== spot_id)
+
+        const insertAt = Math.min(Math.max(desired - 1, 0), siblings.length)
+        siblings.splice(insertAt, 0, target)
+
+        for (let i = 0; i < siblings.length; i++) {
+            const s      = siblings[i]
+            const newSort = prefix * 100 + (i + 1)
+
+            if (s.sort !== newSort) {
+                await Spot.update(
+                    { sort: newSort },
+                    { where: { spot_id: s.spot_id } }
+                )
+            }
+        }
+
+        const finalSort = prefix * 100 + (insertAt + 1)
+        await target.update({ sort: finalSort })
+
+        return res.json({ message: 'Sort berhasil diperbarui dan diresequence' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const deleteSpot = async (req, res) => {
     try {
         const { spot_id } = req.body
