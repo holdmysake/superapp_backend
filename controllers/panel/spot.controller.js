@@ -414,7 +414,7 @@ export const getSpotsByField = async (req, res) => {
                 include: [{
                     model: Field,
                     as: 'field',
-                    attributes: ['field_id', 'field_name']
+                    attributes: ['id', 'field_id', 'field_name']
                 }]
             }],
             where: isSA
