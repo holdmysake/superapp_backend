@@ -428,6 +428,7 @@ export const getSpotsByField = async (req, res) => {
             const fld = spot.trunkline.field
             if (!grouped[fld.field_id]) {
                 grouped[fld.field_id] = {
+                    id: fld.id,
                     field_id: fld.field_id,
                     field_name: fld.field_name,
                     spots: []
