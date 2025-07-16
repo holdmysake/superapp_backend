@@ -9,7 +9,7 @@ const Spot = sequelize.define('spot', {
         primaryKey: true
     },
     spot_id: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(10),
         allowNull: false,
         unique: true,
     },

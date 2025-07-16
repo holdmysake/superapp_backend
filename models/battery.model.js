@@ -10,7 +10,7 @@ const Battery = sequelize.define('battery', {
         primaryKey: true
     },
     spot_id: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(10),
         allowNull: false,
         unique: true,
         references: {

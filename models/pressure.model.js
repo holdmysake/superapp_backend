@@ -11,7 +11,7 @@ const defineUserDataModel = (tableName) => {
             primaryKey: true
         },
         spot_id: {
-            type: DataTypes.STRING,
+            type: DataTypes.STRING(10),
             allowNull: false,
             references: {
                 model: Spot,
@@ -33,7 +33,13 @@ const defineUserDataModel = (tableName) => {
         }
     }, {
         tableName,
-        timestamps: false
+        timestamps: false,
+        indexes: [
+            {
+                name: 'idx_spot_timestamp',
+                fields: ['spot_id', 'timestamp']
+            }
+        ]
     })
 }
 

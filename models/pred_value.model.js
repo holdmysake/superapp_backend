@@ -20,7 +20,7 @@ const PredValue = sequelize.define('pred_value', {
         onDelete: 'CASCADE'
     },
     spot_id: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(10),
         allowNull: false,
         references: {
             model: Spot,
