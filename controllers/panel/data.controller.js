@@ -146,7 +146,7 @@ export const downloadDataCSV = async (req, res) => {
             const key = `${time}|${date}`
 
             if (!dataMap.has(key)) {
-                dataMap.set(key, { time, date })
+                dataMap.set(key, { date, time })
             }
 
             const row = dataMap.get(key)
@@ -156,7 +156,7 @@ export const downloadDataCSV = async (req, res) => {
         }
 
         const sortedSpotIds = Array.from(spotSet).sort((a, b) => a - b)
-        const fields = ['date', 'time', ...sortedSpotIds.map(id => `spot_${id}`)]
+        const fields = ['date', 'time', ...sortedSpotIds]
 
         const finalRows = Array.from(dataMap.values())
         const parser = new Parser({ fields })
