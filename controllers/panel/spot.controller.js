@@ -78,6 +78,41 @@ export const deleteField = async (req, res) => {
     }
 }
 
+export const getTline = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1]
+
+        const decoded = jwt.verify(token, JWT_SECRET)
+
+        const user = await User.findOne({
+            where: {
+                user_id: decoded.user_id
+            }
+        })
+
+        const isSA = user.role === 'superadmin'
+
+        const queryOptions = {
+            include: {
+                model: Trunkline,
+                as: 'trunklines',
+                attributes: ['tline_id', 'tline_name']
+            }
+        }
+
+        if (!isSA) {
+            queryOptions.where = { field_id: user.field_id }
+        }
+
+        const tlines = await Field.findAll(queryOptions)
+
+        res.json(tlines)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const storeTline = async (req, res) => {
     try {
         const { field_id, tline_id, tline_name } = req.body

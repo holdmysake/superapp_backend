@@ -4,6 +4,7 @@ import {
     updateField,
     getField,
     deleteField,
+    getTline,
     storeTline,
     deleteTline,
     getAllSpots,
@@ -26,6 +27,7 @@ router.post('/storeField', verifyTokenSA, storeField)
 router.post('/updateField', verifyTokenSA, updateField)
 router.post('/getField', verifyTokenSA, getField)
 router.post('/deleteField', verifyTokenSA, deleteField)
+router.post('/getTline', verifyTokenAdmin, getTline)
 router.post('/storeTline', verifyTokenAdmin, storeTline)
 router.post('/deleteTline', verifyTokenAdmin, deleteTline)
 router.post('/getAllSpots', verifyTokenAdmin, getAllSpots)
