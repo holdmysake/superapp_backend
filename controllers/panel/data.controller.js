@@ -67,10 +67,10 @@ export const downloadDataCSV = async (req, res) => {
         // 1. Cari semua spot_id berdasarkan tline_id
         const spots = await Spot.findAll({
             where: { tline_id },
-            attributes: ['id']
+            attributes: ['spot_id']
         });
 
-        const spotIds = spots.map(spot => spot.id);
+        const spotIds = spots.map(spot => spot.spot_id);
 
         // 2. Ambil data pressure untuk semua spot_id tersebut
         const pressureData = await Pressure.findAll({
