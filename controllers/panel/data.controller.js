@@ -24,6 +24,7 @@ export const downloadDataCSV = async (req, res) => {
                     [Op.lt]: endOfDay
                 }
             },
+            attributes: ['timestamp','psi'],
             order: [['timestamp','ASC']]
         })
 
