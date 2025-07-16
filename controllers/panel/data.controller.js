@@ -32,7 +32,6 @@ export const downloadDataCSV = async (req, res) => {
         const csvData = pressureData.map(entry => {
             const ts = moment(entry.timestamp)
             return {
-                field_id: field_id,
                 date: ts.format('YYYY-MM-DD'),
                 time: ts.format('HH-mm-ss'),
                 psi: entry.psi
@@ -43,7 +42,7 @@ export const downloadDataCSV = async (req, res) => {
         const parser = new Parser({ fields })
         const csv = parser.parse(csvData)
 
-        const fileName = `pressure_${field_id}_${moment(timestamp).format('YYYYMMDD')}.csv`
+        const fileName = `pressure_${field_id}_${moment(timestamp).format('DD_MM_YYYY')}.csv`
         
         res.header('Content-Type', 'text/csv')
         res.attachment(fileName)
