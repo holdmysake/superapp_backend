@@ -93,7 +93,6 @@ export const downloadDataCSV = async (req, res) => {
 export const downloadDataCSVMulti = async (req, res) => {
     try {
         const { field_id, tline_id = [], timestamp } = req.body
-        // console.log(tline_id)
 
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
@@ -108,7 +107,6 @@ export const downloadDataCSVMulti = async (req, res) => {
             attributes: ['spot_id']
         })
         const spotIds = spots.map(s => s.spot_id)
-        // console.log(spotIds)
 
         const pressureData = await Pressure.findAll({
             where: {
@@ -172,7 +170,6 @@ export const downloadDataCSVMulti = async (req, res) => {
         archive.append(excelBuffer, { name: `${baseFileName}.xlsx` })
 
         await archive.finalize()
-        console.log(archive)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
