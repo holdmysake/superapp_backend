@@ -1,6 +1,7 @@
 import express from 'express'
 import {
-    downloadDataCSV
+    downloadDataCSV,
+    downloadDataCSVMulti
 } from '../../controllers/panel/data.controller.js'
 import {
     verifyTokenSA,
@@ -11,5 +12,6 @@ import {
 const router = express.Router()
 
 router.post('/downloadDataCSV', verifyTokenAdmin, downloadDataCSV)
+router.post('/downloadDataCSVMulti', verifyTokenAdmin, downloadDataCSVMulti)
 
 export default router
