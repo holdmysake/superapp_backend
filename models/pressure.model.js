@@ -37,7 +37,7 @@ const defineUserDataModel = (tableName) => {
         indexes: [
             {
                 name: 'idx_spot_timestamp',
-                fields: ['spot_id', 'timestamp']
+                fields: ['spot_id', 'psi', 'timestamp']
             }
         ]
     })
