@@ -34,6 +34,10 @@ export const downloadDataCSV = async (req, res) => {
             order: [['timestamp', 'ASC']]
         })
 
+        if (pressureData.length === 0) {
+            return res.status(404).json({ message: 'Data not found' })
+        }
+
         const dataMap = new Map()
         const spotSet = new Set()
 
@@ -78,7 +82,7 @@ export const downloadDataCSV = async (req, res) => {
 
         archive.append(csv, { name: `${baseFileName}.csv` })
         archive.append(excelBuffer, { name: `${baseFileName}.xlsx` })
-        
+
         await archive.finalize()
     } catch (error) {
         console.error(error)
