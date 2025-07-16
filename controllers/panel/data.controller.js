@@ -88,14 +88,14 @@ export const downloadDataCSV = async (req, res) => {
         const csvData = pressureData.map(entry => {
             const ts = moment(entry.timestamp);
             return {
-                field_id,
+                spot_id: entry.spot_id,
                 date: ts.format('YYYY-MM-DD'),
                 time: ts.format('HH-mm-ss'),
                 psi: entry.psi
             };
         });
 
-        const fields = ['field_id', 'date', 'time', 'psi'];
+        const fields = ['spot_id', 'date', 'time', 'psi'];
         const parser = new Parser({ fields });
         const csv = parser.parse(csvData);
 
