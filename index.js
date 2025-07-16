@@ -4,6 +4,7 @@ import spotRoute from './routes/panel/spot.route.js'
 import pressRoute from './routes/device/pressure.route.js'
 import userRoute from './routes/panel/user.route.js'
 import dataRoute from './routes/frontend/data.controller.js'
+import dataPanelRoute from './routes/panel/data.controller.js'
 import cors from 'cors'
 import { models } from './models/index.js'
 import defineAssociations from './models/association.js'
@@ -20,6 +21,7 @@ app.use(cors())
 
 app.use('/api/panel/', spotRoute)
 app.use('/api/panel/', userRoute)
+app.use('/api/panel/', dataPanelRoute)
 app.use('/api', pressRoute)
 app.use('/api/fe/', dataRoute)
 
