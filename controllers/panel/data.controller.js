@@ -93,6 +93,7 @@ export const downloadDataCSV = async (req, res) => {
 export const downloadDataCSVMulti = async (req, res) => {
     try {
         const { field_id, tline_id = [], timestamp } = req.body
+        console.log(tline_id)
 
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
