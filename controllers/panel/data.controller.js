@@ -166,10 +166,22 @@ export const downloadDataCSVMulti = async (req, res) => {
         const archive = archiver('zip')
         archive.pipe(res)
 
-        archive.append(csv, { name: `${baseFileName}.csv` })
-        archive.append(excelBuffer, { name: `${baseFileName}.xlsx` })
+        // archive.append(csv, { name: `${baseFileName}.csv` })
+        // archive.append(excelBuffer, { name: `${baseFileName}.xlsx` })
+
+        archive.append('tes isi file 1', { name: 'file1.csv' })
+        archive.append('tes isi file 2', { name: 'file2.csv' })
 
         await archive.finalize()
+
+        archive.on('error', err => {
+            console.error('Archive error:', err)
+            res.status(500).end()
+        })
+
+        console.log('Mulai mengirim ZIP...')
+        archive.on('end', () => console.log('ZIP stream selesai dikirim'))
+        archive.on('warning', err => console.warn('ZIP warning:', err))
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
