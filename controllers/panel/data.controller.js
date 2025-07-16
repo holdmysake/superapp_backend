@@ -62,7 +62,7 @@ export const downloadDataCSV = async (req, res) => {
         const rows = Array.from(dataMap.values())
 
         const datePart = moment(timestamp).format('DD_MM_YYYY')
-        const baseFileName = `pressure_${tline_id.join('-')}_${datePart}`
+        const baseFileName = `pressure_${field_id}_${datePart}`
 
         const parser = new Parser({ fields: headers })
         const csv = parser.parse(rows)
