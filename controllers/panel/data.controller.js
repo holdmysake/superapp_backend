@@ -28,7 +28,19 @@ export const downloadDataCSV = async (req, res) => {
             order: [['timestamp','ASC']]
         })
 
-        res.json(pressureData)
+        const formattedData = {
+            field_id: field_id,
+            pressures: pressureData.map(entry => {
+                const ts = moment(entry.timestamp)
+                return {
+                    date: ts.format('YYYY-MM-DD'),
+                    time: ts.format('HH-mm-ss'),
+                    psi: entry.psi
+                }
+            })
+        }
+
+        res.json(formattedData)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
