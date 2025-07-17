@@ -18,7 +18,7 @@ export const getOffDevice = async (req, res) => {
         }
 
         const now = moment()
-        const gapThreshold = 5 * 60 * 1000
+        const gapThreshold = 3 * 60 * 1000
 
         const spotStatus = new Map()
 
