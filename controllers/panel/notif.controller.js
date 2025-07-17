@@ -8,7 +8,16 @@ export const getOffDevice = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
+        const startOfDay = moment().startOf('day').toDate()
+        const endOfDay = moment().endOf('day').toDate()
+
         const allData = await Pressure.findAll({
+            where: {
+                timestamp: {
+                    [Op.gte]: startOfDay,
+                    [Op.lte]: endOfDay
+                }
+            },
             attributes: ['spot_id', 'timestamp'],
             order: [['spot_id', 'ASC'], ['timestamp', 'ASC']]
         })
