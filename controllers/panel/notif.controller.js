@@ -11,8 +11,8 @@ export const getOffDevice = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        const startOfDay = moment().startOf('day').toDate()
-        const endOfDay = moment().endOf('day').toDate()
+        const startOfDay = moment.utc().startOf('day').toDate()
+        const endOfDay = moment.utc().endOf('day').toDate()
 
         // Step 1: Ambil semua trunkline dari field
         const trunklines = await Trunkline.findAll({
@@ -141,6 +141,13 @@ export const getOffDevice = async (req, res) => {
                 offPeriods
             })
         }
+
+        console.log({
+            field_id,
+            startOfDay: startOfDay.toISOString(),
+            endOfDay: endOfDay.toISOString(),
+            now: moment.utc().toISOString()
+        })
 
         res.json(results)
     } catch (error) {
