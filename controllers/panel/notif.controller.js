@@ -105,18 +105,24 @@ export const getOffDevice = async (req, res) => {
 
             // Periksa apakah terakhir lebih dari 5 menit lalu
             const now = moment()
-            if (now.diff(lastTimestamp, 'minutes') > 5) {
+            const gapSinceLast = now.diff(lastTimestamp, 'minutes')
+            if (gapSinceLast > 5) {
                 offPeriods.push({
                     from: lastTimestamp.toISOString(),
                     to: null,
-                    durationMinutes: now.diff(lastTimestamp, 'minutes'),
+                    durationMinutes: gapSinceLast,
                     stillOff: true
                 })
             }
 
+            let status = 'on'
+            if (offPeriods.length > 0) {
+                status = offPeriods.some(p => p.stillOff) ? 'off' : 'had-off'
+            }
+
             results.push({
                 spot_id,
-                status: offPeriods.length > 0 ? 'had-off' : 'on',
+                status,
                 lastSeen,
                 offPeriods
             })
