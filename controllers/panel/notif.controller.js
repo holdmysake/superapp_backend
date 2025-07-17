@@ -11,8 +11,8 @@ export const getOffDevice = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        const startOfDay = moment.utc().startOf('day').toDate()
-        const endOfDay = moment.utc().endOf('day').toDate()
+        const startOfDay = moment().startOf('day').toDate()
+        const endOfDay = moment().endOf('day').toDate()
 
         // Step 1: Ambil semua trunkline dari field
         const trunklines = await Trunkline.findAll({
@@ -50,7 +50,7 @@ export const getOffDevice = async (req, res) => {
         for (const entry of todayPressures) {
             const id = entry.spot_id
             if (!grouped.has(id)) grouped.set(id, [])
-            grouped.get(id).push(moment.utc(entry.timestamp))
+            grouped.get(id).push(moment(entry.timestamp).tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss'))
         }
 
         const results = []
@@ -77,7 +77,7 @@ export const getOffDevice = async (req, res) => {
                     continue
                 }
 
-                lastSeen = moment.utc(lastData.timestamp)
+                lastSeen = moment(lastData.timestamp).tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
                 results.push({
                     spot_id,
                     status: 'off',
@@ -104,7 +104,7 @@ export const getOffDevice = async (req, res) => {
             lastSeen = lastTimestamp.toISOString()
 
             // Periksa apakah terakhir lebih dari 5 menit lalu
-            const now = moment.utc()
+            const now = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
             const gapSinceLast = now.diff(lastTimestamp, 'minutes')
 
             console.log({
@@ -144,9 +144,9 @@ export const getOffDevice = async (req, res) => {
 
         console.log({
             field_id,
-            startOfDay: startOfDay.toISOString(),
-            endOfDay: endOfDay.toISOString(),
-            now: moment.utc().toISOString()
+            startOfDay,
+            endOfDay,
+            now
         })
 
         res.json(results)
