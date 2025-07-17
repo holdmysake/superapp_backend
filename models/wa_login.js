@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize'
 import sequelize from '../config/db.js'
 import Field from './field.model.js'
-import Spot from './spot.model.js'
+import User from './user.model.js'
 
 const WALogin = sequelize.define('wa_login', {
     id: {
@@ -20,12 +20,12 @@ const WALogin = sequelize.define('wa_login', {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
     },
-    spot_id: {
+    user_id: {
         type: DataTypes.STRING(10),
         allowNull: true,
         references: {
-            model: Spot,
-            key: 'spot_id'
+            model: User,
+            key: 'user_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
