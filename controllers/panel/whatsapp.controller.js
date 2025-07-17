@@ -4,7 +4,7 @@ import qrcode from 'qrcode'
 const sessions = {}
 
 export const scanQR = async (req, res) => {
-    const { field_id } = req.params
+    const { field_id } = req.body
     if (!field_id) return res.status(400).json({ error: 'field_id is required' })
 
     try {
