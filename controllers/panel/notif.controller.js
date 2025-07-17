@@ -28,7 +28,7 @@ export const getOffDevice = async (req, res) => {
         }
 
         const now = moment()
-        const gapThreshold = 5 * 60 * 1000 // 5 menit dalam ms
+        const gapThreshold = 5 * 60 * 1000 // 5 minutes in ms
 
         const spotStatus = new Map()
 
@@ -38,7 +38,7 @@ export const getOffDevice = async (req, res) => {
             if (!spotStatus.has(spot_id)) {
                 spotStatus.set(spot_id, {
                     lastTimestamp: ts,
-                    hasGap: false
+                    downtimes: []  // array of { start, end }
                 })
                 continue
             }
@@ -47,7 +47,12 @@ export const getOffDevice = async (req, res) => {
             const diff = ts.diff(status.lastTimestamp)
 
             if (diff > gapThreshold) {
-                status.hasGap = true
+                // Ada downtime antara data sebelumnya dan sekarang
+                status.downtimes.push({
+                    start: status.lastTimestamp.clone(),
+                    end: ts.clone(),
+                    durationMs: diff
+                })
             }
 
             status.lastTimestamp = ts
@@ -58,13 +63,28 @@ export const getOffDevice = async (req, res) => {
         for (const [spot_id, status] of spotStatus.entries()) {
             const diffNow = now.diff(status.lastTimestamp)
 
-            if (diffNow > gapThreshold || status.hasGap) {
-                offDevices.push({
-                    spot_id,
-                    lastSeen: status.lastTimestamp.format('YYYY-MM-DD HH:mm:ss'),
-                    isCurrentlyOff: diffNow > gapThreshold,
-                    hadDowntime: status.hasGap
-                })
+            const isCurrentlyOff = diffNow > gapThreshold
+            const hadDowntime = status.downtimes.length > 0
+
+            const lastDowntime = status.downtimes[status.downtimes.length - 1]
+
+            const deviceInfo = {
+                spot_id,
+                lastSeen: status.lastTimestamp.format('YYYY-MM-DD HH:mm:ss'),
+                isCurrentlyOff,
+                hadDowntime
+            }
+
+            if (!isCurrentlyOff && hadDowntime) {
+                deviceInfo.lastDowntime = {
+                    from: lastDowntime.start.format('YYYY-MM-DD HH:mm:ss'),
+                    to: lastDowntime.end.format('YYYY-MM-DD HH:mm:ss'),
+                    durationMinutes: Math.round(lastDowntime.durationMs / 60000)
+                }
+            }
+
+            if (isCurrentlyOff || hadDowntime) {
+                offDevices.push(deviceInfo)
             }
         }
 
