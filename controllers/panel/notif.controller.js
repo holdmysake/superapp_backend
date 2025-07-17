@@ -61,7 +61,8 @@ export const getOffDevice = async (req, res) => {
         const offDevices = [];
 
         for (const [spot_id, status] of spotStatus.entries()) {
-            const diffNow = now.diff(status.lastTimestamp);
+            const lastTs = moment(status.lastTimestamp)
+            const diffNow = now.diff(lastTs)
             const isCurrentlyOff = diffNow > gapThreshold;
             const hadDowntime = status.downtimes.length > 0;
 
