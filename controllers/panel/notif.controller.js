@@ -4,13 +4,13 @@ import { Op } from "sequelize"
 
 export const getOffDevice = async (req, res) => {
     try {
-        const { field_id } = req.body
+        const { field_id } = req.body;
 
-        const tableName = `pressure_${field_id}`
-        const Pressure = defineUserDataModel(tableName)
+        const tableName = `pressure_${field_id}`;
+        const Pressure = defineUserDataModel(tableName);
 
-        const startOfDay = moment().startOf('day').toDate()
-        const endOfDay = moment().endOf('day').toDate()
+        const startOfDay = moment().startOf('day').toDate();
+        const endOfDay = moment().endOf('day').toDate();
 
         const allData = await Pressure.findAll({
             where: {
@@ -21,76 +21,74 @@ export const getOffDevice = async (req, res) => {
             },
             attributes: ['spot_id', 'timestamp'],
             order: [['spot_id', 'ASC'], ['timestamp', 'ASC']]
-        })
+        });
 
         if (allData.length === 0) {
-            return res.status(404).json({ message: 'No data found for this field' })
+            return res.status(404).json({ message: 'No data found for this field' });
         }
 
-        const now = moment()
-        const gapThreshold = 5 * 60 * 1000 // 5 minutes in ms
+        const now = moment();
+        const gapThreshold = 5 * 60 * 1000; // 5 minutes in ms
 
-        const spotStatus = new Map()
+        const spotStatus = new Map();
 
         for (const { spot_id, timestamp } of allData) {
-            const ts = moment(timestamp)
+            const ts = moment(timestamp);
 
             if (!spotStatus.has(spot_id)) {
                 spotStatus.set(spot_id, {
                     lastTimestamp: ts,
-                    downtimes: []  // array of { start, end }
-                })
-                continue
+                    downtimes: []
+                });
+                continue;
             }
 
-            const status = spotStatus.get(spot_id)
-            const diff = ts.diff(status.lastTimestamp)
+            const status = spotStatus.get(spot_id);
+            const diff = ts.diff(status.lastTimestamp);
 
             if (diff > gapThreshold) {
-                // Ada downtime antara data sebelumnya dan sekarang
                 status.downtimes.push({
-                    start: status.lastTimestamp.clone(),
-                    end: ts.clone(),
-                    durationMs: diff
-                })
+                    from: status.lastTimestamp.format('YYYY-MM-DD HH:mm:ss'),
+                    to: ts.format('YYYY-MM-DD HH:mm:ss'),
+                    durationMinutes: Math.round(diff / 60000)
+                });
             }
 
-            status.lastTimestamp = ts
+            status.lastTimestamp = ts;
         }
 
-        const offDevices = []
+        const offDevices = [];
 
         for (const [spot_id, status] of spotStatus.entries()) {
-            const diffNow = now.diff(status.lastTimestamp)
-
-            const isCurrentlyOff = diffNow > gapThreshold
-            const hadDowntime = status.downtimes.length > 0
-
-            const lastDowntime = status.downtimes[status.downtimes.length - 1]
+            const diffNow = now.diff(status.lastTimestamp);
+            const isCurrentlyOff = diffNow > gapThreshold;
+            const hadDowntime = status.downtimes.length > 0;
 
             const deviceInfo = {
                 spot_id,
                 lastSeen: status.lastTimestamp.format('YYYY-MM-DD HH:mm:ss'),
                 isCurrentlyOff,
-                hadDowntime
-            }
+                hadDowntime,
+                downtimes: status.downtimes
+            };
 
-            if (!isCurrentlyOff && hadDowntime) {
-                deviceInfo.lastDowntime = {
-                    from: lastDowntime.start.format('YYYY-MM-DD HH:mm:ss'),
-                    to: lastDowntime.end.format('YYYY-MM-DD HH:mm:ss'),
-                    durationMinutes: Math.round(lastDowntime.durationMs / 60000)
-                }
+            // Jika sedang off, tambahkan downtime yang sedang berjalan sekarang
+            if (isCurrentlyOff) {
+                deviceInfo.downtimes.push({
+                    from: status.lastTimestamp.format('YYYY-MM-DD HH:mm:ss'),
+                    to: now.format('YYYY-MM-DD HH:mm:ss'),
+                    durationMinutes: Math.round(diffNow / 60000)
+                });
             }
 
             if (isCurrentlyOff || hadDowntime) {
-                offDevices.push(deviceInfo)
+                offDevices.push(deviceInfo);
             }
         }
 
-        res.json({ spotStatus: Object.fromEntries(spotStatus), offDevices })
+        res.json({ spotStatus: Object.fromEntries(spotStatus), offDevices });
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: error.message })
+        console.error(error);
+        res.status(500).json({ message: error.message });
     }
-}
+};
