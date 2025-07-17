@@ -1,7 +1,7 @@
 import express from 'express'
 import { 
     scanQR
-} from '../controllers/whatsapp.controller.js'
+} from '../../controllers/panel/whatsapp.controller.js'
 
 const router = express.Router()
 
