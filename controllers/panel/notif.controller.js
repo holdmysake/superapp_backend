@@ -1,5 +1,5 @@
 import moment from "moment-timezone"
-import defineUserDataModel from "../../models/pressure.model"
+import defineUserDataModel from "../../models/pressure.model.js"
 
 export const getOffDevice = async (req, res) => {
     try {
