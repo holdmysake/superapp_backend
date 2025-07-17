@@ -50,7 +50,7 @@ export const getOffDevice = async (req, res) => {
         for (const entry of todayPressures) {
             const id = entry.spot_id
             if (!grouped.has(id)) grouped.set(id, [])
-            grouped.get(id).push(moment(entry.timestamp))
+            grouped.get(id).push(moment(entry.timestamp).tz('Asia/Jakarta'))
         }
 
         const results = []
@@ -77,7 +77,7 @@ export const getOffDevice = async (req, res) => {
                     continue
                 }
 
-                lastSeen = moment(lastData.timestamp)
+                lastSeen = moment(lastData.timestamp).tz('Asia/Jakarta')
                 results.push({
                     spot_id,
                     status: 'off',
@@ -104,7 +104,7 @@ export const getOffDevice = async (req, res) => {
             lastSeen = lastTimestamp.toISOString()
 
             // Periksa apakah terakhir lebih dari 5 menit lalu
-            const now = moment()
+            const now = moment().tz('Asia/Jakarta')
             const gapSinceLast = now.diff(lastTimestamp, 'minutes')
 
             console.log({
