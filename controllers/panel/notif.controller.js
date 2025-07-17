@@ -18,7 +18,7 @@ export const getOffDevice = async (req, res) => {
         }
 
         const now = moment()
-        const gapThreshold = 1 * 60 * 1000
+        const gapThreshold = 5 * 60 * 1000
 
         const spotStatus = new Map()
 
@@ -59,7 +59,7 @@ export const getOffDevice = async (req, res) => {
             }
         }
 
-        res.json({ offDevices })
+        res.json({ spotStatus, offDevices })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
