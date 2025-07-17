@@ -83,9 +83,9 @@ export const getOffDevice = async (req, res) => {
                 results.push({
                     spot_id,
                     status: 'off',
-                    lastSeen: lastSeenMoment.toISOString(),
+                    lastSeen: lastSeenMoment.format("YYYY-MM-DD HH:mm:ss"),
                     message: 'No data today',
-                    offSince: lastSeenMoment.toISOString()
+                    offSince: lastSeenMoment.format("YYYY-MM-DD HH:mm:ss")
                 })
                 continue
             }
@@ -139,8 +139,13 @@ export const getOffDevice = async (req, res) => {
             results.push({
                 spot_id,
                 status,
-                lastSeen: lastSeen.toISOString(),
-                offPeriods
+                lastSeen: lastSeen.format("YYYY-MM-DD HH:mm:ss"),
+                offPeriods: offPeriods.map(p => ({
+                    from: moment.tz(p.from, 'Asia/Jakarta').format("YYYY-MM-DD HH:mm:ss"),
+                    to: moment.tz(p.to, 'Asia/Jakarta').format("YYYY-MM-DD HH:mm:ss"),
+                    durationMinutes: p.durationMinutes,
+                    ...(p.stillOff && { stillOff: true })
+                }))
             })
         }
 
