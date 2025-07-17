@@ -24,11 +24,11 @@ export const getOffDevice = async (req, res) => {
         })
 
         if (allData.length === 0) {
-            res.status(404).json({ message: 'No data found for this field' })
+            return res.status(404).json({ message: 'No data found for this field' })
         }
 
         const now = moment()
-        const gapThreshold = 5 * 60 * 1000
+        const gapThreshold = 5 * 60 * 1000 // 5 menit dalam ms
 
         const spotStatus = new Map()
 
@@ -44,14 +44,13 @@ export const getOffDevice = async (req, res) => {
             }
 
             const status = spotStatus.get(spot_id)
-            const diff = ts.diff(status)
+            const diff = ts.diff(status.lastTimestamp)
 
             if (diff > gapThreshold) {
                 status.hasGap = true
             }
 
             status.lastTimestamp = ts
-            spotStatus.set(spot_id, status.lastTimestamp)
         }
 
         const offDevices = []
@@ -62,14 +61,14 @@ export const getOffDevice = async (req, res) => {
             if (diffNow > gapThreshold || status.hasGap) {
                 offDevices.push({
                     spot_id,
-                    lastSeen: status.lastTimestamp.format('YYYY-MM-DD hh:mm:ss'),
+                    lastSeen: status.lastTimestamp.format('YYYY-MM-DD HH:mm:ss'),
                     isCurrentlyOff: diffNow > gapThreshold,
                     hadDowntime: status.hasGap
                 })
             }
         }
 
-        res.json({ spotStatus, offDevices })
+        res.json({ spotStatus: Object.fromEntries(spotStatus), offDevices })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
