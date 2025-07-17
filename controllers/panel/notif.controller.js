@@ -117,8 +117,7 @@ export const getOffDevice = async (req, res) => {
             if (gapSinceLast > 5) {
                 offPeriods.push({
                     from: lastTimestamp.toISOString(),
-                    // to: now.toISOString(),
-                    to: "now",
+                    to: now.toISOString(),
                     durationMinutes: gapSinceLast,
                     stillOff: true
                 })
