@@ -88,7 +88,17 @@ export const getOffDevice = async (req, res) => {
             }
         }
 
-        res.json({ spotStatus: Object.fromEntries(spotStatus), offDevices });
+        const result = offDevices.map(device => {
+            return {
+                ...device,
+                downtimes: device.downtimes.map(dt => ({
+                    ...dt,
+                    durationMinutes: Number(dt.durationMinutes)
+                }))
+            }
+        })
+        
+        res.json({ offDevices: result })
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: error.message });
