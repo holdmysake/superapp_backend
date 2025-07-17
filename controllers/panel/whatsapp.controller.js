@@ -13,10 +13,6 @@ export const scanQR = async (req, res) => {
 
         const decoded = jwt.verify(token, JWT_SECRET)
 
-        const user = await User.findOne({
-            where: { user_id: decoded.user_id }
-        })
-
         const existing = await WALogin.findOne({ where: { field_id } })
 
         if (existing && existing.is_login === 1) {
