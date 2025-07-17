@@ -2,6 +2,7 @@ import moment from "moment-timezone"
 import defineUserDataModel from "../../models/pressure.model.js"
 import Trunkline from "../../models/trunkline.model.js"
 import Spot from "../../models/spot.model.js"
+import { Op } from "sequelize"
 
 export const getOffDevice = async (req, res) => {
     try {
