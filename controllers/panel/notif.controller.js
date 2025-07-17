@@ -28,7 +28,7 @@ export const getOffDevice = async (req, res) => {
     }
 
     const now = moment();
-    const gapThreshold = 5 * 60 * 1000; // 5 minutes in ms
+    const gapThreshold = 5 * 60 * 1000; // 5 minutes
     const spotStatus = new Map();
 
     for (const { spot_id, timestamp } of allData) {
@@ -62,41 +62,33 @@ export const getOffDevice = async (req, res) => {
     for (const [spot_id, status] of spotStatus.entries()) {
       const lastTs = moment(status.lastTimestamp);
       const diffNow = now.diff(lastTs);
+
       const isCurrentlyOff = diffNow > gapThreshold;
       const hadDowntime = status.downtimes.length > 0;
 
-      const deviceInfo = {
-        spot_id,
-        lastSeen: lastTs.format('YYYY-MM-DD HH:mm:ss'),
-        isCurrentlyOff,
-        hadDowntime,
-        downtimes: [...status.downtimes]
-      };
-
-      // Tambahkan downtime terakhir yang sedang berlangsung (lastSeen → now)
-      if (isCurrentlyOff) {
-        deviceInfo.downtimes.push({
+      // Tambahkan downtime terakhir jika sekarang tidak ada data baru lebih dari 5 menit
+      let finalDowntimes = [...status.downtimes];
+      if (diffNow > gapThreshold) {
+        finalDowntimes.push({
           from: lastTs.format('YYYY-MM-DD HH:mm:ss'),
           to: now.format('YYYY-MM-DD HH:mm:ss'),
           durationMinutes: Math.round(diffNow / 60000)
         });
       }
 
-      if (deviceInfo.downtimes.length > 0) {
-        offDevices.push(deviceInfo);
-      }
+      offDevices.push({
+        spot_id,
+        lastSeen: lastTs.format('YYYY-MM-DD HH:mm:ss'),
+        isCurrentlyOff,
+        hadDowntime: finalDowntimes.length > 0,
+        downtimes: finalDowntimes.map(dt => ({
+          ...dt,
+          durationMinutes: Number(dt.durationMinutes)
+        }))
+      });
     }
 
-    // Normalisasi durasi
-    const result = offDevices.map(device => ({
-      ...device,
-      downtimes: device.downtimes.map(dt => ({
-        ...dt,
-        durationMinutes: Number(dt.durationMinutes)
-      }))
-    }));
-
-    res.json({ offDevices: result });
+    res.json({ offDevices });
 
   } catch (error) {
     console.error(error);
