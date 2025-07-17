@@ -21,7 +21,7 @@ const WALogin = sequelize.define('wa_login', {
         onDelete: 'CASCADE'
     },
     user_id: {
-        type: DataTypes.STRING(10),
+        type: DataTypes.STRING,
         allowNull: true,
         references: {
             model: User,
