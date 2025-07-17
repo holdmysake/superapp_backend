@@ -35,7 +35,7 @@ export const scanQR = async (req, res) => {
 
         let isResponded = false
 
-        sock.ev.once('connection.update', async (update) => {
+        sock.ev.on('connection.update', async (update) => {
             const { qr, connection } = update
 
             if (qr && !isResponded) {
