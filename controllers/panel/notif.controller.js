@@ -55,6 +55,7 @@ export const getOffDevice = async (req, res) => {
             }
 
             status.lastTimestamp = ts;
+            spotStatus.set(spot_id, status);
         }
 
         const offDevices = [];
