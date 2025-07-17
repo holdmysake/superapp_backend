@@ -11,8 +11,9 @@ export const getOffDevice = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        const startOfDay = moment().startOf('day').toDate()
-        const endOfDay = moment().endOf('day').toDate()
+        const now = moment.tz('Asia/Jakarta')
+        const startOfDay = now.clone().startOf('day')
+        const endOfDay = now.clone().endOf('day')
 
         // Step 1: Ambil semua trunkline dari field
         const trunklines = await Trunkline.findAll({
@@ -37,8 +38,8 @@ export const getOffDevice = async (req, res) => {
             where: {
                 spot_id: spotIds,
                 timestamp: {
-                    [Op.gte]: startOfDay,
-                    [Op.lte]: endOfDay
+                    [Op.gte]: startOfDay.toDate(),
+                    [Op.lte]: endOfDay.toDate()
                 }
             },
             attributes: ['spot_id', 'timestamp'],
@@ -49,8 +50,9 @@ export const getOffDevice = async (req, res) => {
         const grouped = new Map()
         for (const entry of todayPressures) {
             const id = entry.spot_id
+            const ts = moment.tz(entry.timestamp, 'Asia/Jakarta')
             if (!grouped.has(id)) grouped.set(id, [])
-            grouped.get(id).push(moment(entry.timestamp).tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss'))
+            grouped.get(id).push(ts)
         }
 
         const results = []
@@ -77,13 +79,13 @@ export const getOffDevice = async (req, res) => {
                     continue
                 }
 
-                lastSeen = moment(lastData.timestamp).tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
+                const lastSeenMoment = moment.tz(lastData.timestamp, 'Asia/Jakarta')
                 results.push({
                     spot_id,
                     status: 'off',
-                    lastSeen: lastSeen.toISOString(),
+                    lastSeen: lastSeenMoment.toISOString(),
                     message: 'No data today',
-                    offSince: lastSeen.toISOString()
+                    offSince: lastSeenMoment.toISOString()
                 })
                 continue
             }
@@ -101,10 +103,8 @@ export const getOffDevice = async (req, res) => {
             }
 
             const lastTimestamp = timestamps[timestamps.length - 1]
-            lastSeen = lastTimestamp.toISOString()
+            lastSeen = lastTimestamp
 
-            // Periksa apakah terakhir lebih dari 5 menit lalu
-            const now = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
             const gapSinceLast = now.diff(lastTimestamp, 'minutes')
 
             console.log({
@@ -117,7 +117,7 @@ export const getOffDevice = async (req, res) => {
             if (gapSinceLast > 5) {
                 offPeriods.push({
                     from: lastTimestamp.toISOString(),
-                    to: null,
+                    to: now.toISOString(),
                     durationMinutes: gapSinceLast,
                     stillOff: true
                 })
@@ -125,28 +125,30 @@ export const getOffDevice = async (req, res) => {
 
             let status = 'on'
             let offSince = null
-            if (status === 'off') {
-                const lastOff = offPeriods.find(p => p.stillOff)
-                offSince = lastOff?.from || null
-            }
-            
+
             if (offPeriods.length > 0) {
-                status = offPeriods.some(p => p.stillOff) ? 'off' : 'had-off'
+                const lastOff = offPeriods.find(p => p.stillOff)
+                if (lastOff) {
+                    status = 'off'
+                    offSince = lastOff.from
+                } else {
+                    status = 'had-off'
+                }
             }
 
             results.push({
                 spot_id,
                 status,
-                lastSeen,
+                lastSeen: lastSeen.toISOString(),
                 offPeriods
             })
         }
 
         console.log({
             field_id,
-            startOfDay,
-            endOfDay,
-            now
+            startOfDay: startOfDay.toISOString(),
+            endOfDay: endOfDay.toISOString(),
+            now: now.toISOString()
         })
 
         res.json(results)
