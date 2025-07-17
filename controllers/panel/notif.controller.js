@@ -1,5 +1,6 @@
 import moment from "moment-timezone"
 import defineUserDataModel from "../../models/pressure.model.js"
+import { Op } from "sequelize"
 
 export const getOffDevice = async (req, res) => {
     try {
