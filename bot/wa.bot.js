@@ -112,20 +112,20 @@ export async function disconnectField(fieldId) {
 }
 
 async function updateFieldConnectionStatus(fieldId, status, sock = null, token = null) {
-    const updateData = { is_connect: status }
+    const updateData = { is_login: status }
 
     if (status && sock && sock.user) {
         updateData.no_wa = sock.user.id
         if (token) {
             const decoded = jwt.decode(token)
-            updateData.user_id = decoded?.id || null
+            updateData.user_id = decoded?.user_id || null
         }
     } else {
         updateData.no_wa = null
         updateData.user_id = null
     }
 
-    await Field.update(updateData, { where: { id: fieldId } })
+    await Field.update(updateData, { where: { fieldId } })
     console.log(`[DB] Updated field ${fieldId}:`, updateData)
 }
 
