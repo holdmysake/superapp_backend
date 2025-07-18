@@ -10,7 +10,7 @@ export const scanQRCodeField = async (req, res) => {
         const qr = await waBot.getQRCodeForField(field_id, token)
 
         if (!qr) {
-            return res.status(200).json({
+            return res.status(400).json({
                 status: 'already_connected',
                 message: 'Field sudah login'
             })
