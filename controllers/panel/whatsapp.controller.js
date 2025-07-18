@@ -2,6 +2,7 @@ import qrcode from 'qrcode'
 import { getWhatsAppSocket } from '../../services/whatsapp.service.js'
 import WALogin from '../../models/wa_login.js'
 import jwt from 'jsonwebtoken'
+import fs from 'fs-extra'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -23,6 +24,7 @@ export const scanQR = async (req, res) => {
             await WALogin.update({ is_login: 0 }, { where: { field_id } })
         }
 
+        await fs.remove(`./sessions/${field_id}`)
         const sock = await getWhatsAppSocket(field_id)
 
         let timeoutId
