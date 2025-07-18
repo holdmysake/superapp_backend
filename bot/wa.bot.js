@@ -43,7 +43,6 @@ export async function startFieldBot(fieldId, withQR = false, token) {
             if (connection === 'open') {
                 console.log(`[WA] ✅ Field ${fieldId} connected.`)
                 fieldSockets.set(fieldId, sock)
-                console.log(token)
                 await updateFieldConnectionStatus(fieldId, true, sock, token)
                 return resolve({ sock })
             }
