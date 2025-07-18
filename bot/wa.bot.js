@@ -132,7 +132,7 @@ async function updateFieldConnectionStatus(fieldId, status, sock = null, token =
         updateData.user_id = null
     }
 
-    await WALogin.update(updateData, { where: { fieldId } })
+    await WALogin.update(updateData, { where: { field_id: fieldId } })
     console.log(`[DB] Updated field ${fieldId}:`, updateData)
 }
 
