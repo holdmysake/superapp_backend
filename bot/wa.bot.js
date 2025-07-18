@@ -18,11 +18,17 @@ export async function startFieldBot(fieldId, withQR = false, token) {
     const dir = pathResolve(`./auth_field/${fieldId}`)
     const { state, saveCreds } = await useMultiFileAuthState(dir)
 
+    const field = await Field.findOne({
+        where: {
+            field_id
+        }
+    })
+
     return new Promise((resolve) => {
         const sock = makeWASocket({
             auth: state,
             printQRInTerminal: false,
-            browser: [`FOL Bot  ${fieldId}`, 'Chrome', '1.0']
+            browser: [`FOL Bot  ${field.field_name}`, 'Chrome', '1.0']
         })
 
         sock.ev.on('creds.update', saveCreds)
