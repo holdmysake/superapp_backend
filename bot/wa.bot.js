@@ -16,6 +16,7 @@ const reconnectAttempts = new Map()
 
 export async function startFieldBot(fieldId, withQR = false) {
     const dir = pathResolve(`./auth_field/${fieldId}`)
+    ensureAuthFolderExists(dir)
     const { state, saveCreds } = await useMultiFileAuthState(dir)
 
     const field = await Field.findOne({
@@ -40,6 +41,7 @@ export async function startFieldBot(fieldId, withQR = false) {
             }
 
             if (connection === 'open') {
+                reconnectAttempts.delete(fieldId)
                 console.log(`[WA] ✅ Field ${fieldId} connected.`)
                 fieldSockets.set(fieldId, sock)
                 await updateFieldConnectionStatus(fieldId, true, sock)
@@ -59,23 +61,31 @@ export async function startFieldBot(fieldId, withQR = false) {
                     reconnectAttempts.set(fieldId, attempts + 1)
             
                     console.log(`[WA] 🔁 Reconnecting field ${fieldId} (attempt ${attempts + 1}/3)...`)
+                    await new Promise(r => setTimeout(r, 1000)) // ⏳ Delay 1s
+            
                     try {
-                        await startFieldBot(fieldId, false)
-                    } catch {
-                        console.error(`[WA] ⚠️ Reconnect gagal untuk field ${fieldId}`)
+                        await startFieldBot(fieldId, false, token)
+                    } catch (err) {
+                        console.warn(`[WA] ❌ Reconnect gagal: ${err.message}`)
                     }
                 } else {
                     console.warn(`[WA] 🚫 Max reconnect reached untuk field ${fieldId}`)
+            
+                    // Bersihkan koneksi
                     fieldSockets.delete(fieldId)
                     reconnectAttempts.delete(fieldId)
             
-                    const authDir = pathResolve(`./auth_field/${fieldId}`)
-                    if (existsSync(authDir)) {
-                        rmSync(authDir, { recursive: true, force: true })
-                        console.log(`[FS] 🧹 Folder ./auth_field/${fieldId} dihapus.`)
+                    // Hapus folder auth
+                    if (existsSync(dir)) {
+                        try {
+                            rmSync(dir, { recursive: true, force: true })
+                            console.log(`[FS] 🧹 Folder ${dir} dihapus.`)
+                        } catch (err) {
+                            console.error(`[FS] ❌ Gagal hapus folder ${dir}:`, err)
+                        }
                     }
                 }
-            }
+            }            
         })
 
         sock.ev.on('messages.upsert', async ({ messages }) => {
@@ -85,6 +95,13 @@ export async function startFieldBot(fieldId, withQR = false) {
             console.log(`[Field ${fieldId}] ${from}: ${text}`)
         })
     })
+}
+
+function ensureAuthFolderExists(dir) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true })
+        console.log(`[FS] 📂 Folder ${dir} dibuat.`)
+    }
 }
 
 export async function getQRCodeForField(fieldId) {
