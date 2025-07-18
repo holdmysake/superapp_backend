@@ -38,3 +38,16 @@ export const checkLogin = (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const logoutWA = async (req, res) => {
+    try {
+        const { field_id } = req.body
+
+        await disconnectField(field_id)
+
+        res.json({ message: 'Berhasil logout WhatsApp' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
