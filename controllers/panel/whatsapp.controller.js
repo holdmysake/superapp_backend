@@ -35,6 +35,6 @@ export const checkLogin = (req, res) => {
         res.json(isLogin)
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: err.message })
+        res.status(500).json({ message: error.message })
     }
 }
