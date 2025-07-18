@@ -20,7 +20,7 @@ export async function startFieldBot(fieldId, withQR = false, token) {
 
     const field = await Field.findOne({
         where: {
-            field_id
+            field_id: fieldId
         }
     })
 

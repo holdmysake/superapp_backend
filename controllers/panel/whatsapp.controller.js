@@ -1,7 +1,5 @@
 import waBot from '../../bot/wa.bot.js'
 
-const JWT_SECRET = process.env.JWT_SECRET
-
 export const scanQRCodeField = async (req, res) => {
     try {
         const { field_id } = req.body
