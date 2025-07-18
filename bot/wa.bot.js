@@ -11,6 +11,7 @@ const {
 } = pkg
 
 const fieldSockets = new Map()
+const reconnectAttempts = new Map()
 
 export async function startFieldBot(fieldId, withQR = false) {
     const dir = pathResolve(`./auth_field/${fieldId}`)
@@ -39,23 +40,34 @@ export async function startFieldBot(fieldId, withQR = false) {
             }
 
             if (connection === 'close') {
-                const statusCode = lastDisconnect?.error?.output?.statusCode
-                const shouldReconnect = statusCode !== DisconnectReason.loggedOut
-
+                const code = lastDisconnect?.error?.output?.statusCode
+                const shouldReconnect = code !== DisconnectReason.loggedOut
+            
                 console.log(`[WA] ❌ Field ${fieldId} disconnected.`)
                 await updateFieldConnectionStatus(fieldId, false)
-
-                // try {
-                //     console.log(`[WA] 🔁 Reconnecting field ${fieldId}...`)
-                //     await startFieldBot(fieldId, false)
-                // } catch {
+            
+                const attempts = reconnectAttempts.get(fieldId) || 0
+            
+                if (shouldReconnect && attempts < 3) {
+                    reconnectAttempts.set(fieldId, attempts + 1)
+            
+                    console.log(`[WA] 🔁 Reconnecting field ${fieldId} (attempt ${attempts + 1}/3)...`)
+                    try {
+                        await startFieldBot(fieldId, false)
+                    } catch {
+                        console.error(`[WA] ⚠️ Reconnect gagal untuk field ${fieldId}`)
+                    }
+                } else {
+                    console.warn(`[WA] 🚫 Max reconnect reached untuk field ${fieldId}`)
                     fieldSockets.delete(fieldId)
+                    reconnectAttempts.delete(fieldId)
+            
                     const authDir = pathResolve(`./auth_field/${fieldId}`)
                     if (existsSync(authDir)) {
                         rmSync(authDir, { recursive: true, force: true })
                         console.log(`[FS] 🧹 Folder ./auth_field/${fieldId} dihapus.`)
                     }
-                // }
+                }
             }
         })
 
