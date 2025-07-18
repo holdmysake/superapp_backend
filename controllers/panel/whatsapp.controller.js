@@ -3,11 +3,8 @@ import waBot, { isFieldConnected } from '../../bot/wa.bot.js'
 export const scanQRCodeField = async (req, res) => {
     try {
         const { field_id } = req.body
-        if (!field_id) return res.status(400).send('field_id wajib diisi!')
 
-        const token = req.headers.authorization?.split(' ')[1]
-
-        const qr = await waBot.getQRCodeForField(field_id, token)
+        const qr = await waBot.getQRCodeForField(field_id)
 
         if (!qr) {
             return res.status(400).json({

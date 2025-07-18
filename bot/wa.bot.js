@@ -3,7 +3,6 @@ import { resolve as pathResolve } from 'path'
 import { rmSync, existsSync } from 'fs'
 import qrCode from 'qrcode'
 import Field from '../models/field.model.js'
-import jwt from 'jsonwebtoken'
 import WALogin from '../models/wa_login.js'
 
 const {
@@ -15,7 +14,7 @@ const {
 const fieldSockets = new Map()
 const reconnectAttempts = new Map()
 
-export async function startFieldBot(fieldId, withQR = false, token) {
+export async function startFieldBot(fieldId, withQR = false) {
     const dir = pathResolve(`./auth_field/${fieldId}`)
     const { state, saveCreds } = await useMultiFileAuthState(dir)
 
@@ -43,7 +42,7 @@ export async function startFieldBot(fieldId, withQR = false, token) {
             if (connection === 'open') {
                 console.log(`[WA] ✅ Field ${fieldId} connected.`)
                 fieldSockets.set(fieldId, sock)
-                await updateFieldConnectionStatus(fieldId, true, sock, token)
+                await updateFieldConnectionStatus(fieldId, true, sock)
                 return resolve({ sock })
             }
 
@@ -61,7 +60,7 @@ export async function startFieldBot(fieldId, withQR = false, token) {
             
                     console.log(`[WA] 🔁 Reconnecting field ${fieldId} (attempt ${attempts + 1}/3)...`)
                     try {
-                        await startFieldBot(fieldId, false, token)
+                        await startFieldBot(fieldId, false)
                     } catch {
                         console.error(`[WA] ⚠️ Reconnect gagal untuk field ${fieldId}`)
                     }
@@ -88,12 +87,12 @@ export async function startFieldBot(fieldId, withQR = false, token) {
     })
 }
 
-export async function getQRCodeForField(fieldId, token) {
+export async function getQRCodeForField(fieldId) {
     const sock = fieldSockets.get(fieldId)
     if (sock?.user) return null
 
     console.log(`[QR] Generate QR untuk field ${fieldId}`)
-    const result = await startFieldBot(fieldId, true, token)
+    const result = await startFieldBot(fieldId, true)
     return result.qr
 }
 
@@ -118,20 +117,14 @@ export async function disconnectField(fieldId) {
     await updateFieldConnectionStatus(fieldId, false)
 }
 
-async function updateFieldConnectionStatus(fieldId, status, sock = null, token) {
+async function updateFieldConnectionStatus(fieldId, status, sock = null) {
     const updateData = { is_login: status }
 
     if (status && sock && sock.user) {
         const no_wa = extractPhoneNumber(sock.user.id)
         updateData.no_wa = no_wa
-        if (token) {
-            const decoded = jwt.decode(token)
-            console.log(decoded)
-            updateData.user_id = decoded?.user_id || null
-        }
     } else {
         updateData.no_wa = null
-        updateData.user_id = null
     }
 
     await WALogin.update(updateData, { where: { field_id: fieldId } })
