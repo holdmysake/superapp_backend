@@ -4,6 +4,7 @@ import { rmSync, existsSync } from 'fs'
 import qrCode from 'qrcode'
 import Field from '../models/field.model.js'
 import WALogin from '../models/wa_login.js'
+import fs from 'fs'
 
 const {
     useMultiFileAuthState,
