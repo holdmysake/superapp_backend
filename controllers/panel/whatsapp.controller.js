@@ -3,6 +3,7 @@ import { getWhatsAppSocket } from '../../services/whatsapp.service.js'
 import WALogin from '../../models/wa_login.js'
 import jwt from 'jsonwebtoken'
 import fs from 'fs-extra'
+import waBot from '../../bot/wa.bot.js'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -72,3 +73,25 @@ export const scanQR = async (req, res) => {
     }
 }
 
+export const scanQRCodeField = async (req, res) => {
+    try {
+        const { field_id } = req.body
+        if (!field_id) return res.status(400).send('field_id wajib diisi!')
+
+        const qr = await waBot.getQRCodeForField(field_id)
+
+        if (!qr) {
+            return res.status(200).json({
+                status: 'already_connected',
+                message: 'Field sudah login'
+            })
+        }
+
+        res.status(200).json({
+            status: 'qr_required',
+            qr: qr
+        })
+    } catch (err) {
+        res.status(500).json({ error: `Gagal generate QR: ${err.message}` })
+    }
+}
