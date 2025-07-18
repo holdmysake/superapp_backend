@@ -122,7 +122,8 @@ async function updateFieldConnectionStatus(fieldId, status, sock = null, token =
     const updateData = { is_login: status }
 
     if (status && sock && sock.user) {
-        updateData.no_wa = sock.user.id
+        const no_wa = extractPhoneNumber(sock.user.id)
+        updateData.no_wa = no_wa
         if (token) {
             const decoded = jwt.decode(token)
             updateData.user_id = decoded?.user_id || null
@@ -134,6 +135,10 @@ async function updateFieldConnectionStatus(fieldId, status, sock = null, token =
 
     await WALogin.update(updateData, { where: { field_id: fieldId } })
     console.log(`[DB] Updated field ${fieldId}:`, updateData)
+}
+
+function extractPhoneNumber(jid) {
+    return jid?.split('@')?.[0]?.split(':')?.[0] || null
 }
 
 export default { getQRCodeForField, disconnectField, isFieldConnected }
