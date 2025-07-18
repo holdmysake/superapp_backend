@@ -16,7 +16,6 @@ const fieldSockets = new Map()
 const reconnectAttempts = new Map()
 
 export async function startFieldBot(fieldId, withQR = false, token) {
-    console.log(token)
     const dir = pathResolve(`./auth_field/${fieldId}`)
     const { state, saveCreds } = await useMultiFileAuthState(dir)
 
@@ -25,9 +24,10 @@ export async function startFieldBot(fieldId, withQR = false, token) {
             field_id: fieldId
         }
     })
-    return
 
     return new Promise((resolve) => {
+        console.log(token)
+        return
         const sock = makeWASocket({
             auth: state,
             printQRInTerminal: false,
