@@ -52,7 +52,7 @@ export async function startFieldBot(fieldId, withQR = false, token) {
                 const shouldReconnect = code !== DisconnectReason.loggedOut
             
                 console.log(`[WA] ❌ Field ${fieldId} disconnected.`)
-                await updateFieldConnectionStatus(fieldId, false)
+                await updateFieldConnectionStatus(fieldId, true, sock, token)
             
                 const attempts = reconnectAttempts.get(fieldId) || 0
             
