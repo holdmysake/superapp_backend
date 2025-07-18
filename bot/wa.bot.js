@@ -4,6 +4,7 @@ import { rmSync, existsSync } from 'fs'
 import qrCode from 'qrcode'
 import Field from '../models/field.model.js'
 import jwt from 'jsonwebtoken'
+import WALogin from '../models/wa_login.js'
 
 const {
     useMultiFileAuthState,
@@ -131,7 +132,7 @@ async function updateFieldConnectionStatus(fieldId, status, sock = null, token =
         updateData.user_id = null
     }
 
-    await Field.update(updateData, { where: { fieldId } })
+    await WALogin.update(updateData, { where: { fieldId } })
     console.log(`[DB] Updated field ${fieldId}:`, updateData)
 }
 
