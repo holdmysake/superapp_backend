@@ -52,7 +52,7 @@ export async function startFieldBot(fieldId, withQR = false, token) {
                 const shouldReconnect = code !== DisconnectReason.loggedOut
             
                 console.log(`[WA] ❌ Field ${fieldId} disconnected.`)
-                await updateFieldConnectionStatus(fieldId, true, sock, token)
+                await updateFieldConnectionStatus(fieldId, false)
             
                 const attempts = reconnectAttempts.get(fieldId) || 0
             
@@ -61,7 +61,7 @@ export async function startFieldBot(fieldId, withQR = false, token) {
             
                     console.log(`[WA] 🔁 Reconnecting field ${fieldId} (attempt ${attempts + 1}/3)...`)
                     try {
-                        await startFieldBot(fieldId, false)
+                        await startFieldBot(fieldId, false, token)
                     } catch {
                         console.error(`[WA] ⚠️ Reconnect gagal untuk field ${fieldId}`)
                     }
