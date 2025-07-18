@@ -26,8 +26,6 @@ export async function startFieldBot(fieldId, withQR = false, token) {
     })
 
     return new Promise((resolve) => {
-        console.log(token)
-        return
         const sock = makeWASocket({
             auth: state,
             printQRInTerminal: false,
@@ -45,6 +43,8 @@ export async function startFieldBot(fieldId, withQR = false, token) {
             if (connection === 'open') {
                 console.log(`[WA] ✅ Field ${fieldId} connected.`)
                 fieldSockets.set(fieldId, sock)
+                console.log(token)
+                return
                 await updateFieldConnectionStatus(fieldId, true, sock, token)
                 return resolve({ sock })
             }
