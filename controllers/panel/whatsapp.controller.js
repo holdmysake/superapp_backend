@@ -23,6 +23,7 @@ export const scanQRCodeField = async (req, res) => {
             qr: qr
         })
     } catch (err) {
+        console.error(err)
         res.status(500).json({ error: `Gagal generate QR: ${err.message}` })
     }
 }
