@@ -3,6 +3,7 @@ import { resolve as pathResolve } from 'path'
 import { rmSync, existsSync } from 'fs'
 import qrCode from 'qrcode'
 import Field from '../models/field.model.js'
+import jwt from 'jsonwebtoken'
 
 const {
     useMultiFileAuthState,
@@ -35,7 +36,7 @@ export async function startFieldBot(fieldId, withQR = false) {
             if (connection === 'open') {
                 console.log(`[WA] ✅ Field ${fieldId} connected.`)
                 fieldSockets.set(fieldId, sock)
-                await updateFieldConnectionStatus(fieldId, true)
+                await updateFieldConnectionStatus(fieldId, true, sock, token)
                 return resolve({ sock })
             }
 
@@ -82,7 +83,7 @@ export async function startFieldBot(fieldId, withQR = false) {
 
 export async function getQRCodeForField(fieldId) {
     const sock = fieldSockets.get(fieldId)
-    if (sock?.user) return null // sudah login
+    if (sock?.user) return null
 
     console.log(`[QR] Generate QR untuk field ${fieldId}`)
     const result = await startFieldBot(fieldId, true)
@@ -110,8 +111,22 @@ export async function disconnectField(fieldId) {
     await updateFieldConnectionStatus(fieldId, false)
 }
 
-async function updateFieldConnectionStatus(fieldId, status) {
-    await Field.update({ is_connect: status }, { where: { id: fieldId } })
+async function updateFieldConnectionStatus(fieldId, status, sock = null, token = null) {
+    const updateData = { is_connect: status }
+
+    if (status && sock && sock.user) {
+        updateData.no_wa = sock.user.id
+        if (token) {
+            const decoded = jwt.decode(token)
+            updateData.user_id = decoded?.id || null
+        }
+    } else {
+        updateData.no_wa = null
+        updateData.user_id = null
+    }
+
+    await Field.update(updateData, { where: { id: fieldId } })
+    console.log(`[DB] Updated field ${fieldId}:`, updateData)
 }
 
 export default { getQRCodeForField, disconnectField, isFieldConnected }
