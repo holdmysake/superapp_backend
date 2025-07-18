@@ -15,7 +15,7 @@ const {
 const fieldSockets = new Map()
 const reconnectAttempts = new Map()
 
-export async function startFieldBot(fieldId, withQR = false, token = null) {
+export async function startFieldBot(fieldId, withQR = false, token) {
     const dir = pathResolve(`./auth_field/${fieldId}`)
     const { state, saveCreds } = await useMultiFileAuthState(dir)
 
