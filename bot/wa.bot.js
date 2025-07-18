@@ -120,12 +120,14 @@ export async function disconnectField(fieldId) {
 
 async function updateFieldConnectionStatus(fieldId, status, sock = null, token) {
     const updateData = { is_login: status }
+    console.log(token)
 
     if (status && sock && sock.user) {
         const no_wa = extractPhoneNumber(sock.user.id)
         updateData.no_wa = no_wa
         // if (token) {
             const decoded = jwt.decode(token)
+            console.log(decoded)
             updateData.user_id = decoded?.user_id || null
         // }
     } else {
