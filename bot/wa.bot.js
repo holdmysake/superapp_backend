@@ -118,7 +118,7 @@ export async function disconnectField(fieldId) {
     await updateFieldConnectionStatus(fieldId, false)
 }
 
-async function updateFieldConnectionStatus(fieldId, status, sock = null, token = null) {
+async function updateFieldConnectionStatus(fieldId, status, sock = null, token) {
     const updateData = { is_login: status }
 
     if (status && sock && sock.user) {
