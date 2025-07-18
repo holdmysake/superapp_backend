@@ -6,19 +6,13 @@ import Field from '../models/field.model.js'
 
 const {
     useMultiFileAuthState,
-    makeInMemoryStore,
     DisconnectReason,
     makeWASocket
 } = pkg
 
-const store = makeInMemoryStore({})
 const fieldSockets = new Map()
 
 export async function startFieldBot(fieldId, withQR = false) {
-    const storePath = pathResolve(`./store/field_store_${fieldId}.json`)
-    store.readFromFile(storePath)
-    setInterval(() => store.writeToFile(storePath), 10_000)
-
     const dir = pathResolve(`./auth_field/${fieldId}`)
     const { state, saveCreds } = await useMultiFileAuthState(dir)
 
@@ -29,7 +23,6 @@ export async function startFieldBot(fieldId, withQR = false) {
             browser: ['FOL Bot', 'Chrome', '1.0']
         })
 
-        store.bind(sock.ev)
         sock.ev.on('creds.update', saveCreds)
 
         sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
