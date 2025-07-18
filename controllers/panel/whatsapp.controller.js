@@ -8,40 +8,33 @@ const JWT_SECRET = process.env.JWT_SECRET
 export const scanQR = async (req, res) => {
     try {
         const { field_id } = req.body
-
         const token = req.headers.authorization?.split(' ')[1]
-
         const decoded = jwt.verify(token, JWT_SECRET)
 
         const existing = await WALogin.findOne({ where: { field_id } })
 
-        if (existing && existing.is_login === 1) {
+        if (existing?.is_login === 1) {
             return res.status(400).json({ error: 'WhatsApp sudah login untuk field ini' })
         }
 
         if (!existing) {
-            await WALogin.create({
-                field_id,
-                is_login: 0
-            })
+            await WALogin.create({ field_id, is_login: 0 })
         } else {
-            await WALogin.update(
-                { is_login: 0 },
-                { where: { field_id } }
-            )
+            await WALogin.update({ is_login: 0 }, { where: { field_id } })
         }
 
         const sock = await getWhatsAppSocket(field_id)
 
-        let isResponded = false
+        let timeoutId
 
-        sock.ev.on('connection.update', async (update) => {
+        const onUpdate = async (update) => {
             const { qr, connection } = update
 
-            if (qr && !isResponded) {
+            if (qr) {
                 const qrBase64 = await qrcode.toDataURL(qr)
-                isResponded = true
-                return res.status(200).json({ qr: qrBase64 })
+                res.status(200).json({ qr: qrBase64 })
+                clearTimeout(timeoutId)
+                sock.ev.off('connection.update', onUpdate) // ✨ remove listener setelah dapat QR
             }
 
             if (connection === 'open') {
@@ -51,23 +44,29 @@ export const scanQR = async (req, res) => {
                 await WALogin.update(
                     {
                         is_login: 1,
-                        no_wa: no_wa,
+                        no_wa,
                         user_id: decoded.user_id
                     },
                     { where: { field_id } }
                 )
-            
                 console.log(`✅ WhatsApp connected for field ${field_id} | No: ${no_wa}`)
+                clearTimeout(timeoutId)
+                sock.ev.off('connection.update', onUpdate)
             }
-        })
+        }
 
-        setTimeout(() => {
-            if (!isResponded) {
-                res.status(408).json({ error: 'QR generation timeout' })
-            }
+        // tambahkan listener sementara
+        sock.ev.on('connection.update', onUpdate)
+
+        // timeout respons jika QR tidak muncul
+        timeoutId = setTimeout(() => {
+            sock.ev.off('connection.update', onUpdate)
+            return res.status(408).json({ error: 'QR generation timeout' })
         }, 10000)
+
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: 'Failed to generate QR' })
     }
 }
+
