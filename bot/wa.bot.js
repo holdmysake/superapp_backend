@@ -65,7 +65,7 @@ export async function startFieldBot(fieldId, withQR = false) {
                     await new Promise(r => setTimeout(r, 1000)) // ⏳ Delay 1s
             
                     try {
-                        await startFieldBot(fieldId, false, token)
+                        await startFieldBot(fieldId, false)
                     } catch (err) {
                         console.warn(`[WA] ❌ Reconnect gagal: ${err.message}`)
                     }
