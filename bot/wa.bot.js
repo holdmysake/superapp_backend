@@ -20,7 +20,7 @@ export async function startFieldBot(fieldId, withQR = false) {
         const sock = makeWASocket({
             auth: state,
             printQRInTerminal: false,
-            browser: ['FOL Bot', 'Chrome', '1.0']
+            browser: [`FOL Bot ${fieldId}`, 'Chrome', '1.0']
         })
 
         sock.ev.on('creds.update', saveCreds)
