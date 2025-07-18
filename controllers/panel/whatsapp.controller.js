@@ -1,4 +1,4 @@
-import waBot from '../../bot/wa.bot.js'
+import waBot, { isFieldConnected } from '../../bot/wa.bot.js'
 
 export const scanQRCodeField = async (req, res) => {
     try {
@@ -23,5 +23,18 @@ export const scanQRCodeField = async (req, res) => {
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: `Gagal generate QR: ${err.message}` })
+    }
+}
+
+export const checkLogin = (req, res) => {
+    try {
+        const { field_id } = req.body
+
+        const isLogin = isFieldConnected(field_id)
+
+        res.json(isLogin)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: err.message })
     }
 }
