@@ -6,8 +6,9 @@ export const scanQRCodeField = async (req, res) => {
         if (!field_id) return res.status(400).send('field_id wajib diisi!')
 
         const token = req.headers.authorization?.split(' ')[1]
+        console.log(token)
 
-        const qr = await waBot.getQRCodeForField(field_id, token)
+        // const qr = await waBot.getQRCodeForField(field_id, token)
 
         if (!qr) {
             return res.status(200).json({
