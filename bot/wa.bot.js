@@ -5,6 +5,7 @@ import qrCode from 'qrcode'
 import Field from '../models/field.model.js'
 import WALogin from '../models/wa_login.js'
 import fs from 'fs'
+import moment from 'moment-timezone'
 
 const {
     useMultiFileAuthState,
@@ -146,11 +147,16 @@ async function updateFieldConnectionStatus(fieldId, status, sock = null) {
     }
 
     await WALogin.update(updateData, { where: { field_id: fieldId } })
-    console.log(`[DB] Updated field ${fieldId}:`, updateData)
+    logWithTimestamp(`🗂️ Updated WALogin field ${fieldId}: ${JSON.stringify(updateData)}`)
 }
 
 function extractPhoneNumber(jid) {
     return jid?.split('@')?.[0]?.split(':')?.[0] || null
+}
+
+function logWithTimestamp(message) {
+    const now = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
+    console.log(`[${now}] ${message}`)
 }
 
 export default { getQRCodeForField, disconnectField, isFieldConnected }
