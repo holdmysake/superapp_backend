@@ -1,6 +1,5 @@
 import express from 'express'
-import { 
-    scanQR,
+import {
     scanQRCodeField
 } from '../../controllers/panel/whatsapp.controller.js'
 import {
@@ -11,7 +10,6 @@ import {
 
 const router = express.Router()
 
-router.post('/bot/scan', verifyTokenAdmin, scanQR)
 router.post('/bot/scanQR', verifyTokenAdmin, scanQRCodeField)
 
 export default router
