@@ -45,17 +45,17 @@ export async function startFieldBot(fieldId, withQR = false) {
                 console.log(`[WA] ❌ Field ${fieldId} disconnected.`)
                 await updateFieldConnectionStatus(fieldId, false)
 
-                try {
-                    console.log(`[WA] 🔁 Reconnecting field ${fieldId}...`)
-                    await startFieldBot(fieldId, false)
-                } catch {
+                // try {
+                //     console.log(`[WA] 🔁 Reconnecting field ${fieldId}...`)
+                //     await startFieldBot(fieldId, false)
+                // } catch {
                     fieldSockets.delete(fieldId)
                     const authDir = pathResolve(`./auth_field/${fieldId}`)
                     if (existsSync(authDir)) {
                         rmSync(authDir, { recursive: true, force: true })
                         console.log(`[FS] 🧹 Folder ./auth_field/${fieldId} dihapus.`)
                     }
-                }
+                // }
             }
         })
 
