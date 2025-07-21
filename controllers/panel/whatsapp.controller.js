@@ -28,9 +28,8 @@ export const checkLogin = (req, res) => {
         const { field_id } = req.body
 
         const isLogin = waBot.isFieldConnected(field_id)
-        const no_wa = waBot.getNoWA(field_id)
 
-        res.json({isLogin, no_wa})
+        res.json(isLogin)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
