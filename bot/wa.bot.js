@@ -120,8 +120,8 @@ export function isFieldConnected(fieldId) {
     const credsPath = pathJoin(`./auth_field/${fieldId}`, 'creds.json')
     const hasCredsFile = existsSync(credsPath)
 
-    const no_wa = extractPhoneNumber(sock.user.id)
     const isLogin = !!sock?.user && hasCredsFile
+    const no_wa = isLogin ? extractPhoneNumber(sock.user.id) : null
 
     return { isLogin, no_wa }
 }
