@@ -18,6 +18,6 @@ router.post('/bot/scanQR', verifyTokenAdmin, scanQRCodeField)
 router.post('/bot/checkLogin', verifyTokenAdmin, checkLogin)
 router.post('/bot/logoutWA', verifyTokenAdmin, logoutWA)
 router.post('/bot/pingTest', verifyTokenAdmin, pingTest)
-router.post('/bot/getWA', verifyTokenAdmin, getWA)
+// router.post('/bot/getWA', verifyTokenAdmin, getWA)
 
 export default router
