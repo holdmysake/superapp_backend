@@ -1,10 +1,10 @@
-import { getQRCodeForField, disconnectField, isFieldConnected, pingFieldBot } from '../../bot/wa.bot.js'
+import waBot from '../../bot/wa.bot.js'
 
 export const scanQRCodeField = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        const qr = await getQRCodeForField(field_id)
+        const qr = await waBot.getQRCodeForField(field_id)
 
         if (!qr) {
             return res.status(400).json({
@@ -27,7 +27,7 @@ export const checkLogin = (req, res) => {
     try {
         const { field_id } = req.body
 
-        const isLogin = isFieldConnected(field_id)
+        const isLogin = waBot.isFieldConnected(field_id)
 
         res.json(isLogin)
     } catch (error) {
@@ -40,7 +40,7 @@ export const pingTest = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        await pingFieldBot(field_id)
+        await waBot.pingFieldBot(field_id)
         res.json({ message: 'Berhasil' })
     } catch (error) {
         console.error(error)
@@ -52,7 +52,7 @@ export const logoutWA = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        await disconnectField(field_id)
+        await waBot.disconnectField(field_id)
 
         res.json({ message: 'Berhasil logout WhatsApp' })
     } catch (error) {
