@@ -159,4 +159,22 @@ function logWithTimestamp(message) {
     console.log(`[${now}] ${message}`)
 }
 
-export default { getQRCodeForField, disconnectField, isFieldConnected }
+async function pingFieldBot(fieldId) {
+    const sock = fieldSockets.get(fieldId)
+    if (!sock || !sock.user || !sock.user.id) {
+        logWithTimestamp(`[WA] ❌ Tidak ada koneksi aktif untuk field ${fieldId}`)
+        return false
+    }
+
+    const jid = sock.user.id
+    try {
+        await sock.sendMessage(jid, { text: '*_PING!!!_*' })
+        logWithTimestamp(`[WA] 📡 Ping dikirim ke field ${fieldId} (${jid})`)
+        return true
+    } catch (err) {
+        logWithTimestamp(`[WA] ❌ Gagal kirim ping ke field ${fieldId}: ${err.message}`)
+        return false
+    }
+}
+
+export default { getQRCodeForField, disconnectField, isFieldConnected, pingFieldBot }

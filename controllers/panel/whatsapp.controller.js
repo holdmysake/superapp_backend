@@ -1,4 +1,4 @@
-import waBot, { isFieldConnected } from '../../bot/wa.bot.js'
+import waBot from '../../bot/wa.bot.js'
 
 export const scanQRCodeField = async (req, res) => {
     try {
@@ -30,6 +30,18 @@ export const checkLogin = (req, res) => {
         const isLogin = isFieldConnected(field_id)
 
         res.json(isLogin)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const pingTest = async (req, res) => {
+    try {
+        const { field_id } = req.body
+
+        await pingFieldBot(field_id)
+        res.json({ message: 'Berhasil' })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
