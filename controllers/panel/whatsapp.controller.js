@@ -42,7 +42,7 @@ export const getWA = (req, res) => {
 
         const no_wa = waBot.getNoWA(field_id)
 
-        res,json(no_wa)
+        res.json(no_wa)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
