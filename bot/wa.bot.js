@@ -51,9 +51,9 @@ export async function startFieldBot(fieldId, withQR = false) {
             }
 
             if (connection === 'close') {
-                console.log(`[WA] ❌ Field ${fieldId} disconnected. Code: ${code}`)
                 const code = lastDisconnect?.error?.output?.statusCode
                 const shouldReconnect = code !== DisconnectReason.loggedOut
+                console.log(`[WA] ❌ Field ${fieldId} disconnected. Code: ${code}`)
             
                 console.log(`[WA] ❌ Field ${fieldId} disconnected.`)
                 await updateFieldConnectionStatus(fieldId, false)
