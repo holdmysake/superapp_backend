@@ -36,6 +36,19 @@ export const checkLogin = (req, res) => {
     }
 }
 
+export const getWA = (req, res) => {
+    try {
+        const { field_id } = req.body
+
+        const no_wa = waBot.getNoWA(field_id)
+
+        res,json(no_wa)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const pingTest = async (req, res) => {
     try {
         const { field_id } = req.body
