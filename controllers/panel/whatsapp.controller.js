@@ -1,10 +1,10 @@
-import waBot from '../../bot/wa.bot.js'
+import { getQRCodeForField, disconnectField, isFieldConnected, pingFieldBot } from '../../bot/wa.bot.js'
 
 export const scanQRCodeField = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        const qr = await waBot.getQRCodeForField(field_id)
+        const qr = await getQRCodeForField(field_id)
 
         if (!qr) {
             return res.status(400).json({
