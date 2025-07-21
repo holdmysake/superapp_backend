@@ -1,5 +1,5 @@
 import pkg from '@whiskeysockets/baileys'
-import { resolve as pathResolve } from 'path'
+import { resolve as pathResolve, join as pathJoin } from 'path'
 import { rmSync, existsSync } from 'fs'
 import qrCode from 'qrcode'
 import Field from '../models/field.model.js'
