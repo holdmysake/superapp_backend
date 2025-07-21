@@ -125,8 +125,11 @@ export function isFieldConnected(fieldId) {
 
 export function getNoWA(fieldId) {
     const sock = fieldSockets.get(fieldId)
+    let no_wa
 
-    const no_wa = extractPhoneNumber(sock.user.id)
+    if (sock && sock.user) {
+        no_wa = extractPhoneNumber(sock.user.id)
+    }
 
     return no_wa
 }
