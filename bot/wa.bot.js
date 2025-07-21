@@ -123,6 +123,13 @@ export function isFieldConnected(fieldId) {
     return !!sock?.user && hasCredsFile
 }
 
+export function getNoWA(fieldId) {
+    const sock = fieldSockets.get(fieldId)
+
+    const no_wa = extractPhoneNumber(sock.user.id)
+
+    return no_wa
+}
 
 export async function disconnectField(fieldId) {
     const sock = fieldSockets.get(fieldId)
