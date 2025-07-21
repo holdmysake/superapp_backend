@@ -117,7 +117,7 @@ export async function getQRCodeForField(fieldId) {
 
 export function isFieldConnected(fieldId) {
     const sock = fieldSockets.get(fieldId)
-    const credsPath = pathJoin(`./auth_field/${fieldId}`, 'creds.json')
+    const credsPath = pathResolve(pathJoin(`./auth_field/${fieldId}`, 'creds.json'))
     const hasCredsFile = existsSync(credsPath)
 
     const isLogin = !!sock?.user && hasCredsFile
