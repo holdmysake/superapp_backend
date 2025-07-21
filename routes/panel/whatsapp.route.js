@@ -2,7 +2,8 @@ import express from 'express'
 import {
     scanQRCodeField,
     checkLogin,
-    logoutWA
+    logoutWA,
+    pingTest
 } from '../../controllers/panel/whatsapp.controller.js'
 import {
     verifyTokenSA,
@@ -15,5 +16,6 @@ const router = express.Router()
 router.post('/bot/scanQR', verifyTokenAdmin, scanQRCodeField)
 router.post('/bot/checkLogin', verifyTokenAdmin, checkLogin)
 router.post('/bot/logoutWA', verifyTokenAdmin, logoutWA)
+router.post('/bot/pingTest', verifyTokenAdmin, pingTest)
 
 export default router
