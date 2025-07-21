@@ -115,14 +115,26 @@ export async function getQRCodeForField(fieldId) {
     return result.qr
 }
 
+// export function isFieldConnected(fieldId) {
+//     const sock = fieldSockets.get(fieldId)
+//     const credsPath = pathJoin(`./auth_field/${fieldId}`, 'creds.json')
+//     const hasCredsFile = existsSync(credsPath)
+
+//     return !!sock?.user && hasCredsFile
+// }
+
 export function isFieldConnected(fieldId) {
     const sock = fieldSockets.get(fieldId)
-    console.log(sock)
     const credsPath = pathJoin(`./auth_field/${fieldId}`, 'creds.json')
     const hasCredsFile = existsSync(credsPath)
 
-    return !!sock?.user && hasCredsFile
+    const connected = !!sock?.user && hasCredsFile
+    const no_wa = connected ? extractPhoneNumber(sock.user.id) : null
+    console.log(sock)
+
+    return { connected, no_wa }
 }
+
 
 export async function disconnectField(fieldId) {
     const sock = fieldSockets.get(fieldId)
