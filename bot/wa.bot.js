@@ -51,6 +51,7 @@ export async function startFieldBot(fieldId, withQR = false) {
             }
 
             if (connection === 'close') {
+                console.log(`[WA] ❌ Field ${fieldId} disconnected. Code: ${code}`)
                 const code = lastDisconnect?.error?.output?.statusCode
                 const shouldReconnect = code !== DisconnectReason.loggedOut
             
@@ -63,7 +64,8 @@ export async function startFieldBot(fieldId, withQR = false) {
                     reconnectAttempts.set(fieldId, attempts + 1)
             
                     console.log(`[WA] 🔁 Reconnecting field ${fieldId} (attempt ${attempts + 1}/3)...`)
-                    await new Promise(r => setTimeout(r, 1000)) // ⏳ Delay 1s
+                    const delay = 1000 * Math.pow(2, attempts) // 1s, 2s, 4s
+                    await new Promise(r => setTimeout(r, delay))
             
                     try {
                         await startFieldBot(fieldId, false)
@@ -78,10 +80,10 @@ export async function startFieldBot(fieldId, withQR = false) {
                     reconnectAttempts.delete(fieldId)
             
                     // Hapus folder auth
-                    if (existsSync(dir)) {
+                    if (code === DisconnectReason.loggedOut && existsSync(dir)) {
                         try {
                             rmSync(dir, { recursive: true, force: true })
-                            console.log(`[FS] 🧹 Folder ${dir} dihapus.`)
+                            console.log(`[FS] 🧹 Folder ${dir} dihapus karena logout.`)
                         } catch (err) {
                             console.error(`[FS] ❌ Gagal hapus folder ${dir}:`, err)
                         }
