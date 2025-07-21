@@ -188,4 +188,4 @@ async function pingFieldBot(fieldId) {
     }
 }
 
-export default { getQRCodeForField, disconnectField, isFieldConnected, pingFieldBot }
+export default { getQRCodeForField, disconnectField, isFieldConnected, pingFieldBot, getNoWA }
