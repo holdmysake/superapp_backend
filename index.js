@@ -6,7 +6,7 @@ import userRoute from './routes/panel/user.route.js'
 import dataRoute from './routes/frontend/data.route.js'
 import dataPanelRoute from './routes/panel/data.route.js'
 import notifRoute from './routes/panel/notif.route.js'
-import whatsappRoute from './routes/panel/whatsapp.route.js'
+// import whatsappRoute from './routes/panel/whatsapp.route.js'
 import cors from 'cors'
 import { models } from './models/index.js'
 import defineAssociations from './models/association.js'
@@ -27,7 +27,7 @@ app.use('/api/panel/', spotRoute)
 app.use('/api/panel/', userRoute)
 app.use('/api/panel/', dataPanelRoute)
 app.use('/api/panel/', notifRoute)
-app.use('/api/panel/', whatsappRoute)
+// app.use('/api/panel/', whatsappRoute)
 app.use('/api', pressRoute)
 app.use('/api/fe/', dataRoute)
 
