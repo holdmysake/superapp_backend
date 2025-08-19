@@ -10,9 +10,9 @@ import notifRoute from './routes/panel/notif.route.js'
 import cors from 'cors'
 import { models } from './models/index.js'
 import defineAssociations from './models/association.js'
-import http from 'http'
 import dotenv from 'dotenv'
-import { Server } from 'socket.io'
+import { initSocket } from './socket.js'
+import http from "http"
 
 dotenv.config()
 
@@ -31,19 +31,14 @@ app.use('/api/panel/', notifRoute)
 app.use('/api', pressRoute)
 app.use('/api/fe/', dataRoute)
 
+const server = http.createServer(app)
+initSocket(server)
+
 const PORT = process.env.PORT
 
 sequelize.sync({ force: false })
     .then(() => console.log('Database connected'))
     .catch(err => console.error('Database error:', err))
-
-const server = http.createServer(app)
-const io = new Server(server, {
-    cors: {
-        origin: '*',
-        path: '/ws-fol'
-    }
-})
 
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`)

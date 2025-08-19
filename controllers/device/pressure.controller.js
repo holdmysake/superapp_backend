@@ -1,6 +1,7 @@
 import Battery from "../../models/battery.model.js"
 import defineUserDataModel from "../../models/pressure.model.js"
 import moment from 'moment-timezone'
+import { getIO } from "../../socket.js"
 
 export const getTimestamp = (req, res) => {
     res.json(moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss'))
@@ -29,6 +30,14 @@ export const store = async (req, res) => {
                 timestamp
             })
         }
+
+        getIO().emit("pressure:new", {
+            field_id,
+            spot_id,
+            psi,
+            batt,
+            timestamp
+        })
 
         res.json({ press, battery })
     } catch (error) {
