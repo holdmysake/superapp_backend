@@ -10,7 +10,9 @@ import whatsappRoute from './routes/panel/whatsapp.route.js'
 import cors from 'cors'
 import { models } from './models/index.js'
 import defineAssociations from './models/association.js'
+import http from 'http'
 import dotenv from 'dotenv'
+import { Server } from 'socket.io'
 
 dotenv.config()
 
@@ -35,7 +37,18 @@ sequelize.sync({ force: false })
     .then(() => console.log('Database connected'))
     .catch(err => console.error('Database error:', err))
 
+const server = http.createServer(app)
+const io = new Server(server, {
+    cors: {
+        origin: '*',
+        path: '/ws-fol'
+    }
+})
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`)
 })
+
+// app.listen(PORT, () => {
+//     console.log(`Server running on http://localhost:${PORT}`)
+// })
