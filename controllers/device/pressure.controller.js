@@ -31,7 +31,7 @@ export const store = async (req, res) => {
             })
         }
 
-        getIO().emit("pressure:new", {
+        getIO().to(`field_${field_id}`).emit("pressure:new", {
             field_id,
             spot_id,
             psi,

@@ -12,6 +12,11 @@ export const initSocket = (server) => {
     io.on("connection", (socket) => {
         console.log(`New client connected: ${socket.id}`)
 
+        socket.on("joinField", (field_id) => {
+            socket.join(`field_${field_id}`)
+            console.log(`Client ${socket.id} joined room field_${field_id}`)
+        })
+    
         socket.on("disconnect", () => {
             console.log(`Client disconnected: ${socket.id}`)
         })
