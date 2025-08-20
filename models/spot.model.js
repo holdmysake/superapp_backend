@@ -41,11 +41,15 @@ const Spot = sequelize.define('spot', {
         allowNull: false,
         defaultValue: false
     },
-    x_axis: {
+    y_max: {
         type: DataTypes.INTEGER,
         allowNull: true
     },
-    y_axis: {
+    y_interval: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    safe_mark: {
         type: DataTypes.INTEGER,
         allowNull: true
     }
