@@ -4,6 +4,7 @@ import moment from "moment-timezone"
 import Spot from "../../models/spot.model.js"
 import Trunkline from "../../models/trunkline.model.js"
 import Field from "../../models/field.model.js"
+import PredValue from "../../models/pred_value.model.js"
 
 export const getAllData = async (req, res) => {
     try {
@@ -64,8 +65,7 @@ export const getAllSpots = async (req, res) => {
                     }
                 ]
             }
-        }
-        )
+        })
 
         res.json(spots)
     } catch (error) {
