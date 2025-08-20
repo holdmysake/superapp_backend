@@ -43,12 +43,19 @@ export const getDataBySpot = async (req, res) => {
         const pressureTableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(pressureTableName)
 
+        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD')
+                            .startOf('day')
+                            .toDate()
+        const endOfDay   = moment(startOfDay)
+                            .add(1, 'day')
+                            .toDate()
+
         const data = await Pressure.findAll({
             where: {
                 spot_id,
                 timestamp: {
-                    [Op.gte]: moment.tz(timestamp, 'YYYY-MM-DD').startOf('day').toDate(),
-                    [Op.lt]: moment(startOfDay).add(1, 'day').toDate()
+                    [Op.gte]: startOfDay,
+                    [Op.lt]: endOfDay
                 }
             }
         })
