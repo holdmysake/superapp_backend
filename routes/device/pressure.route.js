@@ -15,13 +15,16 @@ router.post('/code', (req, res) => {
     try {
         const { code } = req.body
         if (!code) {
-            return res.status(400).json({ error: 'code is required' })
+            return res.status(400).send('code is required')
         }
 
         const formatted = formatCode(code, 4)
-        return res.json({ formatted })
+
+        // balikin langsung sebagai plain text
+        res.setHeader('Content-Type', 'text/plain')
+        return res.send(formatted)
     } catch (err) {
-        return res.status(500).json({ error: err.message })
+        return res.status(500).send(err.message)
     }
 })
 
