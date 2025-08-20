@@ -1,4 +1,4 @@
-import { Op } from "sequelize"
+import { Op, where } from "sequelize"
 import defineUserDataModel from "../../models/pressure.model.js"
 import moment from "moment-timezone"
 import Spot from "../../models/spot.model.js"
@@ -37,10 +37,36 @@ export const getAllSpots = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        const spots = await Spot.findAll({
-            where: { field_id },
-            order: [['sort', 'ASC']]
-        })
+        const queryOptions = {
+            include: {
+                model: Trunkline,
+                as: 'trunklines',
+                include: [
+                    {
+                        model: PredValue,
+                        as: 'pred_value',
+                        include: {
+                            model: Spot,
+                            as: 'spot',
+                            attributes: ['spot_id', 'spot_name']
+                        }
+                    },
+                    {
+                        model: Spot,
+                        as: 'spots',
+                        separate: true,
+                        order: [['sort', 'ASC']]
+                    }
+                ]
+            }
+        }
+
+        const spots = await Field.findAll({
+            where: {
+                field_id
+            }
+        }
+        )
 
         res.json(spots)
     } catch (error) {
