@@ -40,7 +40,7 @@ export const getAllSpots = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        const spots = await Field.findAll({
+        const spots = await Field.findOne({
             where: {
                 field_id
             },
