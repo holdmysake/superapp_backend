@@ -1,6 +1,7 @@
 import { Op } from "sequelize"
 import defineUserDataModel from "../../models/pressure.model.js"
 import moment from "moment-timezone"
+import Spot from "../../models/spot.model.js"
 
 export const getAllData = async (req, res) => {
     try {
@@ -40,6 +41,8 @@ export const getAllSpots = async (req, res) => {
             where: { field_id },
             order: [['sort', 'ASC']]
         })
+
+        res.json(spots)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
