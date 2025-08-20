@@ -31,3 +31,16 @@ export const getAllData = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const getAllSpots = async (req, res) => {
+    try {
+        const { field_id } = req.body
+
+        const spots = await Spot.findAll({
+            where: { field_id },
+            order: [['sort', 'ASC']]
+        })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
