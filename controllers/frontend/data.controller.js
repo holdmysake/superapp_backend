@@ -48,7 +48,7 @@ export const getDataBySpot = async (req, res) => {
                 spot_id,
                 timestamp: {
                     [Op.gte]: moment.tz(timestamp, 'YYYY-MM-DD').startOf('day').toDate(),
-                    [Op.lt]: moment.tz(timestamp, 'YYYY-MM-DD').endOf('day').toDate()
+                    [Op.lt]: moment(startOfDay).add(1, 'day').toDate()
                 }
             }
         })
