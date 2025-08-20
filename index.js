@@ -1,4 +1,5 @@
 import express from 'express'
+import bodyParser from 'body-parser'
 import sequelize from './config/db.js'
 import spotRoute from './routes/panel/spot.route.js'
 import pressRoute from './routes/device/pressure.route.js'
@@ -21,6 +22,7 @@ defineAssociations(models)
 const app = express()
 
 app.use(express.json())
+app.use(bodyParser.text({ type: 'text/plain' }))
 app.use(cors())
 
 app.use('/api/panel/', spotRoute)

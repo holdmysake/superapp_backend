@@ -12,20 +12,11 @@ router.post('/store', store)
 router.post('/storeBulk', storeBulk)
 
 router.post('/code', (req, res) => {
-    try {
-        const { code } = req.body
-        if (!code) {
-            return res.status(400).send('code is required')
-        }
+    if (!req.body) return res.status(400).send('code is required')
 
-        const formatted = formatCode(code, 4)
-
-        // balikin langsung sebagai plain text
-        res.setHeader('Content-Type', 'text/plain')
-        return res.send(formatted)
-    } catch (err) {
-        return res.status(500).send(err.message)
-    }
+    const formatted = formatCode(req.body, 4)
+    res.setHeader('Content-Type', 'text/plain')
+    res.send(formatted)
 })
 
 function formatCode(body, spaces = 4) {
