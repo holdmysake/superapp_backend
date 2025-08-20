@@ -36,6 +36,29 @@ export const getAllData = async (req, res) => {
     }
 }
 
+export const getDataBySpot = async (req, res) => {
+    try {
+        const { field_id, spot_id, timestamp } = req.body
+
+        const pressureTableName = `pressure_${field_id}`
+        const Pressure = defineUserDataModel(pressureTableName)
+
+        const data = await Pressure.findAll({
+            where: {
+                spot_id,
+                timestamp: {
+                    [Op.gte]: moment.tz(timestamp, 'YYYY-MM-DD').startOf('day').toDate(),
+                    [Op.lt]: moment.tz(timestamp, 'YYYY-MM-DD').endOf('day').toDate()
+                }
+            }
+        })
+
+        res.json(data)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const getAllSpots = async (req, res) => {
     try {
         const { field_id } = req.body
