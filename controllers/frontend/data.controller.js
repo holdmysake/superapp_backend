@@ -3,6 +3,7 @@ import defineUserDataModel from "../../models/pressure.model.js"
 import moment from "moment-timezone"
 import Spot from "../../models/spot.model.js"
 import Trunkline from "../../models/trunkline.model.js"
+import Field from "../../models/field.model.js"
 
 export const getAllData = async (req, res) => {
     try {
