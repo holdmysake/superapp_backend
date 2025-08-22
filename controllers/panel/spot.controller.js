@@ -246,7 +246,7 @@ export const getAllSpots = async (req, res) => {
 
 export const createSpot = async (req, res) => {
     try {
-        const { tline_id, spot_id, spot_name, sort: requestedSort, is_seen, is_battery, x_axis, y_axis } = req.body
+        const { tline_id, spot_id, spot_name, sort: requestedSort, is_seen, is_battery, y_max, y_interval, safe_mark } = req.body
 
         const newSpot = await Spot.create({
             tline_id,
@@ -255,8 +255,9 @@ export const createSpot = async (req, res) => {
             sort: requestedSort,
             is_seen,
             is_battery,
-            x_axis,
-            y_axis
+            y_max,
+            y_interval,
+            safe_mark
         })
 
         const prefix  = Math.floor(requestedSort / 100)
@@ -307,8 +308,9 @@ export const updateSpot = async (req, res) => {
             sort: requestedSort,
             is_seen,
             is_battery,
-            x_axis,
-            y_axis
+            y_max,
+            y_interval,
+            safe_mark
         } = req.body
 
         const target = await Spot.findOne({ where: { spot_id } })
@@ -347,8 +349,9 @@ export const updateSpot = async (req, res) => {
             spot_name,
             is_seen,
             is_battery,
-            x_axis,
-            y_axis
+            y_max,
+            y_interval,
+            safe_mark
         })
 
         res.json({ message: 'Spot berhasil diperbarui dan sort diresequence', spot })
