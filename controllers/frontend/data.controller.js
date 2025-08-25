@@ -72,7 +72,8 @@ export const getAllSpots = async (req, res) => {
 
         const spots = await Field.findOne({
             where: {
-                field_id
+                field_id,
+                is_seen: true
             },
             include: {
                 model: Trunkline,
