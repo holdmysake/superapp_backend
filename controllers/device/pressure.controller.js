@@ -32,18 +32,18 @@ export const store = async (req, res) => {
             })
         }
 
+        getIO().to(`field_${field_id}`).emit("pressure:new", {
+            field_id,
+            spot_id,
+            psi,
+            batt,
+            timestamp
+        })
+
         const data = {
             field_id, spot_id, psi, timestamp
         }
         const pred = await onoffNotif(data)
-
-        // getIO().to(`field_${field_id}`).emit("pressure:new", {
-        //     field_id,
-        //     spot_id,
-        //     psi,
-        //     batt,
-        //     timestamp
-        // })
 
         res.json({ press, battery, pred })
     } catch (error) {
