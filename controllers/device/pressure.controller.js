@@ -2,6 +2,7 @@ import Battery from "../../models/battery.model.js"
 import defineUserDataModel from "../../models/pressure.model.js"
 import moment from 'moment-timezone'
 import { getIO } from "../../socket.js"
+import { onoffNotif } from "../panel/notif.controller.js"
 
 export const getTimestamp = (req, res) => {
     res.json(moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss'))
@@ -31,15 +32,20 @@ export const store = async (req, res) => {
             })
         }
 
-        getIO().to(`field_${field_id}`).emit("pressure:new", {
-            field_id,
-            spot_id,
-            psi,
-            batt,
-            timestamp
-        })
+        const data = {
+            field_id, spot_id, psi, timestamp
+        }
+        const pred = await onoffNotif(data)
 
-        res.json({ press, battery })
+        // getIO().to(`field_${field_id}`).emit("pressure:new", {
+        //     field_id,
+        //     spot_id,
+        //     psi,
+        //     batt,
+        //     timestamp
+        // })
+
+        res.json({ press, battery, pred })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }

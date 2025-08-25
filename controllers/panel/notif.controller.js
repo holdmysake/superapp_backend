@@ -3,6 +3,8 @@ import defineUserDataModel from "../../models/pressure.model.js"
 import Trunkline from "../../models/trunkline.model.js"
 import Spot from "../../models/spot.model.js"
 import { Op } from "sequelize"
+import PredValue from "../../models/pred_value.model.js"
+import SpotStatus from "../../models/spot_status.js"
 
 export const getOffDevice = async (req, res) => {
     try {
@@ -161,4 +163,55 @@ export const getOffDevice = async (req, res) => {
         console.error(error)
         res.status(500).json({ message: error.message })
     }
+}
+
+export const onoffNotif = async (data) => {
+	try {
+		const pred = await PredValue.findOne({ where: { spot_id: data.spot_id } })
+		if (!pred) return null
+
+		const lastState = await SpotStatus.findOne({
+			where: { spot_id: data.spot_id },
+			order: [['timestamp', 'DESC']]
+		})
+
+		if (lastState?.type === 'pump') {
+			if (lastState.status === 'on' && Number(data.psi) >= Number(pred.on_value)) {
+				return null
+			}
+			if (lastState.status === 'off' && Number(data.psi) <= Number(pred.off_value)) {
+				return null
+			}
+		}
+
+		const Pressure = defineUserDataModel(`pressure_${data.field_id}`)
+		const samples = await Pressure.findAll({
+			where: { spot_id: data.spot_id },
+			order: [['timestamp', 'DESC']],
+			limit: 5
+		})
+		if (samples.length < 5) return null
+
+		const onValue = Number(pred.on_value)
+		const offValue = Number(pred.off_value)
+
+		const allOn  = samples.every(r => Number(r.psi) >= onValue)
+		const allOff = samples.every(r => Number(r.psi) <= offValue)
+		const desired = allOn ? 'on' : allOff ? 'off' : null
+		if (!desired) return null
+
+		if (!lastState || (lastState.type === 'pump' && lastState.status !== desired)) {
+			return await SpotStatus.create({
+				spot_id: data.spot_id,
+				type: 'pump',
+				status: desired,
+				timestamp: data.timestamp
+			})
+		}
+
+		return null
+	} catch (err) {
+		console.error('onoffNotif error:', err)
+		return null
+	}
 }
