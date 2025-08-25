@@ -171,7 +171,10 @@ export const onoffNotif = async (data) => {
 		if (!pred) return null
 
 		const lastState = await SpotStatus.findOne({
-			where: { spot_id: data.spot_id },
+			where: { 
+                spot_id: data.spot_id,
+                type: 'pump'
+            },
 			order: [['timestamp', 'DESC']]
 		})
 
