@@ -33,7 +33,7 @@ export const checkDeviceOff = async () => {
         //     }
         // })
 
-        console.log("Checking device off...")
+        // console.log("Checking device off...")
     } catch (error) {
         console.error(error)
     }
