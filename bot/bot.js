@@ -1,4 +1,3 @@
-// services/whatsapp.manager.js
 import fs from 'fs'
 import path from 'path'
 import pkg from '@whiskeysockets/baileys'
@@ -6,19 +5,12 @@ import { models } from '../models/index.js'
 
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
-// ==============================
-// Config
-// ==============================
 const LOG = process.env.LOG_SOCKET !== '0'
-const QR_TTL_MS = 55_000            // anggap QR expired setelah ~55s
-const WATCHDOG_INTERVAL_MS = 10_000  // cek tiap 10s
+const QR_TTL_MS = 30_000
+const WATCHDOG_INTERVAL_MS = 10_000
 
-// ==============================
-// Session store per field_id
-// ==============================
-const sessions = new Map() // field_id -> { sock, lastStatus, lastQR, qrHash, qrAt, qrTimer, watchdog }
+const sessions = new Map()
 
-// Helpers
 const authDir = (field_id) => path.join(process.cwd(), 'baileys_auth', String(field_id))
 const roomOf = (field_id) => `field_${field_id}`
 
@@ -43,7 +35,6 @@ function formatMsisdn(id) {
 	return no_wa
 }
 
-// ===== status-only (JANGAN emit QR di sini) =====
 function emitStatus(io, field_id) {
 	const s = sessions.get(field_id)
 	if (!s) return
@@ -53,16 +44,14 @@ function emitStatus(io, field_id) {
 	})
 }
 
-// ===== QR baru saja yang boleh dikirim =====
 function scheduleQrExpiry(field_id, io) {
 	const s = sessions.get(field_id)
 	if (!s) return
 	clearTimeout(s.qrTimer)
 	s.qrTimer = setTimeout(() => {
-		// TTL lewat, kalau masih belum connect dan QR belum ganti, force refresh
 		if (!s.lastStatus?.connected) {
 			log(`[WA][qr-expired] field_id=${field_id} ttl=${QR_TTL_MS}ms`)
-			restartSession(field_id, io) // bikin socket ulang → Baileys akan emit QR baru
+			restartSession(field_id, io)
 		}
 	}, QR_TTL_MS)
 }
@@ -72,7 +61,6 @@ function emitQrIfChanged(io, field_id, nextQr) {
 	if (!s) return
 	const nextHash = hashStr(nextQr)
 	if (s.qrHash === nextHash) {
-		// QR sama → abaikan, jangan spam
 		return
 	}
 	s.lastQR = nextQr
@@ -93,9 +81,6 @@ async function restartSession(field_id, io) {
 	await ensureSession(field_id, io)
 }
 
-// ==============================
-// WA session lifecycle
-// ==============================
 async function ensureSession(field_id, io) {
 	let s = sessions.get(field_id)
 	if (s?.sock) return s
@@ -107,7 +92,7 @@ async function ensureSession(field_id, io) {
 	const sock = makeWASocket({
 		auth: state,
 		printQRInTerminal: false,
-		browser: ['Bot Torque', 'Chrome', '1.0.0']
+		browser: [`FLIP Bot ${field_id}`, 'Chrome', '1.0.0']
 	})
 
 	s = {
@@ -127,7 +112,6 @@ async function ensureSession(field_id, io) {
 		const { connection, lastDisconnect, qr } = update
 		log(`[WA][conn.update] field_id=${field_id} conn=${connection} hasQR=${!!qr}`)
 
-		// QR dari Baileys → emit kalau BARU
 		if (qr && !s.lastStatus?.connected) {
 			emitQrIfChanged(io, field_id, qr)
 		}
@@ -152,16 +136,13 @@ async function ensureSession(field_id, io) {
 				try { fs.rmSync(dir, { recursive: true, force: true }) } catch {}
 				log(`[WA][loggedOut] auth wiped field_id=${field_id}`)
 			}
-			// Baileys akan retry; TTL watchdog tetap siaga.
 		}
 	})
 
-	// Watchdog: kalau lama tak connect dan QR tak berganti, putar ulang sesi
 	s.watchdog = setInterval(() => {
 		if (s.lastStatus.connected) return
 		if (!s.qrAt) return
 		const age = Date.now() - s.qrAt
-		// contoh: kalau > 3× TTL, anggap macet → restart
 		if (age > (QR_TTL_MS * 3)) {
 			log(`[WA][watchdog] stale-qr age=${age}ms field_id=${field_id} → restart`)
 			restartSession(field_id, io)
@@ -171,9 +152,6 @@ async function ensureSession(field_id, io) {
 	return s
 }
 
-// =====================================
-// Public: bind socket handlers (STATUS-ONLY)
-// =====================================
 export function initWhatsAppSocket(io) {
 	io.on('connection', (socket) => {
 		if (LOG) console.log(`[SOCKET] client connected id=${socket.id}`)
@@ -182,7 +160,7 @@ export function initWhatsAppSocket(io) {
 			if (!field_id) return
 			if (LOG) console.log(`[SOCKET][recv] 'wa:status' field_id=${field_id} from=${socket.id}`)
 			await ensureSession(field_id, io)
-			emitStatus(io, field_id) // status only, NO QR
+			emitStatus(io, field_id)
 		})
 
 		socket.on('wa:status:refresh', ({ field_id }) => {
@@ -197,9 +175,6 @@ export function initWhatsAppSocket(io) {
 	})
 }
 
-// =====================================
-// Boot sessions
-// =====================================
 export async function bootstrapWhatsAppSessions(io) {
 	const { Field } = models
 	const rows = await Field.findAll({ attributes: ['field_id', 'id'] })
@@ -211,9 +186,6 @@ export async function bootstrapWhatsAppSessions(io) {
 	}
 }
 
-// =====================================
-// Optional helpers
-// =====================================
 export async function stopSession(field_id) {
 	const s = sessions.get(field_id)
 	if (!s?.sock) return
