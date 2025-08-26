@@ -2,6 +2,7 @@
 import fs from 'fs'
 import path from 'path'
 import pkg from '@whiskeysockets/baileys'
+import { models } from '../models/index.js'
 
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
@@ -15,11 +16,8 @@ const authDir = (field_id) => path.join(process.cwd(), 'baileys_auth', String(fi
 const roomOf = (field_id) => `field_${field_id}`
 
 function formatMsisdn(id) {
-	// e.g. "6281234567890:1@s.whatsapp.net" -> "081234567890"
 	let no_wa = id?.split(':')[0] || null
-	if (no_wa?.startsWith('62')) {
-		no_wa = '0' + no_wa.slice(2)
-	}
+	if (no_wa?.startsWith('62')) no_wa = '0' + no_wa.slice(2)
 	return no_wa
 }
 
@@ -30,7 +28,6 @@ function emitStatus(io, field_id) {
 		field_id,
 		...(s.lastStatus || { connected: false, no_wa: null })
 	})
-	// Only send QR when disconnected AND we have a QR
 	if (!s.lastStatus?.connected && s.lastQR) {
 		io.to(roomOf(field_id)).emit('qr', s.lastQR)
 	}
@@ -38,11 +35,8 @@ function emitStatus(io, field_id) {
 
 async function ensureSession(field_id, io) {
 	let s = sessions.get(field_id)
-	if (s?.sock) {
-		return s
-	}
+	if (s?.sock) return s
 
-	// Create auth folder per field
 	const dir = authDir(field_id)
 	fs.mkdirSync(dir, { recursive: true })
 
@@ -64,20 +58,16 @@ async function ensureSession(field_id, io) {
 
 	s.sock.ev.on('creds.update', saveCreds)
 
-	// Connection updates
 	s.sock.ev.on('connection.update', (update) => {
 		const { connection, lastDisconnect, qr } = update
 
-		// QR handling
 		if (qr) {
 			s.lastQR = qr
-			// Only emit QR if currently not connected
 			if (!s.lastStatus?.connected) {
 				io.to(roomOf(field_id)).emit('qr', qr)
 			}
 		}
 
-		// OPEN
 		if (connection === 'open') {
 			const no_wa = formatMsisdn(s.sock.user?.id)
 			s.lastStatus = { connected: true, no_wa }
@@ -86,23 +76,17 @@ async function ensureSession(field_id, io) {
 			io.to(roomOf(field_id)).emit('status', { field_id, ...s.lastStatus })
 		}
 
-		// CLOSE
 		if (connection === 'close') {
 			const code =
 				lastDisconnect?.error?.output?.statusCode ??
 				lastDisconnect?.error?.data?.disconnectReason
 
-			// Reset status first
 			s.lastStatus = { connected: false, no_wa: null }
 			io.to(roomOf(field_id)).emit('status', { field_id, ...s.lastStatus })
 
-			// If logged out, wipe auth to allow fresh QR next time
 			if (code === DisconnectReason.loggedOut) {
-				try {
-					fs.rmSync(dir, { recursive: true, force: true })
-				} catch {}
+				try { fs.rmSync(dir, { recursive: true, force: true }) } catch {}
 			}
-			// Baileys has its own retry logic; we simply keep the session object.
 		}
 	})
 
@@ -114,17 +98,12 @@ async function ensureSession(field_id, io) {
 // =====================================
 export function initWhatsAppSocket(io) {
 	io.on('connection', (socket) => {
-		// Client is expected to join its field room first using existing "joinField"
-		// Then it can request status for that field_id.
-
-		// Ask/Check status (and start session if needed)
 		socket.on('wa:status', async ({ field_id }) => {
 			if (!field_id) return
 			await ensureSession(field_id, io)
 			emitStatus(io, field_id)
 		})
 
-		// Optional: force-refresh current status/qr without re-creating session
 		socket.on('wa:status:refresh', ({ field_id }) => {
 			if (!field_id) return
 			emitStatus(io, field_id)
@@ -133,14 +112,25 @@ export function initWhatsAppSocket(io) {
 }
 
 // =====================================
-// Optional helpers for future use
+// Boot all sessions from Field.findAll()
+// =====================================
+export async function bootstrapWhatsAppSessions(io) {
+	const { Field } = models
+	const rows = await Field.findAll({ attributes: ['field_id', 'id'] })
+	for (const row of rows) {
+		const field_id = row.field_id ?? row.id
+		if (field_id == null) continue
+		await ensureSession(field_id, io)
+	}
+}
+
+// =====================================
+// Optional helpers
 // =====================================
 export async function stopSession(field_id) {
 	const s = sessions.get(field_id)
 	if (!s?.sock) return
-	try {
-		await s.sock.logout()
-	} catch {}
+	try { await s.sock.logout() } catch {}
 	sessions.delete(field_id)
 }
 
