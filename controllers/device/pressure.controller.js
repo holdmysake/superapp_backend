@@ -82,6 +82,14 @@ export const storeBulk = async (req, res) => {
             })
 
             pressData.push(pressEntry)
+
+            getIO().to(`field_${field_id}`).emit("pressure:new", {
+                field_id,
+                spot_id,
+                psi: p.psi,
+                batt: p.batt,
+                timestamp: p.timestamp
+            })
         }
 
         let battery
