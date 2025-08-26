@@ -1,4 +1,3 @@
-// services/whatsapp.manager.js
 import fs from 'fs'
 import path from 'path'
 import pkg from '@whiskeysockets/baileys'
@@ -6,15 +5,9 @@ import { models } from '../models/index.js'
 
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
-// ==============================
-// Session store per field_id
-// ==============================
-const sessions = new Map() // field_id -> { sock, lastQR, lastStatus, ready }
+const sessions = new Map()
 
-// ==============================
-// Logging helpers
-// ==============================
-const LOG_SOCKET = process.env.LOG_SOCKET !== '0' // set LOG_SOCKET=0 to silence
+const LOG_SOCKET = process.env.LOG_SOCKET !== '0'
 
 const authDir = (field_id) => path.join(process.cwd(), 'baileys_auth', String(field_id))
 const roomOf  = (field_id) => `field_${field_id}`
@@ -39,7 +32,6 @@ function summarizePayload(event, payload) {
 			const q = payload?.qr ?? ''
 			return `qr_len=${q.length} head=${String(q).slice(0, 18)}...`
 		}
-		// fallback
 		return JSON.stringify(
 			typeof payload === 'string' ? { len: payload.length, head: payload.slice(0, 18) } : payload
 		).slice(0, 200)
@@ -61,9 +53,6 @@ function synthesizeLogLine(event, payload) {
 	return summarizePayload(event, payload)
 }
 
-// ==============================
-// Utils
-// ==============================
 function formatMsisdn(id) {
 	let no_wa = id?.split(':')[0] || null
 	if (no_wa?.startsWith('62')) no_wa = '0' + no_wa.slice(2)
@@ -82,9 +71,6 @@ function emitStatus(io, field_id) {
 	}
 }
 
-// ==============================
-// WA session lifecycle
-// ==============================
 async function ensureSession(field_id, io) {
 	let s = sessions.get(field_id)
 	if (s?.sock) return s
@@ -126,15 +112,17 @@ async function ensureSession(field_id, io) {
 			)
 		}
 
-		// QR handling
 		if (qr) {
-			s.lastQR = qr
-			if (!s.lastStatus?.connected) {
-				emitToField(io, field_id, 'qr', qr)
-			}
-		}
+            if (s.lastQR) {
+                console.log(`[WA][qr.expired] field_id=${field_id} oldQR_len=${s.lastQR.length}`)
+            }
+        
+            s.lastQR = qr
+            if (!s.lastStatus?.connected) {
+                emitToField(io, field_id, 'qr', qr)
+            }
+        }
 
-		// OPEN
 		if (connection === 'open') {
 			const no_wa = formatMsisdn(s.sock.user?.id)
 			s.lastStatus = { connected: true, no_wa }
@@ -143,7 +131,6 @@ async function ensureSession(field_id, io) {
 			emitToField(io, field_id, 'status', { field_id, ...s.lastStatus })
 		}
 
-		// CLOSE
 		if (connection === 'close') {
 			const code =
 				lastDisconnect?.error?.output?.statusCode ??
@@ -164,9 +151,6 @@ async function ensureSession(field_id, io) {
 	return s
 }
 
-// =====================================
-// Public: bind socket handlers (status)
-// =====================================
 export function initWhatsAppSocket(io) {
 	io.on('connection', (socket) => {
 		if (LOG_SOCKET) console.log(`[SOCKET] client connected id=${socket.id}`)
@@ -190,9 +174,6 @@ export function initWhatsAppSocket(io) {
 	})
 }
 
-// =====================================
-// Boot all sessions from Field.findAll()
-// =====================================
 export async function bootstrapWhatsAppSessions(io) {
 	const { Field } = models
 	const rows = await Field.findAll({ attributes: ['field_id', 'id'] })
@@ -204,9 +185,6 @@ export async function bootstrapWhatsAppSessions(io) {
 	}
 }
 
-// =====================================
-// Optional helpers
-// =====================================
 export async function stopSession(field_id) {
 	const s = sessions.get(field_id)
 	if (!s?.sock) return
