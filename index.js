@@ -15,6 +15,7 @@ import dotenv from 'dotenv'
 import { initSocket } from './socket.js'
 import http from "http"
 import { startJobs } from './cron/deviceCheck.js'
+import { initWhatsAppSocket } from './bot/bot.js'
 
 dotenv.config()
 
@@ -35,7 +36,8 @@ app.use('/api', pressRoute)
 app.use('/api/fe/', dataRoute)
 
 const server = http.createServer(app)
-initSocket(server)
+const io = initSocket(server)
+initWhatsAppSocket(io)
 
 const PORT = process.env.PORT
 

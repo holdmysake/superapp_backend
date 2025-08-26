@@ -1,123 +1,150 @@
-// ./bot/bot.js  (MULTI-SESSION: 1 sesi WA per field_id)
+// services/whatsapp.manager.js
 import fs from 'fs'
+import path from 'path'
 import pkg from '@whiskeysockets/baileys'
+
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
-let ioRef = null
-let wired = false
+// ==============================
+// Session store per field_id
+// ==============================
+const sessions = new Map() // field_id -> { sock, lastQR, lastStatus, ready }
 
-// field_id -> { sock, lastQR, lastStatus, authDir }
-const sessions = new Map()
-const room = (field_id) => `wa_${field_id}`
+// Helpers
+const authDir = (field_id) => path.join(process.cwd(), 'baileys_auth', String(field_id))
+const roomOf = (field_id) => `field_${field_id}`
 
-function wireFrontend(io) {
-	if (wired) return
-	wired = true
-	io.on('connection', (socket) => {
-		// FE wajib kirim field_id agar dapat snapshot status/QR field tsb
-		socket.on('wa:join', (field_id) => {
-			socket.join(room(field_id))
-			const s = sessions.get(String(field_id))
-			// kirim snapshot status + QR hanya utk field tsb
-			socket.emit('status', { field_id, ...(s?.lastStatus ?? { connected: false, no_wa: null }) })
-			if (s?.lastQR) socket.emit('qr', { field_id, qr: s.lastQR })
-		})
+function formatMsisdn(id) {
+	// e.g. "6281234567890:1@s.whatsapp.net" -> "081234567890"
+	let no_wa = id?.split(':')[0] || null
+	if (no_wa?.startsWith('62')) {
+		no_wa = '0' + no_wa.slice(2)
+	}
+	return no_wa
+}
 
-		// kontrol via socket (opsional)
-		socket.on('wa:start', async (field_id) => { await startBot(io, field_id) })
-		socket.on('wa:stop', async (field_id) => { await stopBot(field_id) })
+function emitStatus(io, field_id) {
+	const s = sessions.get(field_id)
+	if (!s) return
+	io.to(roomOf(field_id)).emit('status', {
+		field_id,
+		...(s.lastStatus || { connected: false, no_wa: null })
 	})
+	// Only send QR when disconnected AND we have a QR
+	if (!s.lastStatus?.connected && s.lastQR) {
+		io.to(roomOf(field_id)).emit('qr', s.lastQR)
+	}
 }
 
-function emitStatus(field_id) {
-	const s = sessions.get(String(field_id))
-	if (!ioRef || !s) return
-	ioRef.to(room(field_id)).emit('status', { field_id, ...s.lastStatus })
-}
+async function ensureSession(field_id, io) {
+	let s = sessions.get(field_id)
+	if (s?.sock) {
+		return s
+	}
 
-function emitQR(field_id, qr) {
-	if (!ioRef) return
-	ioRef.to(room(field_id)).emit('qr', { field_id, qr })
-}
+	// Create auth folder per field
+	const dir = authDir(field_id)
+	fs.mkdirSync(dir, { recursive: true })
 
-async function createSock(field_id) {
-	const id = String(field_id)
-	const authDir = `./baileys_auth/${id}`
+	const { state, saveCreds } = await useMultiFileAuthState(dir)
 
-	const { state, saveCreds } = await useMultiFileAuthState(authDir)
 	const sock = makeWASocket({
 		auth: state,
 		printQRInTerminal: false,
 		browser: ['Bot Torque', 'Chrome', '1.0.0']
 	})
 
-	const ctx = {
+	s = {
 		sock,
-		authDir,
 		lastQR: null,
-		lastStatus: { connected: false, no_wa: null }
+		lastStatus: { connected: false, no_wa: null },
+		ready: false
 	}
-	sessions.set(id, ctx)
+	sessions.set(field_id, s)
 
-	sock.ev.on('creds.update', saveCreds)
+	s.sock.ev.on('creds.update', saveCreds)
 
-	sock.ev.on('connection.update', (update) => {
+	// Connection updates
+	s.sock.ev.on('connection.update', (update) => {
 		const { connection, lastDisconnect, qr } = update
 
+		// QR handling
 		if (qr) {
-			ctx.lastQR = qr
-			emitQR(id, qr)
+			s.lastQR = qr
+			// Only emit QR if currently not connected
+			if (!s.lastStatus?.connected) {
+				io.to(roomOf(field_id)).emit('qr', qr)
+			}
 		}
 
+		// OPEN
 		if (connection === 'open') {
-			let no_wa = sock.user?.id?.split(':')[0] || null
-			if (no_wa?.startsWith('62')) no_wa = '0' + no_wa.slice(2)
-			ctx.lastStatus = { connected: true, no_wa }
-			ctx.lastQR = null
-			emitStatus(id)
-		} else if (connection === 'close') {
-			const code = lastDisconnect?.error?.output?.statusCode
-			const loggedOut = code === DisconnectReason.loggedOut
+			const no_wa = formatMsisdn(s.sock.user?.id)
+			s.lastStatus = { connected: true, no_wa }
+			s.lastQR = null
+			s.ready = true
+			io.to(roomOf(field_id)).emit('status', { field_id, ...s.lastStatus })
+		}
 
-			if (loggedOut) {
-				try { fs.rmSync(authDir, { recursive: true, force: true }) } catch {}
-				console.log(`[wa:${id}] session removed, new QR on next start`)
+		// CLOSE
+		if (connection === 'close') {
+			const code =
+				lastDisconnect?.error?.output?.statusCode ??
+				lastDisconnect?.error?.data?.disconnectReason
+
+			// Reset status first
+			s.lastStatus = { connected: false, no_wa: null }
+			io.to(roomOf(field_id)).emit('status', { field_id, ...s.lastStatus })
+
+			// If logged out, wipe auth to allow fresh QR next time
+			if (code === DisconnectReason.loggedOut) {
+				try {
+					fs.rmSync(dir, { recursive: true, force: true })
+				} catch {}
 			}
-
-			ctx.lastStatus = { connected: false, no_wa: null }
-			emitStatus(id)
-
-			// auto-reconnect kecuali benar2 logout
-			if (!loggedOut) {
-				setTimeout(() => {
-					createSock(id).catch((e) => console.error(`[wa:${id}] recreate error:`, e))
-				}, 1000)
-			}
+			// Baileys has its own retry logic; we simply keep the session object.
 		}
 	})
 
-	return sock
+	return s
 }
 
-export async function startBot(io, field_id) {
-	ioRef = io
-	wireFrontend(ioRef)
-	const id = String(field_id)
-	if (sessions.get(id)?.sock) return sessions.get(id).sock
-	return await createSock(id)
+// =====================================
+// Public: bind socket handlers (status)
+// =====================================
+export function initWhatsAppSocket(io) {
+	io.on('connection', (socket) => {
+		// Client is expected to join its field room first using existing "joinField"
+		// Then it can request status for that field_id.
+
+		// Ask/Check status (and start session if needed)
+		socket.on('wa:status', async ({ field_id }) => {
+			if (!field_id) return
+			await ensureSession(field_id, io)
+			emitStatus(io, field_id)
+		})
+
+		// Optional: force-refresh current status/qr without re-creating session
+		socket.on('wa:status:refresh', ({ field_id }) => {
+			if (!field_id) return
+			emitStatus(io, field_id)
+		})
+	})
 }
 
-export async function stopBot(field_id) {
-	const id = String(field_id)
-	const ctx = sessions.get(id)
-	if (!ctx?.sock) return
-	try { await ctx.sock.logout() } catch {}
-	sessions.delete(id)
-	// broadcast status disconnected utk field tsb
-	if (ioRef) ioRef.to(room(id)).emit('status', { field_id: id, connected: false, no_wa: null })
+// =====================================
+// Optional helpers for future use
+// =====================================
+export async function stopSession(field_id) {
+	const s = sessions.get(field_id)
+	if (!s?.sock) return
+	try {
+		await s.sock.logout()
+	} catch {}
+	sessions.delete(field_id)
 }
 
-export function getStatus(field_id) {
-	const s = sessions.get(String(field_id))
+export function getSessionStatus(field_id) {
+	const s = sessions.get(field_id)
 	return s?.lastStatus ?? { connected: false, no_wa: null }
 }
