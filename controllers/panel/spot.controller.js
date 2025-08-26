@@ -50,7 +50,27 @@ export const updateField = async (req, res) => {
 
 export const getField = async (req, res) => {
     try {
-        const field = await Field.findAll()
+        const token = req.headers.authorization?.split(' ')[1]
+
+        const decoded = jwt.verify(token, JWT_SECRET)
+
+        const user = await User.findOne({
+            where: {
+                user_id: decoded.user_id
+            }
+        })
+        const isSA = user.role === 'superadmin'
+        let field
+
+        if (isSA) {
+            field = await Field.findAll()
+        } else {
+            field = await Field.findOne({
+                where: {
+                    field_id: user.field_id
+                }
+            })
+        }        
 
         res.json({ field })
     } catch (error) {
