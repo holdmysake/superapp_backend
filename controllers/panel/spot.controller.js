@@ -65,7 +65,7 @@ export const getField = async (req, res) => {
         if (isSA) {
             field = await Field.findAll()
         } else {
-            field = await Field.findOne({
+            field = await Field.findAll({
                 where: {
                     field_id: user.field_id
                 }
