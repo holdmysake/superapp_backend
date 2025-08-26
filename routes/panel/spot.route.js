@@ -25,7 +25,7 @@ const router = express.Router()
 
 router.post('/storeField', verifyTokenSA, storeField)
 router.post('/updateField', verifyTokenSA, updateField)
-router.post('/getField', verifyTokenSA, getField)
+router.post('/getField', verifyTokenAdmin, getField)
 router.post('/deleteField', verifyTokenSA, deleteField)
 router.post('/getTline', verifyTokenAdmin, getTline)
 router.post('/storeTline', verifyTokenAdmin, storeTline)
