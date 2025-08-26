@@ -44,7 +44,7 @@ const PORT = process.env.PORT
 sequelize.sync({ force: false })
     .then(async () => {
         console.log('Database connected')
-        await bootstrapWhatsAppSessions(io)
+        // await bootstrapWhatsAppSessions(io)
     })
     .catch(err => console.error('Database error:', err))
 
