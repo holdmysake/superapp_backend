@@ -97,6 +97,7 @@ async function ensureSession(field_id, io) {
 // Public: bind socket handlers (status)
 // =====================================
 export function initWhatsAppSocket(io) {
+    console.log('mulai bot wa')
 	io.on('connection', (socket) => {
 		socket.on('wa:status', async ({ field_id }) => {
 			if (!field_id) return
