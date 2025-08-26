@@ -14,6 +14,7 @@ import defineAssociations from './models/association.js'
 import dotenv from 'dotenv'
 import { initSocket } from './socket.js'
 import http from "http"
+import { startJobs } from './cron/deviceCheck.js'
 
 dotenv.config()
 
@@ -41,6 +42,8 @@ const PORT = process.env.PORT
 sequelize.sync({ force: false })
     .then(() => console.log('Database connected'))
     .catch(err => console.error('Database error:', err))
+
+startJobs()
 
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`)
