@@ -15,7 +15,7 @@ import dotenv from 'dotenv'
 import { initSocket } from './socket.js'
 import http from "http"
 import { startJobs } from './cron/deviceCheck.js'
-import { initWhatsAppSocket } from './bot/bot.js'
+import { bootstrapWhatsAppSessions, initWhatsAppSocket } from './bot/bot.js'
 
 dotenv.config()
 
@@ -42,7 +42,10 @@ initWhatsAppSocket(io)
 const PORT = process.env.PORT
 
 sequelize.sync({ force: false })
-    .then(() => console.log('Database connected'))
+    .then(async () => {
+        console.log('Database connected')
+        await bootstrapWhatsAppSessions(io)
+    })
     .catch(err => console.error('Database error:', err))
 
 startJobs()
