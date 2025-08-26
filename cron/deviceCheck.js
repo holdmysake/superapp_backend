@@ -1,11 +1,11 @@
 import cron from "node-cron"
+import { checkDeviceOff } from "../controllers/panel/notif.controller.js"
 
 export function startJobs() {
 	const task = cron.schedule(
 		"* * * * *",
 		() => {
-			const ts = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })
-			console.log(`[CRON] ${ts} - Halo dari cron job 👍`)
+			checkDeviceOff()
 		},
 		{
 			scheduled: true,

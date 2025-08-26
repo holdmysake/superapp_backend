@@ -5,6 +5,39 @@ import Spot from "../../models/spot.model.js"
 import { Op } from "sequelize"
 import PredValue from "../../models/pred_value.model.js"
 import SpotStatus from "../../models/spot_status.js"
+import Field from "../../models/field.model.js"
+
+export const checkDeviceOff = async () => {
+    try {
+        // const spots = await Field.findAll({
+        //     include: {
+        //         model: Trunkline,
+        //         as: 'trunklines',
+        //         include: [
+        //             {
+        //                 model: PredValue,
+        //                 as: 'pred_value',
+        //                 include: {
+        //                     model: Spot,
+        //                     as: 'spot',
+        //                     attributes: ['spot_id', 'spot_name']
+        //                 }
+        //             },
+        //             {
+        //                 model: Spot,
+        //                 as: 'spots',
+        //                 separate: true,
+        //                 order: [['sort', 'ASC']]
+        //             }
+        //         ]
+        //     }
+        // })
+
+        console.log("Checking device off...")
+    } catch (error) {
+        console.error(error)
+    }
+}
 
 export const getOffDevice = async (req, res) => {
     try {
