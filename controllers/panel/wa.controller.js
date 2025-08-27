@@ -1,5 +1,5 @@
-import { readGroupsJson, stopSession, updateGroupsJson } from "../../bot/bot"
-import { getIO } from "../../socket"
+import { readGroupsJson, stopSession, updateGroupsJson } from "../../bot/bot.js"
+import { getIO } from "../../socket.js"
 
 export const getGroups = async (req, res) => {
     try {
