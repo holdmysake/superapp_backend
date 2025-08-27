@@ -113,12 +113,19 @@ async function ensureSession(field_id, io) {
 				lastDisconnect?.error?.data?.disconnectReason
 
 			s.lastStatus = { connected: false, no_wa: null }
+			s.lastQR = null
 			emitStatus(io, field_id)
 
-			clearDirContents(dir)
-
 			if (code === DisconnectReason.loggedOut) {
+				clearDirContents(dir)
 				log(`[WA][loggedOut] field_id=${field_id} (auth contents cleared)`)
+			}
+
+			const needRestart =
+				!code ||
+				String(lastDisconnect?.error?.message || '').includes('Stream Errored')
+			if (needRestart) {
+				setTimeout(() => { restartSession(field_id, io) }, 0)
 			}
 		}
 	})
@@ -185,4 +192,13 @@ async function hardRefreshQr(field_id, io) {
 
 	await ensureSession(field_id, io)
 	emitStatus(io, field_id)
+}
+
+async function restartSession(field_id, io) {
+	const s = sessions.get(field_id)
+	if (s?.sock) {
+		try { s.sock.end?.() } catch {}
+	}
+	sessions.delete(field_id)
+	await ensureSession(field_id, io)
 }
