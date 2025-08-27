@@ -12,8 +12,8 @@ import {
 
 const router = express.Router()
 
-router.post('disconnectWa', verifyTokenAdmin, disconnectWa)
-router.post('getGroups', verifyTokenAdmin, getGroups)
-router.post('refreshGroups', verifyTokenAdmin, refreshGroups)
+router.post('/disconnectWa', verifyTokenAdmin, disconnectWa)
+router.post('/getGroups', verifyTokenAdmin, getGroups)
+router.post('/refreshGroups', verifyTokenAdmin, refreshGroups)
 
 export default router
