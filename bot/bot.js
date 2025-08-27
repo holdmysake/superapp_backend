@@ -53,47 +53,15 @@ function clearDirContents(dirPath) {
 function emitStatus(io, field_id) {
 	const s = sessions.get(field_id)
 	if (!s) return
-	emitToField(io, field_id, 'status', {
+	const payload = {
 		field_id,
 		...(s.lastStatus || { connected: false, no_wa: null })
-	})
-}
-
-function scheduleQrExpiry(field_id, io) {
-	const s = sessions.get(field_id)
-	if (!s) return
-	clearTimeout(s.qrTimer)
-	s.qrTimer = setTimeout(() => {
-		if (!s.lastStatus?.connected) {
-			log(`[WA][qr-expired] field_id=${field_id} ttl=${QR_TTL_MS}ms`)
-			restartSession(field_id, io)
-		}
-	}, QR_TTL_MS)
-}
-
-function emitQrIfChanged(io, field_id, nextQr) {
-	const s = sessions.get(field_id)
-	if (!s) return
-	const nextHash = hashStr(nextQr)
-	if (s.qrHash === nextHash) {
-		return
 	}
-	s.lastQR = nextQr
-	s.qrHash = nextHash
-	s.qrAt = Date.now()
-	scheduleQrExpiry(field_id, io)
-	emitToField(io, field_id, 'qr', { field_id, qr: nextQr })
-}
 
-async function restartSession(field_id, io) {
-	const s = sessions.get(field_id)
-	if (!s) return
-	try { s.sock?.end?.() } catch {}
-	try { s.sock?.ws?.close?.() } catch {}
-	clearTimeout(s.qrTimer)
-	clearInterval(s.watchdog)
-	sessions.delete(field_id)
-	await ensureSession(field_id, io)
+	if (!s.lastStatus?.connected && s.lastQR) {
+		payload.qr = s.lastQR
+	}
+	emitToField(io, field_id, 'status', payload)
 }
 
 async function ensureSession(field_id, io) {
@@ -115,9 +83,7 @@ async function ensureSession(field_id, io) {
 		lastStatus: { connected: false, no_wa: null },
 		lastQR: null,
 		qrHash: null,
-		qrAt: 0,
-		qrTimer: null,
-		watchdog: null,
+		qrAt: 0
 	}
 	sessions.set(field_id, s)
 
@@ -128,7 +94,8 @@ async function ensureSession(field_id, io) {
 		log(`[WA][conn.update] field_id=${field_id} conn=${connection} hasQR=${!!qr}`)
 
 		if (qr && !s.lastStatus?.connected) {
-			emitQrIfChanged(io, field_id, qr)
+			s.lastQR = qr
+			emitStatus(io, field_id)
 		}
 
 		if (connection === 'open') {
@@ -137,7 +104,6 @@ async function ensureSession(field_id, io) {
 			s.lastQR = null
 			s.qrHash = null
 			s.qrAt = 0
-			clearTimeout(s.qrTimer)
 			emitStatus(io, field_id)
 		}
 
@@ -156,16 +122,6 @@ async function ensureSession(field_id, io) {
 			}
 		}
 	})
-
-	s.watchdog = setInterval(() => {
-		if (s.lastStatus.connected) return
-		if (!s.qrAt) return
-		const age = Date.now() - s.qrAt
-		if (age > (QR_TTL_MS * 3)) {
-			log(`[WA][watchdog] stale-qr age=${age}ms field_id=${field_id} → restart`)
-			restartSession(field_id, io)
-		}
-	}, WATCHDOG_INTERVAL_MS)
 
 	return s
 }
@@ -208,8 +164,6 @@ export async function stopSession(field_id) {
 	const s = sessions.get(field_id)
 	if (!s?.sock) return
 	try { await s.sock.logout() } catch {}
-	clearTimeout(s.qrTimer)
-	clearInterval(s.watchdog)
 	sessions.delete(field_id)
 	log(`[WA][stop] field_id=${field_id} stopped`)
 }
