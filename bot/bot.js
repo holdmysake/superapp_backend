@@ -137,10 +137,10 @@ export function initWhatsAppSocket(io) {
 			emitStatus(io, field_id)
 		})
 
-		socket.on('wa:status:refresh', ({ field_id }) => {
+		socket.on('wa:qr:refresh', async ({ field_id }) => {
 			if (!field_id) return
-			if (LOG) console.log(`[SOCKET][recv] 'wa:status:refresh' field_id=${field_id} from=${socket.id}`)
-			emitStatus(io, field_id)
+			if (LOG) console.log(`[SOCKET][recv] 'wa:qr:refresh' field_id=${field_id} from=${socket.id}`)
+			await hardRefreshQr(field_id, io)
 		})
 
 		socket.on('disconnect', (reason) => {
@@ -171,4 +171,18 @@ export async function stopSession(field_id) {
 export function getSessionStatus(field_id) {
 	const s = sessions.get(field_id)
 	return s?.lastStatus ?? { connected: false, no_wa: null }
+}
+
+async function hardRefreshQr(field_id, io) {
+	const dir = authDir(field_id)
+	clearDirContents(dir)
+
+	const s = sessions.get(field_id)
+	if (s?.sock) {
+		try { s.sock.end?.() } catch {}
+	}
+	sessions.delete(field_id)
+
+	await ensureSession(field_id, io)
+	emitStatus(io, field_id)
 }
