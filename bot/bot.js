@@ -35,6 +35,21 @@ function formatMsisdn(id) {
 	return no_wa
 }
 
+function clearDirContents(dirPath) {
+	try {
+		if (!fs.existsSync(dirPath)) return
+		for (const name of fs.readdirSync(dirPath)) {
+			const full = path.join(dirPath, name)
+			try {
+				const st = fs.lstatSync(full)
+				if (st.isDirectory()) fs.rmSync(full, { recursive: true, force: true })
+				else fs.unlinkSync(full)
+			} catch {}
+		}
+		log(`[WA][auth-clear] cleared contents: ${dirPath}`)
+	} catch {}
+}
+
 function emitStatus(io, field_id) {
 	const s = sessions.get(field_id)
 	if (!s) return
@@ -130,11 +145,14 @@ async function ensureSession(field_id, io) {
 			const code =
 				lastDisconnect?.error?.output?.statusCode ??
 				lastDisconnect?.error?.data?.disconnectReason
+
 			s.lastStatus = { connected: false, no_wa: null }
 			emitStatus(io, field_id)
+
+			clearDirContents(dir)
+
 			if (code === DisconnectReason.loggedOut) {
-				try { fs.rmSync(dir, { recursive: true, force: true }) } catch {}
-				log(`[WA][loggedOut] auth wiped field_id=${field_id}`)
+				log(`[WA][loggedOut] field_id=${field_id} (auth contents cleared)`)
 			}
 		}
 	})
