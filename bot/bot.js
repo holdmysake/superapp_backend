@@ -44,25 +44,6 @@ function emitStatus(io, field_id) {
 	})
 }
 
-// ===== hapus isi folder auth/<field_id> tanpa menghapus foldernya =====
-function clearAuthDirContents(dir) {
-	try {
-		if (!fs.existsSync(dir)) return
-		const entries = fs.readdirSync(dir, { withFileTypes: true })
-		for (const ent of entries) {
-			const p = path.join(dir, ent.name)
-			if (ent.isDirectory()) {
-				// hapus rekursif isi subdir, lalu hapus subdir
-				fs.rmSync(p, { recursive: true, force: true })
-			} else {
-				fs.rmSync(p, { force: true })
-			}
-		}
-	} catch (e) {
-		log('[WA][auth-clear][error]', e?.message || e)
-	}
-}
-
 function scheduleQrExpiry(field_id, io) {
 	const s = sessions.get(field_id)
 	if (!s) return
@@ -131,7 +112,6 @@ async function ensureSession(field_id, io) {
 		const { connection, lastDisconnect, qr } = update
 		log(`[WA][conn.update] field_id=${field_id} conn=${connection} hasQR=${!!qr}`)
 
-		// QR baru dari Baileys
 		if (qr && !s.lastStatus?.connected) {
 			emitQrIfChanged(io, field_id, qr)
 		}
@@ -150,24 +130,15 @@ async function ensureSession(field_id, io) {
 			const code =
 				lastDisconnect?.error?.output?.statusCode ??
 				lastDisconnect?.error?.data?.disconnectReason
-
-			// tandai disconnect
 			s.lastStatus = { connected: false, no_wa: null }
 			emitStatus(io, field_id)
-
-			// hapus hanya isi folder auth/<field_id>, lalu langsung restart untuk generate QR baru
-			const d = authDir(field_id)
-			clearAuthDirContents(d)
-			log(`[WA][disconnect] cleared auth contents field_id=${field_id} code=${code ?? 'n/a'}`)
-
-			// kalau sebelumnya pakai rmSync(dir) saat loggedOut, ganti dengan pembersihan isi saja:
-			// if (code === DisconnectReason.loggedOut) { ... } -> tidak diperlukan, kita selalu clear isi
-
-			restartSession(field_id, io) // ini akan memicu ensureSession → Baileys kirim QR baru
+			if (code === DisconnectReason.loggedOut) {
+				try { fs.rmSync(dir, { recursive: true, force: true }) } catch {}
+				log(`[WA][loggedOut] auth wiped field_id=${field_id}`)
+			}
 		}
 	})
 
-	// Watchdog untuk QR stale
 	s.watchdog = setInterval(() => {
 		if (s.lastStatus.connected) return
 		if (!s.qrAt) return
