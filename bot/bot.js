@@ -12,6 +12,16 @@ const sessions = new Map()
 const authDir = (field_id) => path.join(process.cwd(), 'baileys_auth', String(field_id))
 const roomOf = (field_id) => `field_${field_id}`
 
+const groupsDir = () => path.join(process.cwd(), 'data', 'wa_groups')
+const groupsFile = (field_id) => path.join(groupsDir(), `${field_id}.json`)
+function ensureDir(p) { fs.mkdirSync(p, { recursive: true }) }
+function writeFileAtomic(fp, data) {
+	ensureDir(path.dirname(fp))
+	const tmp = fp + '.tmp'
+	fs.writeFileSync(tmp, data)
+	fs.renameSync(tmp, fp)
+}
+
 function hashStr(s) {
 	let h = 0
 	for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0
@@ -199,4 +209,37 @@ async function restartSession(field_id, io) {
 	}
 	sessions.delete(field_id)
 	await ensureSession(field_id, io)
+}
+
+export async function updateGroupsJson(field_id, io) {
+	await ensureSession(field_id, io)
+	const s = sessions.get(field_id)
+	if (!s?.lastStatus?.connected) throw new Error('WhatsApp not connected')
+
+	const participating = await s.sock.groupFetchAllParticipating()
+	const groups = Object.values(participating || {}).map(g => ({
+		jid: g.id || g.jid,
+		subject: g.subject,
+		size: Array.isArray(g.participants) ? g.participants.length : undefined
+	})).sort((a,b) => a.subject.localeCompare(b.subject))
+
+	const payload = {
+		field_id,
+		refreshed_at: new Date().toISOString(),
+		count: groups.length,
+		groups
+	}
+	const fp = groupsFile(field_id)
+	writeFileAtomic(fp, JSON.stringify(payload, null, 2))
+	return { file: fp, ...payload }
+}
+
+export function readGroupsJson(field_id) {
+	const fp = groupsFile(field_id)
+	if (!fs.existsSync(fp)) return { field_id, refreshed_at: null, count: 0, groups: [] }
+	try {
+		return JSON.parse(fs.readFileSync(fp, 'utf8'))
+	} catch {
+		return { field_id, refreshed_at: null, count: 0, groups: [] }
+	}
 }
