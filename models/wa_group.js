@@ -1,9 +1,8 @@
 import { DataTypes } from 'sequelize'
 import sequelize from '../config/db.js'
 import Field from './field.model.js'
-import User from './user.model.js'
 
-const WALogin = sequelize.define('wa_login', {
+const WAGroup = sequelize.define('wa_group', {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -12,7 +11,6 @@ const WALogin = sequelize.define('wa_login', {
     field_id: {
         type: DataTypes.STRING,
         allowNull: true,
-        unique: true,
         references: {
             model: Field,
             key: 'field_id'
@@ -20,29 +18,22 @@ const WALogin = sequelize.define('wa_login', {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
     },
-    user_id: {
+    target: {
         type: DataTypes.STRING,
-        allowNull: true,
-        references: {
-            model: User,
-            key: 'user_id'
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
-    },
-    is_login: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
         allowNull: false
     },
-    no_wa: {
-        type: DataTypes.INTEGER,
-        allowNull: true
+    type: {
+        type: DataTypes.ENUM('info', 'leak'),
+        allowNull: false
+    },
+    group_name: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 }, {
-    tableName: 'wa_login',
+    tableName: 'wa_group',
     timestamps: false,
     underscored: true
 })
 
-export default WALogin
+export default WAGroup

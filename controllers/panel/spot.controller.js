@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken'
 import User from '../../models/user.model.js'
 import PredValue from '../../models/pred_value.model.js'
 import { Op } from 'sequelize'
-import WALogin from '../../models/wa_login.js'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -22,7 +21,6 @@ export const storeField = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const UserData = defineUserDataModel(tableName)
         await UserData.sync({ force: false })
-        await WALogin.create({ field_id })
 
         res.json({ field })
     } catch (error) {

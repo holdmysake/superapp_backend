@@ -6,8 +6,6 @@ import { models } from '../models/index.js'
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
 const LOG = process.env.LOG_SOCKET !== '0'
-const QR_TTL_MS = 30_000
-const WATCHDOG_INTERVAL_MS = 10_000
 
 const sessions = new Map()
 
