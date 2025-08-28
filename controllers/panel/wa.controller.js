@@ -19,6 +19,62 @@ export const getWaGroup = async (req, res) => {
     }
 }
 
+export const createWaGroup = async (req, res) => {
+    try {
+        const { field_id, target, type, group_name } = req.body
+
+        const group = await WAGroup.create({
+            field_id,
+            target,
+            type,
+            group_name
+        })
+
+        res.json(group)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const deleteWaGroup = async (req, res) => {
+    try {
+        const { id } = req.body
+
+        await WAGroup.destroy({
+            where: {
+                id
+            }
+        })
+
+        res.json({ message: 'Group deleted' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const updateWaGroup = async (req, res) => {
+    try {
+        const { id, target, type, group_name } = req.body
+
+        const group = await WAGroup.findByPk(id)
+        if (!group) {
+            return res.status(404).json({ message: 'Group not found' })
+        }
+
+        group.target = target
+        group.type = type
+        group.group_name = group_name
+        await group.save()
+
+        res.json(group)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const getGroups = async (req, res) => {
     try {
         const { field_id } = req.body

@@ -1,6 +1,9 @@
 import express from 'express'
 import {
     getWaGroup,
+    createWaGroup,
+    updateWaGroup,
+    deleteWaGroup,
     disconnectWa,
     getGroups,
     refreshGroups
@@ -14,6 +17,9 @@ import {
 const router = express.Router()
 
 router.post('/getWaGroup', verifyTokenAdmin, getWaGroup)
+router.post('/createWaGroup', verifyTokenAdmin, createWaGroup)
+router.post('/updateWaGroup', verifyTokenAdmin, updateWaGroup)
+router.post('/deleteWaGroup', verifyTokenAdmin, deleteWaGroup)
 router.post('/disconnectWa', verifyTokenAdmin, disconnectWa)
 router.post('/getGroups', verifyTokenAdmin, getGroups)
 router.post('/refreshGroups', verifyTokenAdmin, refreshGroups)
