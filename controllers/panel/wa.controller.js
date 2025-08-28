@@ -6,7 +6,11 @@ export const getWaGroup = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        const waGroup = await WAGroup.findAll()
+        const waGroup = await WAGroup.findAll({
+            where: {
+                field_id
+            }
+        })
 
         res.json(waGroup)
     } catch (error) {
