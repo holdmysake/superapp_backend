@@ -1,5 +1,19 @@
 import { readGroupsJson, stopSession, updateGroupsJson } from "../../bot/bot.js"
+import WAGroup from "../../models/wa_group.js"
 import { getIO } from "../../socket.js"
+
+export const getWaGroup = async (req, res) => {
+    try {
+        const { field_id } = req.body
+
+        const waGroup = await WAGroup.findAll()
+
+        res.json(waGroup)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
 
 export const getGroups = async (req, res) => {
     try {

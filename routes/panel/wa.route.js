@@ -1,5 +1,6 @@
 import express from 'express'
 import {
+    getWaGroup,
     disconnectWa,
     getGroups,
     refreshGroups
@@ -12,6 +13,7 @@ import {
 
 const router = express.Router()
 
+router.post('/getWaGroup', verifyTokenAdmin, getWaGroup)
 router.post('/disconnectWa', verifyTokenAdmin, disconnectWa)
 router.post('/getGroups', verifyTokenAdmin, getGroups)
 router.post('/refreshGroups', verifyTokenAdmin, refreshGroups)
