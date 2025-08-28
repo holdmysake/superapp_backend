@@ -217,18 +217,24 @@ export async function updateGroupsJson(field_id, io) {
 	if (!s?.lastStatus?.connected) throw new Error('WhatsApp not connected')
 
 	const participating = await s.sock.groupFetchAllParticipating()
-	const groups = Object.values(participating || {}).map(g => ({
-		jid: g.id || g.jid,
-		subject: g.subject,
-		size: Array.isArray(g.participants) ? g.participants.length : undefined
-	})).sort((a,b) => a.subject.localeCompare(b.subject))
+	const groups = Object.values(participating || {})
+		.map(g => ({
+			jid: g.id || g.jid,
+			subject: g.subject,
+			size: Array.isArray(g.participants) ? g.participants.length : undefined
+		}))
+		.sort((a, b) => a.subject.localeCompare(b.subject))
+
+	const no_wa = s.lastStatus?.no_wa ?? formatMsisdn(s.sock.user?.id)
 
 	const payload = {
 		field_id,
+		no_wa,
 		refreshed_at: new Date().toISOString(),
 		count: groups.length,
 		groups
 	}
+
 	const fp = groupsFile(field_id)
 	writeFileAtomic(fp, JSON.stringify(payload, null, 2))
 	return { file: fp, ...payload }
