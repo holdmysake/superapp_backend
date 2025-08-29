@@ -268,7 +268,7 @@ export const onoffNotif = async (data) => {
     *STOP POMPA*
             `
 
-            sendWaText(data.field_id, getIO(), {
+            return await sendWaText(data.field_id, getIO(), {
                 to: wg.target,
                 text: message
             })
