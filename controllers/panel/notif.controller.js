@@ -233,7 +233,7 @@ export const onoffNotif = async (data) => {
 		if (!desired) return null
 
 		if (!lastState || (lastState.type === 'pump' && lastState.status !== desired)) {
-			return await SpotStatus.create({
+			await SpotStatus.create({
 				spot_id: data.spot_id,
 				type: 'pump',
 				status: desired,
