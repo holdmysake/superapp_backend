@@ -244,7 +244,7 @@ export const onoffNotif = async (data) => {
         const waGroup = await WAGroup.findAll({
             where: {
                 field_id: data.field_id,
-                type: 'pump'
+                type: 'info'
             }
         })
 
