@@ -116,24 +116,24 @@ async function ensureSession(field_id, io) {
 		}
 
 		if (connection === 'close') {
+			const err = lastDisconnect?.error
 			const code =
-				lastDisconnect?.error?.output?.statusCode ??
-				lastDisconnect?.error?.data?.disconnectReason
-
+				err?.output?.statusCode ??
+				err?.data?.disconnectReason ??
+				err?.status ??
+				err?.code
+		
+			console.log('[WA][close]', { field_id, code, message: String(err?.message || '') })
+		
 			s.lastStatus = { connected: false, no_wa: null }
 			s.lastQR = null
 			emitStatus(io, field_id)
-
+		
 			if (code === DisconnectReason.loggedOut) {
 				clearDirContents(dir)
-				log(`[WA][loggedOut] field_id=${field_id} (auth contents cleared)`)
-			}
-
-			const needRestart =
-				!code ||
-				String(lastDisconnect?.error?.message || '').includes('Stream Errored')
-			if (needRestart) {
-				setTimeout(() => { restartSession(field_id, io) }, 0)
+			} else if (String(err?.message || '').includes('Stream Errored') ||
+				String(err?.message || '').includes('Connection Terminated')) {
+				setTimeout(() => restartSession(field_id, io), 0)
 			}
 		}
 	})
