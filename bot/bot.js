@@ -249,3 +249,36 @@ export function readGroupsJson(field_id) {
 		return { field_id, refreshed_at: null, count: 0, groups: [] }
 	}
 }
+
+function normalizeJid(to) {
+	if (!to) return ''
+	const str = String(to).trim()
+
+	if (/@g\.us$/.test(str) || /@s\.whatsapp\.net$/.test(str) || /@broadcast$/.test(str)) {
+		return str
+	}
+
+	let digits = str.replace(/\D/g, '')
+	if (digits.startsWith('0')) digits = '62' + digits.slice(1)
+	else if (!digits.startsWith('62')) digits = '62' + digits
+	return `${digits}@s.whatsapp.net`
+}
+
+export async function sendWaText(field_id, io, { to, text }) {
+	if (!text || !String(text).trim()) throw new Error('Text is required')
+	const jid = normalizeJid(to)
+	if (!jid) throw new Error('Destination (to/jid/target) is required')
+
+	await ensureSession(field_id, io)
+	const s = sessions.get(field_id)
+	if (!s?.lastStatus?.connected) throw new Error('WhatsApp not connected')
+
+	const msg = await s.sock.sendMessage(jid, { text: String(text) })
+	return {
+		ok: true,
+		field_id,
+		to: jid,
+		message_id: msg?.key?.id ?? null,
+		timestamp: Date.now()
+	}
+}

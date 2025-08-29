@@ -5,8 +5,9 @@ import Spot from "../../models/spot.model.js"
 import { Op } from "sequelize"
 import PredValue from "../../models/pred_value.model.js"
 import SpotStatus from "../../models/spot_status.js"
-import Field from "../../models/field.model.js"
 import WAGroup from "../../models/wa_group.js"
+import { sendWaText } from "../../bot/bot.js"
+import { getIO } from "../../socket.js"
 
 export const checkDeviceOff = async () => {
     try {
@@ -246,10 +247,36 @@ export const onoffNotif = async (data) => {
             }
         })
 
-        console.log(waGroup)
-		return waGroup
+        const spot = await Spot.findOne({
+            where: {
+                spot_id: data.spot_id
+            },
+            include: {
+                model: Trunkline,
+                as: 'trunkline',
+                attributes: ['tline_name']
+            }
+        })
+
+        for (const wg of waGroup) {
+            const message = desired === 'on' ?
+            `
+🟢 _${spot.trunkline.tline_name}_
+    *START POMPA*
+            ` : `
+🔴 _${spot.trunkline.tline_name}_
+    *STOP POMPA*
+            `
+
+            sendWaText(data.field_id, getIO(), {
+                to: wg.target,
+                text: message
+            })
+        }
+
+		return null
 	} catch (err) {
 		console.error('onoffNotif error:', err)
-		return null
+		return err
 	}
 }
