@@ -90,6 +90,14 @@ export const storeBulk = async (req, res) => {
                 batt: p.batt,
                 timestamp: p.timestamp
             })
+
+            const data = {
+                field_id, 
+                spot_id, 
+                psi: p.psi, 
+                timestamp: p.timestamp
+            }
+            await onoffNotif(data)
         }
 
         let battery
