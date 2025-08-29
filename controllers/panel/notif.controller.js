@@ -6,6 +6,7 @@ import { Op } from "sequelize"
 import PredValue from "../../models/pred_value.model.js"
 import SpotStatus from "../../models/spot_status.js"
 import Field from "../../models/field.model.js"
+import WAGroup from "../../models/wa_group.js"
 
 export const checkDeviceOff = async () => {
     try {
@@ -239,7 +240,13 @@ export const onoffNotif = async (data) => {
 			})
 		}
 
-		return null
+        const waGroup = await WAGroup.findAll({
+            where: {
+                field_id: data.field_id
+            }
+        })
+
+		return waGroup
 	} catch (err) {
 		console.error('onoffNotif error:', err)
 		return null
