@@ -246,6 +246,7 @@ export const onoffNotif = async (data) => {
             }
         })
 
+        console.log(waGroup)
 		return waGroup
 	} catch (err) {
 		console.error('onoffNotif error:', err)
