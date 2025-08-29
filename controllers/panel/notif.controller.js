@@ -261,13 +261,9 @@ export const onoffNotif = async (data) => {
 
         for (const wg of waGroup) {
             const message = desired === 'on' ?
-            `
-🟢 _${spot.trunkline.tline_name}_
-    *START POMPA*
-            ` : `
-🔴 _${spot.trunkline.tline_name}_
-    *STOP POMPA*
-            `
+            `🟢 _${spot.trunkline.tline_name}_
+    *START POMPA*` : `🔴 _${spot.trunkline.tline_name}_
+    *STOP POMPA*`
 
             return await sendWaText(data.field_id, getIO(), {
                 to: wg.target,
