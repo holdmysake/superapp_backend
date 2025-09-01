@@ -285,6 +285,8 @@ export const onoffNotif = async (data) => {
 
 export const rekapOnOff = async (req, res) => {
     try {
+        const { field_id } = req.body
+
         const today = moment.tz('Asia/Jakarta').startOf('day')
         const status = await SpotStatus.findAll({
             where: {
