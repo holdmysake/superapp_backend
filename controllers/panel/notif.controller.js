@@ -341,8 +341,8 @@ export const rekapOnOff = async (req, res) => {
 			Object.entries(grouped).map(([spot_id, items]) => {
 				items.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
-				const on_count = items.filter(r => r.timestamp >= todayStart && r.status === 'on').length
-				const off_count = items.filter(r => r.timestamp >= todayStart && r.status === 'off').length
+				const on_count = items.filter(r => r.timestamp >= today && r.status === 'on').length
+				const off_count = items.filter(r => r.timestamp >= today && r.status === 'off').length
 
 				let currentOnStart = null
 				const intervals = []
@@ -353,12 +353,12 @@ export const rekapOnOff = async (req, res) => {
 
 					if (ev.status === 'on') {
 						if (!currentOnStart) {
-							currentOnStart = t < todayStart ? todayStart : t
+							currentOnStart = t < today ? today : t
 						}
 					} else if (ev.status === 'off') {
 						if (currentOnStart) {
 							const end = t
-							if (end > todayStart) {
+							if (end > today) {
 								const startClamped = currentOnStart
 								const endClamped = end
 								const minutes = toMinutes(endClamped - startClamped)
