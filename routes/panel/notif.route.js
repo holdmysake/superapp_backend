@@ -1,10 +1,10 @@
 import express from 'express'
 import {
-    // getOffDevice
+    rekapOnOff
 } from '../../controllers/panel/notif.controller.js'
 
 const router = express.Router()
 
-// router.post('/getOffDevice', getOffDevice)
+router.post('/rekapOnOff', rekapOnOff)
 
 export default router

@@ -283,6 +283,25 @@ export const onoffNotif = async (data) => {
 	}
 }
 
+export const rekapOnOff = async (req, res) => {
+    try {
+        const today = moment.tz('Asia/Jakarta').startOf('day')
+        const status = await SpotStatus.findAll({
+            where: {
+                type: 'pump',
+                timestamp: {
+                    [Op.gte]: today.toDate()
+                }
+            }
+        })
+
+        res.json(status)
+    } catch (error) {
+        console.error(error)
+        return null
+    }
+}
+
 export const offDevice = async () => {
     try {
 
