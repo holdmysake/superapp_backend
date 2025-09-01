@@ -298,7 +298,24 @@ export const rekapOnOff = async (req, res) => {
             }
         })
 
-        res.json(status)
+        const grouped = {}
+        for (const r of rows) {
+			if (!grouped[r.spot_id]) {
+				grouped[r.spot_id] = {
+					spot_id: r.spot_id,
+					on_count: 0,
+					off_count: 0,
+					items: [],
+					latest: null
+				}
+			}
+			grouped[r.spot_id].items.push(r)
+			if (r.status === 'on') grouped[r.spot_id].on_count++
+			if (r.status === 'off') grouped[r.spot_id].off_count++
+			grouped[r.spot_id].latest = r
+		}
+
+        res.json(grouped)
     } catch (error) {
         console.error(error)
         return null
