@@ -318,7 +318,7 @@ export const rekapOnOff = async (req, res) => {
         res.json(grouped)
     } catch (error) {
         console.error(error)
-        return null
+        res.status(500).json({ message: error.message })
     }
 }
 
