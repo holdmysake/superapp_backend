@@ -317,8 +317,7 @@ export const rekapOnOff = async (req, res) => {
                             spot_id,
                             timestamp: { [Op.lt]: today }
                         },
-                        order: [['timestamp', 'DESC']],
-                        raw: true
+                        order: [['timestamp', 'DESC']]
                     })
                     return { spot_id, prev }
                 })
