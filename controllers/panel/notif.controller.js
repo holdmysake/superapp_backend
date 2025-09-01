@@ -288,7 +288,7 @@ export const rekapOnOff = async (req, res) => {
         const { field_id } = req.body
 
         const today = moment.tz('Asia/Jakarta').startOf('day')
-        const status = await SpotStatus.findAll({
+        const rows = await SpotStatus.findAll({
             where: {
                 field_id,
                 type: 'pump',
