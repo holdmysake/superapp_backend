@@ -303,6 +303,32 @@ export const rekapOnOff = async (req, res) => {
             (grouped[r.spot_id] ??= []).push(r)
         }
 
+        const needPrev = Object.entries(grouped)
+            .filter(([, items]) => items.length && items[0].status === 'off')
+            .map(([spot_id]) => spot_id)
+
+        if (needPrev.length) {
+            const prevs = await Promise.all(
+                needPrev.map(async (spot_id) => {
+                    const prev = await SpotStatus.findOne({
+                        where: {
+                            field_id,
+                            type: 'pump',
+                            spot_id,
+                            timestamp: { [Op.lt]: todayStart }
+                        },
+                        order: [['timestamp', 'DESC']],
+                        raw: true
+                    })
+                    return { spot_id, prev }
+                })
+            )
+            
+            for (const { spot_id, prev } of prevs) {
+                if (prev) grouped[spot_id].unshift(prev)
+            }
+        }
+
         res.json(grouped)
     } catch (error) {
         console.error(error)
