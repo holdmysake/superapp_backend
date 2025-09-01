@@ -293,7 +293,7 @@ export const rekapOnOff = async (req, res) => {
                 field_id,
                 type: 'pump',
                 timestamp: {
-                    [Op.gte]: today.toDate()
+                    [Op.gte]: today
                 }
             }
         })
@@ -303,7 +303,7 @@ export const rekapOnOff = async (req, res) => {
             (grouped[r.spot_id] ??= []).push(r)
         }
 
-        res.json(grouped)
+        res.json(today, grouped)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
