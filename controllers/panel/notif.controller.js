@@ -303,7 +303,7 @@ export const rekapOnOff = async (req, res) => {
             (grouped[r.spot_id] ??= []).push(r)
         }
 
-        res.json(today, grouped)
+        res.json(grouped)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
