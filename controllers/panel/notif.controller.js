@@ -196,7 +196,12 @@ export const getOffDevice = async (req, res) => {
 
 export const onoffNotif = async (data) => {
 	try {
-		const pred = await PredValue.findOne({ where: { spot_id: data.spot_id } })
+		const pred = await PredValue.findOne({ 
+            where: { 
+                spot_id: data.spot_id,
+                shut_pred: false
+            }
+        })
 		if (!pred) return null
 
 		const lastState = await SpotStatus.findOne({
