@@ -2,6 +2,7 @@ import { DataTypes } from 'sequelize'
 import sequelize from '../config/db.js'
 import Spot from './spot.model.js'
 import moment from 'moment-timezone'
+import Field from './field.model.js'
 
 const SpotStatus = sequelize.define('spot_status', {
     id: {
@@ -15,6 +16,16 @@ const SpotStatus = sequelize.define('spot_status', {
         references: {
             model: Spot,
             key: 'spot_id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+    },
+    field_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+            model: Field,
+            key: 'field_id'
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'

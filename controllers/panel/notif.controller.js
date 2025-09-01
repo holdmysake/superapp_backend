@@ -290,6 +290,7 @@ export const rekapOnOff = async (req, res) => {
         const today = moment.tz('Asia/Jakarta').startOf('day')
         const status = await SpotStatus.findAll({
             where: {
+                field_id,
                 type: 'pump',
                 timestamp: {
                     [Op.gte]: today.toDate()
