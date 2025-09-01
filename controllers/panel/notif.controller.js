@@ -240,6 +240,7 @@ export const onoffNotif = async (data) => {
 		if (!lastState || (lastState.type === 'pump' && lastState.status !== desired)) {
 			await SpotStatus.create({
 				spot_id: data.spot_id,
+                field_id: data.field_id,
 				type: 'pump',
 				status: desired,
 				timestamp: data.timestamp
@@ -299,12 +300,15 @@ export const rekapOnOff = async (req, res) => {
         })
 
         const grouped = {}
+        const groupedOn = {}
+        const groupedOff = {}
+        const summaryOn = {}
+        const summaryOff = {}
         for (const r of rows) {
             grouped[r.spot_id] = grouped[r.spot_id] || []
             grouped[r.spot_id].push(r)
 
             if (grouped[r.spot_id][0].status === 'off') {
-                console.log('masuk')
                 const prev = await SpotStatus.findOne({
                     where: {
                         field_id,
@@ -319,32 +323,33 @@ export const rekapOnOff = async (req, res) => {
             }
         }
 
-        // const needPrev = Object.entries(grouped)
-        //     .filter(([, items]) => items.length && items[0].status === 'off')
-        //     .map(([spot_id]) => spot_id)
+        for (const [spotId, list] of Object.entries(grouped)) {
+            for (const s of list) {
+                if (s.status === 'on') {
+                    groupedOn[spotId] = groupedOn[spotId] || []
+                    groupedOn[spotId].push(s)
+                } else {
+                    groupedOff[spotId] = groupedOff[spotId] || []
+                    groupedOff[spotId].push(s)
+                }
+            }
+        }
 
-        // if (needPrev.length) {
-        //     const prevs = await Promise.all(
-        //         needPrev.map(async (spot_id) => {
-        //             const prev = await SpotStatus.findOne({
-        //                 where: {
-        //                     field_id,
-        //                     type: 'pump',
-        //                     spot_id,
-        //                     timestamp: { [Op.lt]: today }
-        //                 },
-        //                 order: [['timestamp', 'DESC']]
-        //             })
-        //             return { spot_id, prev }
-        //         })
-        //     )
-            
-        //     for (const { spot_id, prev } of prevs) {
-        //         if (prev) grouped[spot_id].unshift(prev)
-        //     }
-        // }
+        for (const [spotId, list] of Object.entries(groupedOn)) {
+            summaryOn[spotId] = summaryOn[spotId] || ""
+            summaryOff[spotId] = summaryOff[spotId] || ""
 
-        res.json(grouped)
+            for (let i = 0; i < list.length; i++) {                
+                const on = moment(list[i].timestamp).format("HH:mm:ss")
+
+                const offItem = groupedOff[spotId]?.[i]
+                const off = offItem ? moment(offItem.timestamp).format("HH:mm:ss") : "now"
+
+                summaryOn[spotId] += `On: ${on} - ${off}\n`
+            }
+        }
+
+        res.json({summaryOn, summaryOff, grouped})
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
