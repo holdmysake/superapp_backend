@@ -337,7 +337,6 @@ export const rekapOnOff = async (req, res) => {
 
         for (const [spotId, list] of Object.entries(groupedOn)) {
             summaryOn[spotId] = summaryOn[spotId] || ""
-            summaryOff[spotId] = summaryOff[spotId] || ""
 
             for (let i = 0; i < list.length; i++) {                
                 const on = moment(list[i].timestamp).format("HH:mm:ss")
@@ -346,6 +345,19 @@ export const rekapOnOff = async (req, res) => {
                 const off = offItem ? moment(offItem.timestamp).format("HH:mm:ss") : "now"
 
                 summaryOn[spotId] += `On: ${on} - ${off}\n`
+            }
+        }
+
+        for (const [spotId, list] of Object.entries(groupedOff)) {
+            summaryOff[spotId] = summaryOff[spotId] || ""
+
+            for (let i = 0; i < list.length; i++) {                
+                const off = moment(list[i].timestamp).format("HH:mm:ss")
+
+                const onItem = groupedOn[spotId]?.[i + 1]
+                const on = onItem ? moment(onItem.timestamp).format("HH:mm:ss") : "now"
+
+                summaryOff[spotId] += `Off: ${off} - ${on}\n`
             }
         }
 
