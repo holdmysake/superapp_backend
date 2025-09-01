@@ -315,7 +315,7 @@ export const rekapOnOff = async (req, res) => {
                             field_id,
                             type: 'pump',
                             spot_id,
-                            timestamp: { [Op.lt]: todayStart }
+                            timestamp: { [Op.lt]: today }
                         },
                         order: [['timestamp', 'DESC']],
                         raw: true
