@@ -29,6 +29,11 @@ const PredValue = sequelize.define('pred_value', {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
     },
+    shut_pred: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
     is_linear: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

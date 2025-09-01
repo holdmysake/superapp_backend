@@ -152,7 +152,7 @@ export const storeTline = async (req, res) => {
 export const updateTrunkline = async (req, res) => {
     try {
         const { 
-            id_pred, tline_id, spot_id, is_linear, tline_length, drop_value, normal_value, on_value, off_value,
+            id_pred, tline_id, spot_id, shut_pred, is_linear, tline_length, drop_value, normal_value, on_value, off_value,
             id_tline, tline_name
         } = req.body
 
@@ -168,6 +168,7 @@ export const updateTrunkline = async (req, res) => {
             pred = await pred.update({
                 tline_id,
                 spot_id,
+                shut_pred,
                 is_linear,
                 tline_length,
                 drop_value,
@@ -180,6 +181,7 @@ export const updateTrunkline = async (req, res) => {
                 pred = await PredValue.create({
                     tline_id,
                     spot_id,
+                    shut_pred,
                     is_linear,
                     tline_length,
                     drop_value,

@@ -272,8 +272,17 @@ export const onoffNotif = async (data) => {
         }
 
 		return null
-	} catch (err) {
-		console.error('onoffNotif error:', err)
-		return err
+	} catch (error) {
+		console.error('onoffNotif error:', error)
+		return error
 	}
+}
+
+export const offDevice = async () => {
+    try {
+
+    } catch (error) {
+        console.error(error)
+        return error
+    }
 }
