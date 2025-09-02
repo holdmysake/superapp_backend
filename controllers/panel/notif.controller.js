@@ -332,13 +332,15 @@ const rekapOnOff = async (data) => {
         const countOff = {}
         const durOn = {}
         const durOff = {}
+        const avg = {}
 
-        const Pressure = await defineUserDataModel(`pressure_${field_id}`)
+        const Pressure = defineUserDataModel(`pressure_${field_id}`)
 
         for (const [spotId, g] of Object.entries(grouped)) {
             summary += `\n*${g.tline_name}*\n`
             summaryOn[spotId] = summaryOn[spotId] || ""
             summaryOff[spotId] = summaryOff[spotId] || ""
+            avg[spotId] = avg[spotId] || 0
 
             if (g.status.length > 0) {
                 for (const [i, s] of g.status.entries()) {
@@ -390,6 +392,8 @@ const rekapOnOff = async (data) => {
                         const avgPsi = avgPsiRow && avgPsiRow.avg_psi !== null 
                             ? Number(avgPsiRow.avg_psi).toFixed(2) 
                             : "0.00"
+
+                        avg[spotId] += Number(avgPsi)
                     
                         summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}, ${avgPsi}\n`
                     } else {
@@ -412,8 +416,11 @@ const rekapOnOff = async (data) => {
                 }
             }
 
+            const avgAll = Number(avg[spotId] / (countOn[spotId])).toFixed(2) || "0.00"
+
             summary += `On ${countOn[spotId] || 0}x, Off ${countOff[spotId] | 0}x\n`
             summary += `${summaryOn[spotId]}\nTotal On ${durOn[spotId] ? fmtDuration(durOn[spotId]) : '00 jam 00 menit'}\n`
+            summary += `${avgAll}\n`
             summary += `${summaryOff[spotId]}\nTotal Off ${durOff[spotId] ? fmtDuration(durOff[spotId]) : '00 jam 00 menit'}\n`
         }
 
