@@ -8,6 +8,7 @@ import SpotStatus from "../../models/spot_status.js"
 import WAGroup from "../../models/wa_group.js"
 import { sendWaText } from "../../bot/bot.js"
 import { getIO } from "../../socket.js"
+moment.locale('id')
 
 export const checkDeviceOff = async () => {
     try {
@@ -194,6 +195,22 @@ export const getOffDevice = async (req, res) => {
     }
 }
 
+const sendNotif = async (type, message, field_id) => {
+    const waGroup = await WAGroup.findAll({
+        where: {
+            field_id: field_id,
+            type: type
+        }
+    })
+
+    for (const wg of waGroup) {
+        return await sendWaText(field_id, getIO(), {
+            to: wg.target,
+            text: message
+        })
+    }
+}
+
 export const onoffNotif = async (data) => {
 	try {
 		const pred = await PredValue.findOne({ 
@@ -247,13 +264,6 @@ export const onoffNotif = async (data) => {
 			})
 		}
 
-        const waGroup = await WAGroup.findAll({
-            where: {
-                field_id: data.field_id,
-                type: 'info'
-            }
-        })
-
         const spot = await Spot.findOne({
             where: {
                 spot_id: data.spot_id
@@ -265,17 +275,15 @@ export const onoffNotif = async (data) => {
             }
         })
 
-        for (const wg of waGroup) {
-            const message = desired === 'on' ?
-            `🟢 _${spot.trunkline.tline_name}_
+        const message = desired === 'on' ?
+        `🟢 _${spot.trunkline.tline_name}_
       *START POMPA*` : `🔴 _${spot.trunkline.tline_name}_
       *STOP POMPA*`
 
-            return await sendWaText(data.field_id, getIO(), {
-                to: wg.target,
-                text: message
-            })
-        }
+        const rekap = await rekapOnOff(data)
+
+        sendNotif('info', message, data.field_id)
+        sendNotif('info', rekap, data.field_id)
 
 		return null
 	} catch (error) {
@@ -284,84 +292,127 @@ export const onoffNotif = async (data) => {
 	}
 }
 
-export const rekapOnOff = async (req, res) => {
+const rekapOnOff = async (data) => {
     try {
-        const { field_id } = req.body
+        const field_id = data.field_id
+        const timestamp = moment(data.timestamp)
+        const today = timestamp.clone().startOf('day')
 
-        const today = moment.tz('Asia/Jakarta').startOf('day')
-        const rows = await SpotStatus.findAll({
+        const tlines = await Trunkline.findAll({
             where: {
-                field_id,
-                type: 'pump',
-                timestamp: {
-                    [Op.gte]: today
+                field_id
+            },
+            attributes: ['tline_id', 'tline_name'],
+            include: {
+                model: PredValue,
+                as: 'pred_value',
+                attributes: ['spot_id'],
+                include: {
+                    model: Spot,
+                    as: 'spot',
+                    attributes: ['spot_id', 'spot_name']
                 }
             }
         })
 
-        const grouped = {}
-        const groupedOn = {}
-        const groupedOff = {}
-        const summaryOn = {}
-        const summaryOff = {}
-        for (const r of rows) {
-            grouped[r.spot_id] = grouped[r.spot_id] || []
-            grouped[r.spot_id].push(r)
+        const spotIds = tlines.flatMap(t => t.pred_value ? [t.pred_value.spot_id] : [])
+        const stts = await SpotStatus.findAll({
+            where: {
+                spot_id: spotIds,
+                type: 'pump',
+                timestamp: {
+                    [Op.gte]: today
+                }
+            },
+            attributes: ['status', 'timestamp', 'spot_id']
+        })
 
-            if (grouped[r.spot_id][0].status === 'off') {
-                const prev = await SpotStatus.findOne({
-                    where: {
-                        field_id,
-                        type: 'pump',
-                        spot_id: r.spot_id,
-                        timestamp: { [Op.lt]: today }
-                    },
-                    order: [['timestamp', 'DESC']]
-                })
-
-                grouped[r.spot_id].unshift(prev)
-            }
-        }
-
-        for (const [spotId, list] of Object.entries(grouped)) {
-            for (const s of list) {
-                if (s.status === 'on') {
-                    groupedOn[spotId] = groupedOn[spotId] || []
-                    groupedOn[spotId].push(s)
-                } else {
-                    groupedOff[spotId] = groupedOff[spotId] || []
-                    groupedOff[spotId].push(s)
+        const grouped = tlines.reduce((acc, t) => {
+            if (t.pred_value && t.pred_value.spot) {
+                const { spot_id } = t.pred_value.spot
+                acc[spot_id] = {
+                    tline_name: t.tline_name,
+                    status: stts.filter(s => s.spot_id === spot_id)
                 }
             }
-        }
+            return acc
+        }, {})
 
-        for (const [spotId, list] of Object.entries(groupedOn)) {
+        let summary = `*Rekap On/Off Pompa*\n`
+        summary += `${timestamp.format("dddd, DD MMMM YYYY")}, Jam ${timestamp.format("hh:mm")}\n`
+        const summaryOn = {}
+        const summaryOff = {}
+
+        const countOn = {}
+        const countOff = {}
+        const durOn = {}
+        const durOff = {}
+
+        for (const [spotId, g] of Object.entries(grouped)) {
+            summary += `\n*${g.tline_name}*\n`
             summaryOn[spotId] = summaryOn[spotId] || ""
-
-            for (let i = 0; i < list.length; i++) {                
-                const on = moment(list[i].timestamp).format("HH:mm:ss")
-
-                const offItem = groupedOff[spotId]?.[i]
-                const off = offItem ? moment(offItem.timestamp).format("HH:mm:ss") : "now"
-
-                summaryOn[spotId] += `On: ${on} - ${off}\n`
-            }
-        }
-
-        for (const [spotId, list] of Object.entries(groupedOff)) {
             summaryOff[spotId] = summaryOff[spotId] || ""
 
-            for (let i = 0; i < list.length; i++) {                
-                const off = moment(list[i].timestamp).format("HH:mm:ss")
+            if (g.status.length > 0) {
+                for (const [i, s] of g.status.entries()) {
+                    if (i === 0 && s.status === 'off') {
+                        const prev = await SpotStatus.findOne({
+                            where: {
+                                field_id,
+                                type: 'pump',
+                                spot_id: s.spot_id,
+                                timestamp: { [Op.lt]: today }
+                            },
+                            attributes: ['status', 'timestamp', 'spot_id'],
+                            order: [['timestamp', 'DESC']]
+                        })
+        
+                        if (prev) {
+                            g.status.unshift(prev)
+                        }
+                    }
 
-                const onItem = groupedOn[spotId]?.[i + 1]
-                const on = onItem ? moment(onItem.timestamp).format("HH:mm:ss") : "now"
+                    if (s.status === 'on') {
+                        countOn[spotId] = (countOn[spotId] || 0) + 1
+                    
+                        const onMoment = moment(s.timestamp)
+                        const offMoment = g.status[i + 1] 
+                            ? moment(g.status[i + 1].timestamp) 
+                            : moment()
+                    
+                        const onStr = onMoment.format("HH:mm")
+                        const offStr = g.status[i + 1] ? offMoment.format("HH:mm") : "now"
+                    
+                        const dur = moment.duration(offMoment.diff(onMoment))
+                        durOn[spotId] = (durOn[spotId] || moment.duration()).add(dur)
+                    
+                        summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}\n`
+                    } else {
+                        countOff[spotId] = (countOff[spotId] || 0) + 1
+                        if (countOff[spotId] === 1) summaryOff[spotId] += "\n"
 
-                summaryOff[spotId] += `Off: ${off} - ${on}\n`
+                        const offMoment = moment(s.timestamp)
+                        const onMoment = g.status[i + 1] 
+                            ? moment(g.status[i + 1].timestamp) 
+                            : moment()
+
+                        const offStr = offMoment.format("HH:mm")
+                        const onStr = g.status[i + 1] ? onMoment.format("HH:mm") : "now"
+
+                        const dur = moment.duration(onMoment.diff(offMoment))
+                        durOff[spotId] = (durOff[spotId] || moment.duration()).add(dur)
+
+                        summaryOff[spotId] += `(${countOff[spotId]}) Off: ${offStr} - ${onStr}\n`
+                    }
+                }
             }
+
+            summary += `On ${countOn[spotId] || 0}x, Off ${countOff[spotId] | 0}x\n`
+            summary += `${summaryOn[spotId]}\nTotal On ${durOn[spotId] ? `${String(Math.floor(durOn[spotId].asHours())).padStart(2, '0')} jam ${String(durOn[spotId].minutes()).padStart(2, '0')} menit` : '00 jam 00 menit'}\n`
+            summary += `${summaryOff[spotId]}\nTotal Off ${durOff[spotId] ? `${String(Math.floor(durOff[spotId].asHours())).padStart(2, '0')} jam ${String(durOff[spotId].minutes()).padStart(2, '0')} menit` : '00 jam 00 menit'}\n`
         }
 
-        res.json({summaryOn, summaryOff, grouped})
+        return summary
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
