@@ -412,6 +412,7 @@ const rekapOnOff = async (data) => {
             summary += `${summaryOff[spotId]}\nTotal Off ${durOff[spotId] ? `${String(Math.floor(durOff[spotId].asHours())).padStart(2, '0')} jam ${String(durOff[spotId].minutes()).padStart(2, '0')} menit` : '00 jam 00 menit'}\n`
         }
 
+        console.log(summary)
         return summary
     } catch (error) {
         console.error(error)
