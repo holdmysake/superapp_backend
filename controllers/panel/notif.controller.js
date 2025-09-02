@@ -203,6 +203,8 @@ const sendNotif = async (type, message, field_id) => {
         }
     })
 
+    console.log(message)
+
     for (const wg of waGroup) {
         return await sendWaText(field_id, getIO(), {
             to: wg.target,
@@ -412,7 +414,6 @@ const rekapOnOff = async (data) => {
             summary += `${summaryOff[spotId]}\nTotal Off ${durOff[spotId] ? fmtDuration(durOff[spotId]) : '00 jam 00 menit'}\n`
         }
 
-        console.log(summary)
         return summary
     } catch (error) {
         console.error(error)
