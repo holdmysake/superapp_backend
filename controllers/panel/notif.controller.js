@@ -284,8 +284,8 @@ export const onoffNotif = async (data) => {
 
         const rekap = await rekapOnOff(data)
 
-        sendNotif('info', message, data.field_id)
-        sendNotif('info', rekap, data.field_id)
+        await sendNotif('info', message, data.field_id)
+        await sendNotif('info', rekap, data.field_id)
 
 		return null
 	} catch (error) {
