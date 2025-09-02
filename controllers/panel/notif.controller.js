@@ -373,7 +373,7 @@ const rekapOnOff = async (data) => {
                         const durMin = Math.max(0, offMoment.diff(onMoment, 'minutes'))
                         durOn[spotId] = (durOn[spotId] || 0) + durMin
 
-                        const avgPsi = await Pressure.findOne({
+                        const avgPsiRow = await Pressure.findOne({
                             where: {
                                 spot_id: spotId,
                                 timestamp: {
@@ -387,8 +387,11 @@ const rekapOnOff = async (data) => {
                             attributes: [[Pressure.sequelize.fn('AVG', Pressure.sequelize.col('psi')), 'avg_psi']],
                             raw: true
                         })
+                        const avgPsi = avgPsiRow && avgPsiRow.avg_psi !== null 
+                            ? Number(avgPsiRow.avg_psi).toFixed(2) 
+                            : "0.00"
                     
-                        summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}, ${avgPsi.avg_psi}\n`
+                        summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}, ${avgPsi}\n`
                     } else {
                         countOff[spotId] = (countOff[spotId] || 0) + 1
                         if (countOff[spotId] === 1) summaryOff[spotId] += "\n"
