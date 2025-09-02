@@ -373,7 +373,7 @@ const rekapOnOff = async (data) => {
                         const durMin = Math.max(0, offMoment.diff(onMoment, 'minutes'))
                         durOn[spotId] = (durOn[spotId] || 0) + durMin
 
-                        const avgPsi = await Pressure.findAll({
+                        const avgPsi = await Pressure.findOne({
                             where: {
                                 spot_id: spotId,
                                 timestamp: {
