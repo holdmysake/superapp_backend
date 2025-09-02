@@ -408,8 +408,8 @@ const rekapOnOff = async (data) => {
             }
 
             summary += `On ${countOn[spotId] || 0}x, Off ${countOff[spotId] | 0}x\n`
-            summary += `${summaryOn[spotId]}\nTotal On ${durOn[spotId] ? `${String(Math.floor(durOn[spotId].asHours())).padStart(2, '0')} jam ${String(durOn[spotId].minutes()).padStart(2, '0')} menit` : '00 jam 00 menit'}\n`
-            summary += `${summaryOff[spotId]}\nTotal Off ${durOff[spotId] ? `${String(Math.floor(durOff[spotId].asHours())).padStart(2, '0')} jam ${String(durOff[spotId].minutes()).padStart(2, '0')} menit` : '00 jam 00 menit'}\n`
+            summary += `${summaryOn[spotId]}\nTotal On ${durOn[spotId] ? fmtDuration(durOn[spotId]) : '00 jam 00 menit'}\n`
+            summary += `${summaryOff[spotId]}\nTotal Off ${durOff[spotId] ? fmtDuration(durOff[spotId]) : '00 jam 00 menit'}\n`
         }
 
         console.log(summary)
@@ -427,4 +427,10 @@ export const offDevice = async () => {
         console.error(error)
         return error
     }
+}
+
+const fmtDuration = (minutes) => {
+    const h = Math.floor(minutes / 60)
+    const m = minutes % 60
+    return `${String(h).padStart(2, '0')} jam ${String(m).padStart(2, '0')} menit`
 }
