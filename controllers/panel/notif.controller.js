@@ -385,6 +385,7 @@ const rekapOnOff = async (data) => {
                                 }
                             },
                             attributes: [[Pressure.sequelize.fn('AVG', Pressure.sequelize.col('psi')), 'avg_psi']],
+                            raw: true
                         })
                     
                         summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}, ${avgPsi.avg_psi}\n`
