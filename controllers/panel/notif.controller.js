@@ -378,7 +378,7 @@ const rekapOnOff = async (data) => {
                         const onMoment = moment(s.timestamp)
                         const offMoment = g.status[i + 1] 
                             ? moment(g.status[i + 1].timestamp) 
-                            : moment()
+                            : moment.tz('Asia/Jakarta')
                     
                         const onStr = onMoment.format("HH:mm")
                         const offStr = g.status[i + 1] ? offMoment.format("HH:mm") : "now"
@@ -394,7 +394,7 @@ const rekapOnOff = async (data) => {
                         const offMoment = moment(s.timestamp)
                         const onMoment = g.status[i + 1] 
                             ? moment(g.status[i + 1].timestamp) 
-                            : moment()
+                            : moment.tz('Asia/Jakarta')
 
                         const offStr = offMoment.format("HH:mm")
                         const onStr = g.status[i + 1] ? onMoment.format("HH:mm") : "now"
