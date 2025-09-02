@@ -195,24 +195,6 @@ export const getOffDevice = async (req, res) => {
     }
 }
 
-const sendNotif = async (type, message, field_id) => {
-    const waGroup = await WAGroup.findAll({
-        where: {
-            field_id: field_id,
-            type: type
-        }
-    })
-
-    console.log(message)
-
-    for (const wg of waGroup) {
-        return await sendWaText(field_id, getIO(), {
-            to: wg.target,
-            text: message
-        })
-    }
-}
-
 export const onoffNotif = async (data) => {
 	try {
 		const pred = await PredValue.findOne({ 
@@ -308,7 +290,7 @@ const rekapOnOff = async (data) => {
             include: {
                 model: PredValue,
                 as: 'pred_value',
-                attributes: ['spot_id'],
+                attributes: ['spot_id', 'on_value'],
                 include: {
                     model: Spot,
                     as: 'spot',
@@ -334,6 +316,7 @@ const rekapOnOff = async (data) => {
                 const { spot_id } = t.pred_value.spot
                 acc[spot_id] = {
                     tline_name: t.tline_name,
+                    on_value: t.pred_value.on_value,
                     status: stts.filter(s => s.spot_id === spot_id)
                 }
             }
@@ -349,6 +332,8 @@ const rekapOnOff = async (data) => {
         const countOff = {}
         const durOn = {}
         const durOff = {}
+
+        const Pressure = await defineUserDataModel(`pressure_${field_id}`)
 
         for (const [spotId, g] of Object.entries(grouped)) {
             summary += `\n*${g.tline_name}*\n`
@@ -387,8 +372,22 @@ const rekapOnOff = async (data) => {
                     
                         const durMin = Math.max(0, offMoment.diff(onMoment, 'minutes'))
                         durOn[spotId] = (durOn[spotId] || 0) + durMin
+
+                        const avgPsi = await Pressure.findAll({
+                            where: {
+                                spot_id: spotId,
+                                timestamp: {
+                                    [Op.gte]: onMoment.toDate(),
+                                    [Op.lte]: offMoment.toDate()
+                                },
+                                psi: {
+                                    [Op.gte]: g.on_value
+                                }
+                            },
+                            attributes: [[Pressure.sequelize.fn('AVG', Pressure.sequelize.col('psi')), 'avg_psi']],
+                        })
                     
-                        summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}\n`
+                        summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}, ${avgPsi.avg_psi}\n`
                     } else {
                         countOff[spotId] = (countOff[spotId] || 0) + 1
                         if (countOff[spotId] === 1) summaryOff[spotId] += "\n"
@@ -427,6 +426,24 @@ export const offDevice = async () => {
     } catch (error) {
         console.error(error)
         return error
+    }
+}
+
+
+
+const sendNotif = async (type, message, field_id) => {
+    const waGroup = await WAGroup.findAll({
+        where: {
+            field_id: field_id,
+            type: type
+        }
+    })
+
+    for (const wg of waGroup) {
+        return await sendWaText(field_id, getIO(), {
+            to: wg.target,
+            text: message
+        })
     }
 }
 
