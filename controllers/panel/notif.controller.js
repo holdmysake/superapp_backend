@@ -383,8 +383,8 @@ const rekapOnOff = async (data) => {
                         const onStr = onMoment.format("HH:mm")
                         const offStr = g.status[i + 1] ? offMoment.format("HH:mm") : "now"
                     
-                        const dur = moment.duration(offMoment.diff(onMoment))
-                        durOn[spotId] = (durOn[spotId] || moment.duration()).add(dur)
+                        const durMin = Math.max(0, offMoment.diff(onMoment, 'minutes'))
+                        durOn[spotId] = (durOn[spotId] || 0) + durMin
                     
                         summaryOn[spotId] += `(${countOn[spotId]}) On: ${onStr} - ${offStr}\n`
                     } else {
@@ -399,8 +399,8 @@ const rekapOnOff = async (data) => {
                         const offStr = offMoment.format("HH:mm")
                         const onStr = g.status[i + 1] ? onMoment.format("HH:mm") : "now"
 
-                        const dur = moment.duration(onMoment.diff(offMoment))
-                        durOff[spotId] = (durOff[spotId] || moment.duration()).add(dur)
+                        const durMin = Math.max(0, onMoment.diff(offMoment, 'minutes'))
+                        durOff[spotId] = (durOff[spotId] || 0) + durMin
 
                         summaryOff[spotId] += `(${countOff[spotId]}) Off: ${offStr} - ${onStr}\n`
                     }
@@ -412,7 +412,7 @@ const rekapOnOff = async (data) => {
             summary += `${summaryOff[spotId]}\nTotal Off ${durOff[spotId] ? `${String(Math.floor(durOff[spotId].asHours())).padStart(2, '0')} jam ${String(durOff[spotId].minutes()).padStart(2, '0')} menit` : '00 jam 00 menit'}\n`
         }
 
-        console.log(moment.tz('Asia/Jakarta'))
+        console.log(summary)
         return summary
     } catch (error) {
         console.error(error)
