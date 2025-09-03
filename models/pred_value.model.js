@@ -40,7 +40,7 @@ const PredValue = sequelize.define('pred_value', {
         allowNull: false
     },
     tline_length: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.DOUBLE,
         allowNull: true
     },
     drop_value: {
