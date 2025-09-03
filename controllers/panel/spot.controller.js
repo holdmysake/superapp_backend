@@ -8,6 +8,7 @@ import PredValue from '../../models/pred_value.model.js'
 import { Op } from 'sequelize'
 import fs from 'fs'
 import path from 'path'
+import multer from 'multer'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -203,6 +204,36 @@ export const updateTrunkline = async (req, res) => {
     }
 }
 
+export const updateFilePy = async (req, res) => {
+    try {
+        const storage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                cb(null, path.resolve('data/pred'))
+            },
+            filename: (req, file, cb) => {
+                cb(null, `${req.body.tline_id}.sav`)
+            }
+        })
+
+        const upload = multer({ storage }).single('model_file')
+
+        upload(req, res, async (error) => {
+            if (error) {
+                console.error(error)
+                res.status(500).json({ message: error.message })
+            }
+        })
+
+        res.json({
+            message: "Model file berhasil diupload / diperbarui",
+            file: `${req.body.tline_id}.sav`
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const deleteTline = async (req, res) => {
     try {
         const { tline_id } = req.body
@@ -269,7 +300,6 @@ export const getAllSpots = async (req, res) => {
                         ? `${tline.tline_id}.sav`
                         : null
                 }
-                console.log("TLINE", tline.tline_id, filePath, tline.pred_value?.model_file)
                 return tline || null
             })
             return f

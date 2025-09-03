@@ -13,6 +13,7 @@ import {
     updateSort,
     deleteSpot,
     updateTrunkline,
+    updateFilePy,
     getSpotsByField
 } from '../../controllers/panel/spot.controller.js'
 import {
@@ -36,6 +37,7 @@ router.post('/updateSpot', verifyTokenAdmin, updateSpot)
 router.post('/updateSort', verifyTokenAdmin, updateSort)
 router.post('/deleteSpot', verifyTokenAdmin, deleteSpot)
 router.post('/updateTrunkline', verifyTokenAdmin, updateTrunkline)
+router.post('/updateFilePy', verifyTokenAdmin, updateFilePy)
 router.post('/getSpotsByField', verifyTokenAdmin, getSpotsByField)
 
 export default router
