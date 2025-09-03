@@ -211,7 +211,8 @@ export const updateFilePy = async (req, res) => {
                 cb(null, path.resolve('data/pred'))
             },
             filename: (req, file, cb) => {
-                cb(null, `${req.body.tline_id}.sav`)
+                const tlineId = path.parse(file.originalname).name
+                cb(null, `${tlineId}.sav`)
             }
         })
 
