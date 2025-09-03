@@ -416,7 +416,9 @@ const rekapOnOff = async (data) => {
                 }
             }
 
-            const avgAll = Number(avg[spotId] / (countOn[spotId])).toFixed(2) || "0.00"
+            const avgAll = countOn[spotId] > 0
+                ? (Number((avg[spotId] ?? 0) / countOn[spotId]).toFixed(2))
+                : "0.00"
 
             summary += `On ${countOn[spotId] || 0}x, Off ${countOff[spotId] | 0}x\n`
             summary += `${summaryOn[spotId]}Total On ${durOn[spotId] ? fmtDuration(durOn[spotId]) : '00 jam 00 menit'}\n`
