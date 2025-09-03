@@ -263,13 +263,13 @@ export const getAllSpots = async (req, res) => {
         const result = fields.map(field => {
             const f = field.toJSON()
             f.trunklines = f.trunklines.map(tline => {
-                const filePath = path.resolve(`../../data/pred/${tline.tline_name}.sav`)
+                const filePath = path.resolve(`../../data/pred/${tline.tline_id}.sav`)
                 if (tline.pred_value) {
                     tline.pred_value.model_file = fs.existsSync(filePath)
-                        ? `${tline.tline_name}.sav`
+                        ? `${tline.tline_id}.sav`
                         : null
                 }
-                console.log("TLINE", tline.tline_name, filePath, tline.pred_value?.model_file)
+                console.log("TLINE", tline.tline_id, filePath, tline.pred_value?.model_file)
                 return tline
             })
             return f
