@@ -260,39 +260,22 @@ export const getAllSpots = async (req, res) => {
 
         const fields = await Field.findAll(queryOptions)
 
-        for (const field of fields) {
-            for (const trunkline of field.trunklines) {
-                if (trunkline.spots && trunkline.spots.length > 0) {
-                    for (const sp of trunkline.spots) {
-                        const dirPath = path.resolve(`../../data/pred/${sp.spot_id}`)
-                        let modelFile = null
-
-                        try {
-                            if (fs.existsSync(dirPath)) {
-                                const files = fs.readdirSync(dirPath)
-                                const savFile = files.find(f => f.endsWith('.sav'))
-                                modelFile = savFile || null
-                            }
-                        } catch (err) {
-                            console.error(`Error baca folder ${dirPath}:`, err.message)
-                            modelFile = null
-                        }
-
-                        if (trunkline.pred_value) {
-                            trunkline.pred_value.model_file = modelFile
-                        }
-
-                        console.log(`Spot ${sp.spot_id} model file:`, modelFile)
-                    }
-                } else {
-                    if (trunkline.pred_value) {
-                        trunkline.pred_value.model_file = null
-                    }
+        const result = fields.map(field => {
+            const f = field.toJSON()
+            f.trunklines = f.trunklines.map(tline => {
+                const filePath = path.resolve(`../../data/pred/${tline.tline_name}.sav`)
+                if (tline.pred_value) {
+                    tline.pred_value.model_file = fs.existsSync(filePath)
+                        ? `${tline.tline_name}.sav`
+                        : null
                 }
-            }
-        }
+                console.log("TLINE", tline.tline_name, filePath, tline.pred_value?.model_file)
+                return tline
+            })
+            return f
+        })
 
-        res.json(fields)
+        res.json(result)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
