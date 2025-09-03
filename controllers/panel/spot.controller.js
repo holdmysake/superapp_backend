@@ -290,6 +290,8 @@ export const getAllSpots = async (req, res) => {
             }
         }
 
+        console.log(fields)
+
         res.json(fields)
     } catch (error) {
         res.status(500).json({ message: error.message })
