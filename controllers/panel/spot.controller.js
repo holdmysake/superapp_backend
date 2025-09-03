@@ -263,7 +263,7 @@ export const getAllSpots = async (req, res) => {
         const result = fields.map(field => {
             const f = field.toJSON()
             f.trunklines = f.trunklines.map(tline => {
-                const filePath = path.resolve(`../../data/pred/${tline.tline_id}.sav`)
+                const filePath = path.resolve(`../data/pred/${tline.tline_id}.sav`)
                 if (tline.pred_value) {
                     tline.pred_value.model_file = fs.existsSync(filePath)
                         ? `${tline.tline_id}.sav`
