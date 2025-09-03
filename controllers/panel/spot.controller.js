@@ -281,6 +281,8 @@ export const getAllSpots = async (req, res) => {
                         if (trunkline.pred_value) {
                             trunkline.pred_value.model_file = modelFile
                         }
+
+                        console.log(`Spot ${sp.spot_id} model file:`, modelFile)
                     }
                 } else {
                     if (trunkline.pred_value) {
