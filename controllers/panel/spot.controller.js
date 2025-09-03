@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken'
 import User from '../../models/user.model.js'
 import PredValue from '../../models/pred_value.model.js'
 import { Op } from 'sequelize'
+import fs from 'fs'
+import path from 'path'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -256,9 +258,39 @@ export const getAllSpots = async (req, res) => {
             queryOptions.where = { field_id: user.field_id }
         }
 
-        const spots = await Field.findAll(queryOptions)
+        const fields = await Field.findAll(queryOptions)
 
-        res.json(spots)
+        for (const field of fields) {
+            for (const trunkline of field.trunklines) {
+                if (trunkline.spots && trunkline.spots.length > 0) {
+                    for (const sp of trunkline.spots) {
+                        const dirPath = path.resolve(`../../data/pred/${sp.spot_id}`)
+                        let modelFile = null
+
+                        try {
+                            if (fs.existsSync(dirPath)) {
+                                const files = fs.readdirSync(dirPath)
+                                const savFile = files.find(f => f.endsWith('.sav'))
+                                modelFile = savFile || null
+                            }
+                        } catch (err) {
+                            console.error(`Error baca folder ${dirPath}:`, err.message)
+                            modelFile = null
+                        }
+
+                        if (trunkline.pred_value) {
+                            trunkline.pred_value.model_file = modelFile
+                        }
+                    }
+                } else {
+                    if (trunkline.pred_value) {
+                        trunkline.pred_value.model_file = null
+                    }
+                }
+            }
+        }
+
+        res.json(fields)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
