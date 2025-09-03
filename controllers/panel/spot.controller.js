@@ -270,7 +270,7 @@ export const getAllSpots = async (req, res) => {
                         : null
                 }
                 console.log("TLINE", tline.tline_id, filePath, tline.pred_value?.model_file)
-                return tline
+                return tline || null
             })
             return f
         })
