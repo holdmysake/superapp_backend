@@ -442,7 +442,23 @@ export const offDevice = async () => {
     }
 }
 
+export const leakDetect = async (req, res) => {
+    try {
+        const { spot_id } = req.body
+        const pred = await PredValue.findOne({
+            where: {
+                spot_id
+            }
+        })
 
+        const filePath = path.resolve(`data/pred/${pred.tline_id}.sav`)
+
+        res.json(filePath)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
 
 const sendNotif = async (type, message, field_id) => {
     const waGroup = await WAGroup.findAll({

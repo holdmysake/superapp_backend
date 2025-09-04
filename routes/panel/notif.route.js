@@ -1,10 +1,10 @@
 import express from 'express'
 import {
-    // rekapOnOff
+    leakDetect
 } from '../../controllers/panel/notif.controller.js'
 
 const router = express.Router()
 
-// router.post('/rekapOnOff', rekapOnOff)
+router.post('/leakDetect', leakDetect)
 
 export default router
