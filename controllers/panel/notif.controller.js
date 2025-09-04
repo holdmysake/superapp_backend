@@ -8,6 +8,8 @@ import SpotStatus from "../../models/spot_status.js"
 import WAGroup from "../../models/wa_group.js"
 import { sendWaText } from "../../bot/bot.js"
 import { getIO } from "../../socket.js"
+import fs from 'fs'
+import path from 'path'
 moment.locale('id')
 
 export const checkDeviceOff = async () => {
