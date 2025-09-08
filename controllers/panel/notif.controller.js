@@ -449,13 +449,29 @@ export const leakDetect = async (req, res) => {
         const { spot_id } = req.body
         const pred = await PredValue.findOne({
             where: {
-                spot_id
+                spot_id,
+                shut_pred: false,
+                drop_value: { [Op.gt]: 0 },
+                normal_value: { [Op.gt]: 0 }
+            },
+            attributes: ['tline_id', 'spot_id'],
+            include: {
+                model: Trunkline,
+                as: 'trunkline',
+                attributes: ['tline_id'],
+                include: [{
+                    model: Spot,
+                    as: 'spots',
+                    attributes: ['spot_id']
+                }]
             }
         })
 
-        const filePath = path.resolve(`data/pred/${pred.tline_id}.sav`)
 
-        res.json(filePath)
+
+        // const filePath = path.resolve(`data/pred/${pred.tline_id}.sav`)
+
+        res.json(pred)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })

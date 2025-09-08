@@ -43,14 +43,6 @@ const PredValue = sequelize.define('pred_value', {
         type: DataTypes.DOUBLE,
         allowNull: true
     },
-    drop_value: {
-        type: DataTypes.INTEGER,
-        allowNull: true
-    },
-    normal_value: {
-        type: DataTypes.INTEGER,
-        allowNull: true
-    },
     on_value: {
         type: DataTypes.INTEGER,
         allowNull: true

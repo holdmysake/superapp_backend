@@ -52,7 +52,15 @@ const Spot = sequelize.define('spot', {
     safe_mark: {
         type: DataTypes.INTEGER,
         allowNull: true
-    }
+    },
+    drop_value: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
+    normal_value: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    },
 }, {
     tableName: 'spot',
     timestamps: false,
