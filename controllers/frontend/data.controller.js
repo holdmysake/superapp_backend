@@ -45,10 +45,8 @@ export const getDataBySpot = async (req, res) => {
 
         const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta')
                             .startOf('day')
-                            .toDate()
         const endOfDay   = moment(startOfDay)
                             .add(1, 'day')
-                            .toDate()
 
         const data = await Pressure.findAll({
             where: {
