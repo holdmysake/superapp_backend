@@ -422,17 +422,13 @@ const rekapOnOff = async (data) => {
             const avgAllNum = countOn[spotId] > 0
                 ? Number((avg[spotId] ?? 0) / countOn[spotId])
                 : 0
-
             const avgAll = avgAllNum.toFixed(2)
 
             const durInHour = durOn[spotId] 
                 ? Number((durOn[spotId] / 60).toFixed(2)) 
                 : 0
-
             const rateConst = g.rate_const ?? 0
-
             const hourVolume = Number((avgAllNum * rateConst).toFixed(2))
-
             const totVolume = Number((avgAllNum * rateConst * durInHour).toFixed(2))
 
             summary += `On ${countOn[spotId] || 0}x, Off ${countOff[spotId] | 0}x\n`
