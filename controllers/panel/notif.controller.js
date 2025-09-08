@@ -319,6 +319,7 @@ const rekapOnOff = async (data) => {
                 acc[spot_id] = {
                     tline_name: t.tline_name,
                     on_value: t.pred_value.on_value,
+                    rate_const: t.pred_value.rate_const,
                     status: stts.filter(s => s.spot_id === spot_id)
                 }
             }
@@ -418,13 +419,27 @@ const rekapOnOff = async (data) => {
                 }
             }
 
-            const avgAll = countOn[spotId] > 0
-                ? (Number((avg[spotId] ?? 0) / countOn[spotId]).toFixed(2))
-                : "0.00"
+            const avgAllNum = countOn[spotId] > 0
+                ? Number((avg[spotId] ?? 0) / countOn[spotId])
+                : 0
+
+            const avgAll = avgAllNum.toFixed(2)
+
+            const durInHour = durOn[spotId] 
+                ? Number((durOn[spotId] / 60).toFixed(2)) 
+                : 0
+
+            const rateConst = g.rate_const ?? 0
+
+            const hourVolume = Number((avgAllNum * rateConst).toFixed(2))
+
+            const totVolume = Number((avgAllNum * rateConst * durInHour).toFixed(2))
 
             summary += `On ${countOn[spotId] || 0}x, Off ${countOff[spotId] | 0}x\n`
             summary += `${summaryOn[spotId]}Total On ${durOn[spotId] ? fmtDuration(durOn[spotId]) : '00 jam 00 menit'}\n`
             summary += `${avgAll} Psi\n`
+            summary += `${hourVolume} bph\n`
+            summary += `${totVolume} bopd\n`
             summary += `${summaryOff[spotId]}Total Off ${durOff[spotId] ? fmtDuration(durOff[spotId]) : '00 jam 00 menit'}\n`
         }
 
