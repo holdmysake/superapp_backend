@@ -155,7 +155,7 @@ export const storeTline = async (req, res) => {
 export const updateTrunkline = async (req, res) => {
     try {
         const { 
-            id_pred, tline_id, spot_id, shut_pred, is_linear, tline_length, on_value, off_value,
+            id_pred, tline_id, spot_id, shut_pred, is_linear, tline_length, on_value, off_value, rate_const,
             id_tline, tline_name
         } = req.body
 
@@ -175,7 +175,8 @@ export const updateTrunkline = async (req, res) => {
                 is_linear,
                 tline_length,
                 on_value,
-                off_value
+                off_value,
+                rate_const
             })
         } else {
             if (spot_id) {
@@ -186,7 +187,8 @@ export const updateTrunkline = async (req, res) => {
                     is_linear,
                     tline_length,
                     on_value,
-                    off_value
+                    off_value,
+                    rate_const
                 })
             }
         }
