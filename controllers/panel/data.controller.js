@@ -13,8 +13,8 @@ export const downloadDataCSV = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day').toDate()
-        const endOfDay = moment(startOfDay).add(1, 'day').toDate()
+        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
+        const endOfDay = moment(startOfDay).add(1, 'day')
 
         const spots = await Spot.findAll({
             where: { tline_id },
