@@ -287,6 +287,7 @@ export const rekapOnOff = async (req, res) => {
         const field_id = req.body.field_id
         const timestamp = moment(req.body.timestamp)
         const today = timestamp.clone().startOf('day')
+        const endOfDay = timestamp.clone().endOf('day')
 
         const tlines = await Trunkline.findAll({
             where: {
@@ -311,7 +312,8 @@ export const rekapOnOff = async (req, res) => {
                 spot_id: spotIds,
                 type: 'pump',
                 timestamp: {
-                    [Op.gte]: today
+                    [Op.gte]: today,
+                    [Op.lte]: endOfDay
                 }
             },
             attributes: ['status', 'timestamp', 'spot_id']
