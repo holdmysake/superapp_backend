@@ -1,14 +1,29 @@
-import sys
-import joblib
-import numpy as np
+import os, pickle, sys, json
 
-model_path = sys.argv[1]
-params = list(map(float, sys.argv[2:]))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "data", "bjg_tpn.sav")
 
-model = joblib.load(model_path)
+model = pickle.load(open(MODEL_PATH, "rb"))
 
-X = np.array([params])
+if len(sys.argv) != 5:
+    print(json.dumps({"error": "Usage: python predict.py <titik1> <titik2> <titik3> <titik4>"}))
+    sys.exit(1)
 
-y_pred = model.predict(X)
+titik1 = float(sys.argv[1])
+titik2 = float(sys.argv[2])
+titik3 = float(sys.argv[3])
+titik4 = float(sys.argv[4])
 
-print(y_pred[0])
+pred = model.predict([[titik1, titik2, titik3, titik4]])[0]
+
+if pred == 0:
+    hasil = "Pipa Aman"
+elif pred == 26.8:
+    hasil = "Tidak Terdapat Fluida yang Mengalir"
+else:
+    hasil = f"Terjadi di titik {pred} KM"
+
+print(json.dumps({
+    "prediction": float(pred),
+    "message": hasil
+}))

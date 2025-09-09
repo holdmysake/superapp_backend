@@ -10,6 +10,7 @@ import { sendWaText } from "../../bot/bot.js"
 import { getIO } from "../../socket.js"
 import fs from 'fs'
 import path from 'path'
+import { spawn } from "child_process"
 moment.locale('id')
 
 export const checkDeviceOff = async () => {
@@ -278,13 +279,13 @@ export const onoffNotif = async (data) => {
 	}
 }
 
-const rekapOnOff = async (data) => {
-// export const rekapOnOff = async (req, res) => {
+// const rekapOnOff = async (data) => {
+export const rekapOnOff = async (req, res) => {
     try {
-        const field_id = data.field_id
-        const timestamp = moment(data.timestamp)
-        // const field_id = req.body.field_id
-        // const timestamp = moment(req.body.timestamp)
+        // const field_id = data.field_id
+        // const timestamp = moment(data.timestamp)
+        const field_id = req.body.field_id
+        const timestamp = moment(req.body.timestamp)
         const today = timestamp.clone().startOf('day')
 
         const tlines = await Trunkline.findAll({
@@ -442,8 +443,10 @@ const rekapOnOff = async (data) => {
             summary += `${summaryOff[spotId]}Total Off ${durOff[spotId] ? fmtDuration(durOff[spotId]) : '00 jam 00 menit'}\n`
         }
 
-        return summary
-        // res.json(summary)
+        await sendNotif('info', summary, field_id)
+
+        // return summary
+        res.json(summary)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
@@ -461,32 +464,55 @@ export const offDevice = async () => {
 
 export const leakDetect = async (req, res) => {
     try {
-        const { spot_id } = req.body
-        const pred = await PredValue.findOne({
-            where: {
-                spot_id,
-                shut_pred: false,
-                drop_value: { [Op.gt]: 0 },
-                normal_value: { [Op.gt]: 0 }
-            },
-            attributes: ['tline_id', 'spot_id'],
-            include: {
-                model: Trunkline,
-                as: 'trunkline',
-                attributes: ['tline_id'],
-                include: [{
-                    model: Spot,
-                    as: 'spots',
-                    attributes: ['spot_id']
-                }]
-            }
+        // const { spot_id } = req.body
+        // const pred = await PredValue.findOne({
+        //     where: {
+        //         spot_id,
+        //         shut_pred: false,
+        //         drop_value: { [Op.gt]: 0 },
+        //         normal_value: { [Op.gt]: 0 }
+        //     },
+        //     attributes: ['tline_id', 'spot_id'],
+        //     include: {
+        //         model: Trunkline,
+        //         as: 'trunkline',
+        //         attributes: ['tline_id'],
+        //         include: [{
+        //             model: Spot,
+        //             as: 'spots',
+        //             attributes: ['spot_id']
+        //         }]
+        //     }
+        // })
+        const { titik1, titik2, titik3, titik4 } = req.body
+
+        const scriptPath = path.resolve("./predict.py")
+
+        const py = spawn("python", [
+            scriptPath,
+            titik1,
+            titik2,
+            titik3,
+            titik4,
+        ])
+
+        let data = ""
+        py.stdout.on("data", (chunk) => {
+            data += chunk.toString()
         })
 
+        py.stderr.on("data", (err) => {
+            console.error("Python error:", err.toString())
+        })
 
-
-        // const filePath = path.resolve(`data/pred/${pred.tline_id}.sav`)
-
-        res.json(pred)
+        py.on("close", () => {
+            try {
+                res.json(JSON.parse(data))
+            } catch (error) {
+                console.error("Parsing error:", error)
+                res.status(500).json({ message: error.message })
+            }
+        })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
