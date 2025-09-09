@@ -279,9 +279,12 @@ export const onoffNotif = async (data) => {
 }
 
 const rekapOnOff = async (data) => {
+// export const rekapOnOff = async (req, res) => {
     try {
         const field_id = data.field_id
         const timestamp = moment(data.timestamp)
+        // const field_id = req.body.field_id
+        // const timestamp = moment(req.body.timestamp)
         const today = timestamp.clone().startOf('day')
 
         const tlines = await Trunkline.findAll({
@@ -292,7 +295,7 @@ const rekapOnOff = async (data) => {
             include: {
                 model: PredValue,
                 as: 'pred_value',
-                attributes: ['spot_id', 'on_value'],
+                attributes: ['spot_id', 'on_value', 'rate_const'],
                 include: {
                     model: Spot,
                     as: 'spot',
@@ -440,6 +443,7 @@ const rekapOnOff = async (data) => {
         }
 
         return summary
+        // res.json(summary)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
