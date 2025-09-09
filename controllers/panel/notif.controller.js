@@ -279,13 +279,13 @@ export const onoffNotif = async (data) => {
 	}
 }
 
-const rekapOnOff = async (data) => {
-// export const rekapOnOff = async (req, res) => {
+// const rekapOnOff = async (data) => {
+export const rekapOnOff = async (req, res) => {
     try {
-        const field_id = data.field_id
-        const timestamp = moment(data.timestamp)
-        // const field_id = req.body.field_id
-        // const timestamp = moment(req.body.timestamp)
+        // const field_id = data.field_id
+        // const timestamp = moment(data.timestamp)
+        const field_id = req.body.field_id
+        const timestamp = moment(req.body.timestamp)
         const today = timestamp.clone().startOf('day')
 
         const tlines = await Trunkline.findAll({
@@ -443,8 +443,10 @@ const rekapOnOff = async (data) => {
             summary += `${summaryOff[spotId]}Total Off ${durOff[spotId] ? fmtDuration(durOff[spotId]) : '00 jam 00 menit'}\n`
         }
 
-        return summary
-        // res.json(summary)
+        await sendNotif('info', summary, field_id)
+
+        // return summary
+        res.json(summary)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
