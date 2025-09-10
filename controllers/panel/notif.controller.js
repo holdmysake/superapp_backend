@@ -482,17 +482,11 @@ export const leakDetect = async (req, res) => {
         //         }]
         //     }
         // })
-        const { titik1, titik2, titik3, titik4 } = req.body
+        const { tline_id, inputs } = req.body
 
         const scriptPath = path.resolve("./predict.py")
-
-        const py = spawn("python", [
-            scriptPath,
-            titik1,
-            titik2,
-            titik3,
-            titik4,
-        ])
+        const args = [scriptPath, tline_id, ...inputs.map(String)]
+        const py = spawn("python", args)
 
         let data = ""
         py.stdout.on("data", (chunk) => {

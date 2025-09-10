@@ -1,20 +1,43 @@
-import os, pickle, sys, json
+import os
+import pickle
+import sys
+import json
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "data", "bjg_tpn.sav")
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
-model = pickle.load(open(MODEL_PATH, "rb"))
-
-if len(sys.argv) != 5:
-    print(json.dumps({"error": "Usage: python predict.py <titik1> <titik2> <titik3> <titik4>"}))
+if len(sys.argv) < 3:
+    print(json.dumps({
+        "error": "Usage: python predict.py <model_name> <titik1> <titik2> ... <titikN>"
+    }))
     sys.exit(1)
 
-titik1 = float(sys.argv[1])
-titik2 = float(sys.argv[2])
-titik3 = float(sys.argv[3])
-titik4 = float(sys.argv[4])
+model_name = sys.argv[1]
+args = sys.argv[2:]
 
-pred = model.predict([[titik1, titik2, titik3, titik4]])[0]
+model_path = os.path.join(DATA_DIR, f"{model_name}.sav")
+
+if not os.path.exists(model_path):
+    print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}))
+    sys.exit(1)
+
+try:
+    model = pickle.load(open(model_path, "rb"))
+except Exception as e:
+    print(json.dumps({"error": f"Gagal load model: {str(e)}"}))
+    sys.exit(1)
+
+try:
+    titik_list = [float(x) for x in args]
+except ValueError:
+    print(json.dumps({"error": "Semua input harus berupa angka"}))
+    sys.exit(1)
+
+try:
+    pred = model.predict([titik_list])[0]
+except Exception as e:
+    print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}))
+    sys.exit(1)
 
 if pred == 0:
     hasil = "Pipa Aman"
@@ -24,6 +47,10 @@ else:
     hasil = f"Terjadi di titik {pred} KM"
 
 print(json.dumps({
-    "prediction": float(pred),
-    "message": hasil
+    # "model": model_name,
+    # "input_count": len(titik_list),
+    # "inputs": titik_list,
+    # "prediction": float(pred),
+    # "message": hasil
+    "result": float(pred)
 }))
