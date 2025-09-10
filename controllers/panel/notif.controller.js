@@ -498,11 +498,25 @@ export const leakDetect = async (req, res) => {
             console.error("Python error:", err.toString())
         })
 
-        py.on("close", () => {
+        py.on("close", async () => {
             try {
-                res.json(JSON.parse(data))
+                if (data.trim() !== "") {
+                    const parsed = JSON.parse(data)
+                    const result = parsed.result
+
+                    const tlineData = await PredValue.findOne({
+                        where: { tline_id },
+                        attributes: ["tline_id", "tline_length"],
+                    })
+
+                    if (result > tlineData.tline_length || result < 0) {
+                        data = ""
+                    }
+                }
+
+                res.json(data ? JSON.parse(data) : { message: "Tidak terjadi kebocoran" })
             } catch (error) {
-                console.error("Parsing error:", error)
+                console.error("Error on close:", error)
                 res.status(500).json({ message: error.message })
             }
         })
