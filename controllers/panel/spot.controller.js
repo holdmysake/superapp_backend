@@ -9,6 +9,9 @@ import { Op } from 'sequelize'
 import fs from 'fs'
 import path from 'path'
 import multer from 'multer'
+import AdmZip from 'adm-zip'
+import { DOMParser } from "xmldom"
+import togeojson from '@mapbox/togeojson'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -237,10 +240,68 @@ export const updateFilePy = async (req, res) => {
 
 export const updateFileKmz = async (req, res) => {
     try {
+        const upload = multer({ dest: path.resolve("uploads/") }).single("file")
 
+        await new Promise((resolve, reject) => {
+            upload(req, res, (err) => {
+                if (err) return reject(err)
+                resolve(null)
+            })
+        })
+
+        const { tline_id } = req.body
+        if (!tline_id) return res.status(400).json({ message: "tline_id wajib diisi" })
+        if (!req.file) return res.status(400).json({ message: "File KMZ wajib diupload (field name: 'file')" })
+
+        const kmzPath = req.file.path
+        const zip = new AdmZip(kmzPath)
+        const kmlEntry = zip.getEntries().find(e => e.entryName && e.entryName.endsWith(".kml"))
+
+        if (!kmlEntry) {
+            try { fs.unlinkSync(kmzPath) } catch (_) {}
+            return res.status(400).json({ message: "KML tidak ditemukan dalam KMZ" })
+        }
+
+        const kmlContent = kmlEntry.getData().toString("utf8")
+        const kmlDom = new DOMParser().parseFromString(kmlContent, "text/xml")
+        const geojson = togeojson.kml(kmlDom)
+
+        let coords = []
+        geojson.features.forEach(f => {
+            if (f.geometry && f.geometry.type === "LineString" && Array.isArray(f.geometry.coordinates)) {
+                coords.push(...f.geometry.coordinates)
+            }
+        })
+
+        const seen = new Set()
+        const cleaned = []
+        for (const c of coords) {
+            if (!Array.isArray(c) || c.length < 2) continue
+            const lon = Number(c[0])
+            const lat = Number(c[1])
+            if (Number.isNaN(lon) || Number.isNaN(lat)) continue
+            const key = `${lon},${lat}`
+            if (seen.has(key)) continue
+            seen.add(key)
+            cleaned.push([lon, lat])
+        }
+
+        const outDir = path.resolve("data/maps")
+        if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
+
+        const outputPath = path.join(outDir, `${tline_id}.json`)
+        fs.writeFileSync(outputPath, JSON.stringify(cleaned, null, 2))
+
+        try { fs.unlinkSync(kmzPath) } catch (_) {}
+
+        return res.json({
+            message: "File KMZ berhasil diupload & diproses",
+            file: `${tline_id}.json`,
+            totalCoords: cleaned.length
+        })
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: error.message })
+        console.error("updateFileKmz error:", error)
+        return res.status(500).json({ message: error?.message ?? "Unknown error" })
     }
 }
 
@@ -305,12 +366,19 @@ export const getAllSpots = async (req, res) => {
         const result = fields.map(field => {
             const f = field.toJSON()
             f.trunklines = f.trunklines.map(tline => {
-                const filePath = path.resolve(`data/pred/${tline.tline_id}.sav`)
+                const modelFilePath = path.resolve(`data/pred/${tline.tline_id}.sav`)
+                const geojsonFilePath = path.resolve(`data/maps/${tline.tline_id}.json`)
+
                 if (tline.pred_value) {
-                    tline.pred_value.model_file = fs.existsSync(filePath)
+                    tline.pred_value.model_file = fs.existsSync(modelFilePath)
                         ? `${tline.tline_id}.sav`
                         : null
                 }
+
+                tline.geojson = fs.existsSync(geojsonFilePath)
+                    ? `${tline.tline_id}.json`
+                    : null
+
                 return tline || null
             })
             return f

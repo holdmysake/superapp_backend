@@ -11,7 +11,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@mapbox/togeojson": "^0.16.2",
     "@whiskeysockets/baileys": "^6.7.18",
+    "adm-zip": "^0.5.16",
     "archiver": "^7.0.1",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
@@ -32,6 +34,7 @@
     "path": "^0.12.7",
     "qrcode": "^1.5.4",
     "sequelize": "^6.37.7",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "xmldom": "^0.6.0"
   }
 }

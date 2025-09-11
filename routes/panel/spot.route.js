@@ -14,7 +14,8 @@ import {
     deleteSpot,
     updateTrunkline,
     updateFilePy,
-    getSpotsByField
+    getSpotsByField,
+    updateFileKmz
 } from '../../controllers/panel/spot.controller.js'
 import {
     verifyTokenSA,
@@ -39,5 +40,6 @@ router.post('/deleteSpot', verifyTokenAdmin, deleteSpot)
 router.post('/updateTrunkline', verifyTokenAdmin, updateTrunkline)
 router.post('/updateFilePy', verifyTokenAdmin, updateFilePy)
 router.post('/getSpotsByField', verifyTokenAdmin, getSpotsByField)
+router.post('/updateFileKmz', verifyTokenAdmin, updateFileKmz)
 
 export default router
