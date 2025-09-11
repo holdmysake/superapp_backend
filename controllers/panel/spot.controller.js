@@ -275,7 +275,7 @@ export const getAllSpots = async (req, res) => {
             include: {
                 model: Trunkline,
                 as: 'trunklines',
-                order: [['id', 'ASC']],
+                order: [['id', 'DESC']],
                 include: [
                     {
                         model: PredValue,
