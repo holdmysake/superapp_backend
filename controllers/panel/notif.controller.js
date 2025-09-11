@@ -512,9 +512,11 @@ export const leakDetect = async (req, res) => {
                     if (result > tlineData.tline_length || result < 0) {
                         data = ""
                     }
+
+                    return res.json({ message: result })
                 }
 
-                res.json(data ? JSON.parse(data) : { message: "Tidak terjadi kebocoran" })
+                res.json({ message: "Tidak terjadi kebocoran" })
             } catch (error) {
                 console.error("Error on close:", error)
                 res.status(500).json({ message: error.message })
