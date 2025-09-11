@@ -23,6 +23,7 @@
     "express": "^5.1.0",
     "fs": "^0.0.1-security",
     "fs-extra": "^11.3.0",
+    "haversine-distance": "^1.2.4",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "mathjs": "^14.7.0",

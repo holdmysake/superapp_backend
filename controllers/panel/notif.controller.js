@@ -12,6 +12,7 @@ import fs from 'fs'
 import path from 'path'
 import { spawn } from "child_process"
 import { create, all } from "mathjs"
+import haversine from "haversine-distance"
 moment.locale('id')
 const math = create(all)
 
@@ -520,14 +521,38 @@ export const leakDetect = async (req, res) => {
                         return res.json({ message: "Tidak terjadi kebocoran" })
                     }
 
+                    let leakCoord = null
+                    let gmapsLink = null
+                    const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
+                    if (fs.existsSync(geojsonFilePath)) {
+                        const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
+
+                        let dist = 0
+                        for (let i = 0; i < coords.length - 1; i++) {
+                            const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
+                            const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
+                            const segLen = haversine(p1, p2) / 1000
+
+                            if (dist + segLen >= result) {
+                                const ratio = (result - dist) / segLen
+                                const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
+                                const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
+                                leakCoord = [lon, lat]
+                                gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
+                                break
+                            }
+                            dist += segLen
+                        }
+                    }
+
                     let formula = tlineData.pu.replace(/\s+/g, "")
 
                     const scope = { y: result }
                     const finalValue = math.evaluate(formula, scope)
-                    console.log(result, formula, finalValue)
 
-                    return res.json({ message: 
-                        `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU)` 
+                    return res.json({
+                        message: `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU).`,
+                        gmaps: gmapsLink
                     })
                 }
 
