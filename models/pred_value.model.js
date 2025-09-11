@@ -54,6 +54,10 @@ const PredValue = sequelize.define('pred_value', {
     rate_const: {
         type: DataTypes.DOUBLE,
         allowNull: true
+    },
+    pu: {
+        type: DataTypes.STRING(20),
+        allowNull: true
     }
 }, {
     tableName: 'pred_value',
