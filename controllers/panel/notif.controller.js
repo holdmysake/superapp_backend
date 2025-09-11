@@ -524,7 +524,7 @@ export const leakDetect = async (req, res) => {
 
                     const scope = { y: result }
                     const finalValue = math.evaluate(formula, scope)
-                    console.log(scope, formula, finalValue)
+                    console.log(result, formula, finalValue)
 
                     return res.json({ message: 
                         `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU)` 
