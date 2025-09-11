@@ -23,6 +23,7 @@
     "fs-extra": "^11.3.0",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
+    "mathjs": "^14.7.0",
     "moment-timezone": "^0.6.0",
     "multer": "^2.0.2",
     "mysql2": "^3.14.1",

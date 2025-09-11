@@ -11,7 +11,9 @@ import { getIO } from "../../socket.js"
 import fs from 'fs'
 import path from 'path'
 import { spawn } from "child_process"
+import { create, all } from "mathjs"
 moment.locale('id')
+const math = create(all)
 
 export const checkDeviceOff = async () => {
     try {
@@ -506,14 +508,27 @@ export const leakDetect = async (req, res) => {
 
                     const tlineData = await PredValue.findOne({
                         where: { tline_id },
-                        attributes: ["tline_id", "tline_length"],
+                        attributes: ["tline_id", "tline_length", "pu"],
+                        include: {
+                            model: Spot,
+                            as: 'spot',
+                            attributes: ['spot_id', 'spot_name']
+                        }
                     })
 
                     if (result > tlineData.tline_length || result < 0) {
-                        data = ""
+                        return res.json({ message: "Tidak terjadi kebocoran" })
                     }
 
-                    return res.json({ message: result })
+                    let formula = tlineData.pu.replace(/\s+/g, "")
+
+                    const scope = { y: result }
+                    const finalValue = math.evaluate(formula, scope)
+                    console.log(scope, formula, finalValue)
+
+                    return res.json({ message: 
+                        `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU)` 
+                    })
                 }
 
                 res.json({ message: "Tidak terjadi kebocoran" })
