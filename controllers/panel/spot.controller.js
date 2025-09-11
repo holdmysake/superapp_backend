@@ -373,11 +373,11 @@ export const getAllSpots = async (req, res) => {
                     tline.pred_value.model_file = fs.existsSync(modelFilePath)
                         ? `${tline.tline_id}.sav`
                         : null
-                }
 
-                tline.geojson = fs.existsSync(geojsonFilePath)
-                    ? `${tline.tline_id}.json`
-                    : null
+                    tline.pred_value.geojson = fs.existsSync(geojsonFilePath)
+                        ? `${tline.tline_id}.json`
+                        : null
+                }                
 
                 return tline || null
             })
