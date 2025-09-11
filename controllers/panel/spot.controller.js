@@ -235,6 +235,15 @@ export const updateFilePy = async (req, res) => {
     }
 }
 
+export const updateFileKmz = async (req, res) => {
+    try {
+
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const deleteTline = async (req, res) => {
     try {
         const { tline_id } = req.body
@@ -266,6 +275,7 @@ export const getAllSpots = async (req, res) => {
             include: {
                 model: Trunkline,
                 as: 'trunklines',
+                order: [['id', 'ASC']],
                 include: [
                     {
                         model: PredValue,
