@@ -239,70 +239,80 @@ export const updateFilePy = async (req, res) => {
 }
 
 export const updateFileKmz = async (req, res) => {
-    try {
-        const upload = multer({ dest: path.resolve("uploads/") }).single("file")
+	try {
+		const upload = multer({ dest: path.resolve("uploads/") }).single("file")
 
-        await new Promise((resolve, reject) => {
-            upload(req, res, (err) => {
-                if (err) return reject(err)
-                resolve(null)
-            })
-        })
+		await new Promise((resolve, reject) => {
+			upload(req, res, (err) => {
+				if (err) return reject(err)
+				resolve(null)
+			})
+		})
 
-        const { tline_id } = req.body
-        if (!tline_id) return res.status(400).json({ message: "tline_id wajib diisi" })
-        if (!req.file) return res.status(400).json({ message: "File KMZ wajib diupload (field name: 'file')" })
+		const { tline_id } = req.body
+		if (!tline_id) return res.status(400).json({ message: "tline_id wajib diisi" })
+		if (!req.file) return res.status(400).json({ message: "File wajib diupload (field name: 'file')" })
 
-        const kmzPath = req.file.path
-        const zip = new AdmZip(kmzPath)
-        const kmlEntry = zip.getEntries().find(e => e.entryName && e.entryName.endsWith(".kml"))
+		const filePath = req.file.path
+		const ext = path.extname(req.file.originalname).toLowerCase()
 
-        if (!kmlEntry) {
-            try { fs.unlinkSync(kmzPath) } catch (_) {}
-            return res.status(400).json({ message: "KML tidak ditemukan dalam KMZ" })
-        }
+		let kmlContent = ""
 
-        const kmlContent = kmlEntry.getData().toString("utf8")
-        const kmlDom = new DOMParser().parseFromString(kmlContent, "text/xml")
-        const geojson = togeojson.kml(kmlDom)
+		if (ext === ".kmz") {
+			const zip = new AdmZip(filePath)
+			const kmlEntry = zip.getEntries().find(e => e.entryName && e.entryName.endsWith(".kml"))
+			if (!kmlEntry) {
+				try { fs.unlinkSync(filePath) } catch (_) {}
+				return res.status(400).json({ message: "KML tidak ditemukan dalam KMZ" })
+			}
+			kmlContent = kmlEntry.getData().toString("utf8")
+		} else if (ext === ".kml") {
+			kmlContent = fs.readFileSync(filePath, "utf8")
+		} else {
+			try { fs.unlinkSync(filePath) } catch (_) {}
+			return res.status(400).json({ message: "File harus KMZ atau KML" })
+		}
 
-        let coords = []
-        geojson.features.forEach(f => {
-            if (f.geometry && f.geometry.type === "LineString" && Array.isArray(f.geometry.coordinates)) {
-                coords.push(...f.geometry.coordinates)
-            }
-        })
+		const kmlDom = new DOMParser().parseFromString(kmlContent, "text/xml")
+		const geojson = togeojson.kml(kmlDom)
 
-        const seen = new Set()
-        const cleaned = []
-        for (const c of coords) {
-            if (!Array.isArray(c) || c.length < 2) continue
-            const lon = Number(c[0])
-            const lat = Number(c[1])
-            if (Number.isNaN(lon) || Number.isNaN(lat)) continue
-            const key = `${lon},${lat}`
-            if (seen.has(key)) continue
-            seen.add(key)
-            cleaned.push([lon, lat])
-        }
+		let coords = []
+		geojson.features.forEach(f => {
+			if (f.geometry && f.geometry.type === "LineString" && Array.isArray(f.geometry.coordinates)) {
+				coords.push(...f.geometry.coordinates)
+			}
+		})
 
-        const outDir = path.resolve("data/maps")
-        if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
+		const seen = new Set()
+		const cleaned = []
+		for (const c of coords) {
+			if (!Array.isArray(c) || c.length < 2) continue
+			const lon = Number(c[0])
+			const lat = Number(c[1])
+			if (Number.isNaN(lon) || Number.isNaN(lat)) continue
+			const key = `${lon},${lat}`
+			if (seen.has(key)) continue
+			seen.add(key)
+			cleaned.push([lon, lat])
+		}
 
-        const outputPath = path.join(outDir, `${tline_id}.json`)
-        fs.writeFileSync(outputPath, JSON.stringify(cleaned, null, 2))
+		const outDir = path.resolve("data/maps")
+		if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
-        try { fs.unlinkSync(kmzPath) } catch (_) {}
+		const outputPath = path.join(outDir, `${tline_id}.json`)
+		fs.writeFileSync(outputPath, JSON.stringify(cleaned, null, 2))
 
-        return res.json({
-            message: "File KMZ berhasil diupload & diproses",
-            file: `${tline_id}.json`,
-            totalCoords: cleaned.length
-        })
-    } catch (error) {
-        console.error("updateFileKmz error:", error)
-        return res.status(500).json({ message: error?.message ?? "Unknown error" })
-    }
+		try { fs.unlinkSync(filePath) } catch (_) {}
+
+		return res.json({
+			message: "File map berhasil diupload & diproses",
+			file: `${tline_id}.json`,
+			totalCoords: cleaned.length
+		})
+	} catch (error) {
+		console.error("updateFileMap error:", error)
+		return res.status(500).json({ message: error?.message ?? "Unknown error" })
+	}
 }
 
 export const deleteTline = async (req, res) => {
