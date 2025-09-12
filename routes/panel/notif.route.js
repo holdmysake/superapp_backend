@@ -14,6 +14,6 @@ const router = express.Router()
 
 router.post('/leakDetect', verifyTokenAdmin, leakDetect)
 // router.post('/rekapOnOff', rekapOnOff)
-router.post('/shareReport', shareReport)
+router.post('/shareReport', verifyTokenAdmin, shareReport)
 
 export default router
