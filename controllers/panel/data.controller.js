@@ -97,8 +97,14 @@ export const downloadDataCSVMulti = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
-        const endOfDay = moment(startOfDay).add(1, 'day')
+        let startOfDay, endOfDay
+        if (Array.isArray(timestamp) && timestamp.length === 2) {
+			startOfDay = moment.tz(timestamp[0], 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
+			endOfDay = moment.tz(timestamp[1], 'YYYY-MM-DD', 'Asia/Jakarta').endOf('day')
+		} else {
+			startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
+			endOfDay = moment(startOfDay).add(1, 'day')
+		}
 
         const tlineArray = Array.isArray(tline_id) ? tline_id : [tline_id]
 
