@@ -1,7 +1,8 @@
 import express from 'express'
 import {
     leakDetect,
-    // rekapOnOff
+    // rekapOnOff,
+    shareReport
 } from '../../controllers/panel/notif.controller.js'
 import {
     verifyTokenSA,
@@ -13,5 +14,6 @@ const router = express.Router()
 
 router.post('/leakDetect', verifyTokenAdmin, leakDetect)
 // router.post('/rekapOnOff', rekapOnOff)
+router.post('/shareReport', shareReport)
 
 export default router

@@ -568,6 +568,17 @@ export const leakDetect = async (req, res) => {
     }
 }
 
+export const shareReport = async (req, res) => {
+    try {
+        const { field_id, message } = req.body
+        await sendNotif('report', message, field_id)
+        res.json({ message: 'Report sent' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 const sendNotif = async (type, message, field_id) => {
     const waGroup = await WAGroup.findAll({
         where: {

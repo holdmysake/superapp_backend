@@ -23,7 +23,7 @@ const WAGroup = sequelize.define('wa_group', {
         allowNull: false
     },
     type: {
-        type: DataTypes.ENUM('info', 'leak'),
+        type: DataTypes.ENUM('info', 'leak', 'report'),
         allowNull: false
     },
     group_name: {
