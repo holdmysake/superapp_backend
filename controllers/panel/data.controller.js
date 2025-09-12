@@ -153,8 +153,9 @@ export const downloadDataCSVMulti = async (req, res) => {
         const headers = ['date', 'time', ...sortedSpotIds]
         const rows = Array.from(dataMap.values())
 
-        const datePart = moment(timestamp).format('DD_MM_YYYY')
-        const baseFileName = `pressure_${field_id}_${datePart}`
+        const dateStart = moment(startOfDay).format('DD_MM_YYYY')
+        const dateEnd = moment(endOfDay).format('DD_MM_YYYY')
+        const baseFileName = `pressure_${field_id}_${dateStart}_to_${dateEnd}`
 
         const parser = new Parser({ fields: headers })
         const csv = parser.parse(rows)
