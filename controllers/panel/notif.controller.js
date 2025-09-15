@@ -587,25 +587,28 @@ export const leakDetect = async (req, res) => {
     }
 }
 
-const leak = async (tline_id, inputs) => {
-    const pythonBin = process.env.PYTHON_BIN || "python"
+const leak = (tline_id, inputs) => {
+    return new Promise((resolve, reject) => {
+        const pythonBin = process.env.PYTHON_BIN || "python"
+        const scriptPath = path.resolve("./predict.py")
+        const args = [scriptPath, tline_id, ...inputs.map(String)]
+        const py = spawn(pythonBin, args)
 
-    const scriptPath = path.resolve("./predict.py")
-    const args = [scriptPath, tline_id, ...inputs.map(String)]
-    const py = spawn(pythonBin, args)
+        let data = ""
+        py.stdout.on("data", (chunk) => {
+            data += chunk.toString()
+        })
 
-    let data = ""
-    py.stdout.on("data", (chunk) => {
-        data += chunk.toString()
-    })
+        py.stderr.on("data", (err) => {
+            console.error("Python error:", err.toString())
+        })
 
-    py.stderr.on("data", (err) => {
-        console.error("Python error:", err.toString())
-    })
+        py.on("close", async () => {
+            try {
+                if (data.trim() === "") {
+                    return resolve({ message: "No output from Python" })
+                }
 
-    py.on("close", async () => {
-        try {
-            if (data.trim() !== "") {
                 const parsed = JSON.parse(data)
                 const result = parsed.result
 
@@ -614,13 +617,13 @@ const leak = async (tline_id, inputs) => {
                     attributes: ["tline_id", "tline_length", "pu"],
                     include: {
                         model: Spot,
-                        as: 'spot',
-                        attributes: ['spot_id', 'spot_name']
+                        as: "spot",
+                        attributes: ["spot_id", "spot_name"]
                     }
                 })
 
                 if (result > tlineData.tline_length || result < 0) {
-                    return { message: "Tidak terjadi kebocoran" }
+                    return resolve({ message: "Tidak terjadi kebocoran" })
                 }
 
                 let leakCoord = null
@@ -628,7 +631,6 @@ const leak = async (tline_id, inputs) => {
                 const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
                 if (fs.existsSync(geojsonFilePath)) {
                     const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
-
                     let dist = 0
                     for (let i = 0; i < coords.length - 1; i++) {
                         const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
@@ -647,20 +649,19 @@ const leak = async (tline_id, inputs) => {
                     }
                 }
 
-                let formula = tlineData.pu.replace(/\s+/g, "")
-
+                const formula = tlineData.pu.replace(/\s+/g, "")
                 const scope = { y: result }
                 const finalValue = math.evaluate(formula, scope)
 
-                return {
+                return resolve({
                     message: `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU).`,
                     gmaps: gmapsLink
-                }
+                })
+            } catch (err) {
+                console.error("Error on close:", err)
+                reject(err)
             }
-        } catch (error) {
-            console.error("Error on close:", error)
-            return { message: error.message }
-        }
+        })
     })
 }
 
