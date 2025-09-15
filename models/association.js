@@ -60,6 +60,19 @@ const defineAssociations = models => {
         targetKey:  'spot_id',
         as:         'spot'
     })
+
+    // Pressure -> Spot
+    // models.Pressure.belongsTo(models.Spot, {
+    //     foreignKey: 'spot_id',
+    //     targetKey: 'spot_id',
+    //     as: 'spot'
+    // })
+
+    // models.Spot.hasMany(models.Pressure, {
+    //     foreignKey: 'spot_id',
+    //     sourceKey: 'spot_id',
+    //     as: 'pressures'
+    // })
 }
 
 export default defineAssociations

@@ -13,6 +13,7 @@ import path from 'path'
 import { spawn } from "child_process"
 import { create, all } from "mathjs"
 import haversine from "haversine-distance"
+import { models } from "../../models/index.js"
 moment.locale('id')
 const math = create(all)
 
@@ -463,109 +464,204 @@ export const offDevice = async () => {
     }
 }
 
-export const leakDetect = async (req, res) => {
+export const leakCheck = async (req, res) => {
     try {
-        // const { spot_id } = req.body
-        // const pred = await PredValue.findOne({
-        //     where: {
-        //         spot_id,
-        //         shut_pred: false,
-        //         drop_value: { [Op.gt]: 0 },
-        //         normal_value: { [Op.gt]: 0 }
-        //     },
-        //     attributes: ['tline_id', 'spot_id'],
-        //     include: {
-        //         model: Trunkline,
-        //         as: 'trunkline',
-        //         attributes: ['tline_id'],
-        //         include: [{
-        //             model: Spot,
-        //             as: 'spots',
-        //             attributes: ['spot_id']
-        //         }]
-        //     }
-        // })
-        const { tline_id, inputs } = req.body
-        const pythonBin = process.env.PYTHON_BIN || "python"
-
-        const scriptPath = path.resolve("./predict.py")
-        const args = [scriptPath, tline_id, ...inputs.map(String)]
-        const py = spawn(pythonBin, args)
-
-        let data = ""
-        py.stdout.on("data", (chunk) => {
-            data += chunk.toString()
+        const { spot_id, field_id, timestamp, psi } = req.body
+        const spot = await Spot.findOne({
+            where: { spot_id },
+            attributes: ['drop_value', 'normal_value', 'tline_id'],
         })
 
-        py.stderr.on("data", (err) => {
-            console.error("Python error:", err.toString())
-        })
+        if (psi < spot.drop_value || psi > spot.normal_value || !spot.drop_value) {
+            return res.json({ message: 'Tidak ada kebocoran' })
+        }
 
-        py.on("close", async () => {
-            try {
-                if (data.trim() !== "") {
-                    const parsed = JSON.parse(data)
-                    const result = parsed.result
+        const Pressure = defineUserDataModel(`pressure_${field_id}`)
+        const alias = `pressures_${field_id}`
 
-                    const tlineData = await PredValue.findOne({
-                        where: { tline_id },
-                        attributes: ["tline_id", "tline_length", "pu"],
-                        include: {
-                            model: Spot,
-                            as: 'spot',
-                            attributes: ['spot_id', 'spot_name']
-                        }
-                    })
+        if (!Spot.associations[alias]) {
+            Pressure.belongsTo(models.Spot, {
+                foreignKey: 'spot_id',
+                targetKey: 'spot_id',
+                as: `spot_${field_id}`
+            })
+            models.Spot.hasMany(Pressure, {
+                foreignKey: 'spot_id',
+                sourceKey: 'spot_id',
+                as: alias
+            })
+        }
 
-                    if (result > tlineData.tline_length || result < 0) {
-                        return res.json({ message: "Tidak terjadi kebocoran" })
-                    }
-
-                    let leakCoord = null
-                    let gmapsLink = null
-                    const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
-                    if (fs.existsSync(geojsonFilePath)) {
-                        const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
-
-                        let dist = 0
-                        for (let i = 0; i < coords.length - 1; i++) {
-                            const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
-                            const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
-                            const segLen = haversine(p1, p2) / 1000
-
-                            if (dist + segLen >= result) {
-                                const ratio = (result - dist) / segLen
-                                const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
-                                const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
-                                leakCoord = [lon, lat]
-                                gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
-                                break
+        const pred_drop = await PredValue.findOne({
+            where: {
+                spot_id,
+                shut_pred: false
+            },
+            attributes: ['tline_id', 'spot_id'],
+            include: {
+                model: Trunkline,
+                as: 'trunkline',
+                attributes: ['tline_id'],
+                include: [{
+                    model: Spot,
+                    as: 'spots',
+                    attributes: ['spot_id', 'normal_value', 'drop_value'],
+                    include: [{
+                        model: Pressure,
+                        as: `pressures_${field_id}`,
+                        required: false,
+                        attributes: ['psi', 'timestamp'],
+                        where: {
+                            timestamp: {
+                                [Op.between]: [
+                                    moment.tz(timestamp, 'Asia/Jakarta').subtract(2, 'minutes'),
+                                    moment.tz(timestamp, 'Asia/Jakarta')
+                                ]
                             }
-                            dist += segLen
-                        }
-                    }
-
-                    let formula = tlineData.pu.replace(/\s+/g, "")
-
-                    const scope = { y: result }
-                    const finalValue = math.evaluate(formula, scope)
-
-                    return res.json({
-                        message: `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU).`,
-                        gmaps: gmapsLink
-                    })
-                }
-
-                res.json({ message: "Tidak terjadi kebocoran" })
-            } catch (error) {
-                console.error("Error on close:", error)
-                res.status(500).json({ message: error.message })
-            }
+                        },
+                    }]
+                }]
+            },
+            order: [[{ model: Trunkline, as: 'trunkline' }, { model: Spot, as: 'spots' }, 'sort', 'ASC']]
         })
+
+        const inputs = []
+
+        if (pred_drop && pred_drop.trunkline && pred_drop.trunkline.spots) {
+            for (const spot of pred_drop.trunkline.spots) {
+                if (spot[alias] && spot[alias].length > 0) {
+                    const sum = spot[alias].reduce((acc, p) => acc + (p.psi || 0), 0)
+                    const avg = sum / spot[alias].length
+                    spot.dataValues.avg_drop = avg
+                } else {
+                    spot.dataValues.avg_drop = 0
+                }
+        
+                if (
+                    (spot.dataValues.avg_drop < spot.drop_value || spot.dataValues.avg_drop > spot.normal_value) && 
+                    spot.dataValues.avg_drop != 0
+                ) {
+                    return res.json({ message: 'Terdapat penurunan pressure, namun tidak terjadi kebocoran' })
+                }
+        
+                const pred_normal = await Pressure.findAll({
+                    where: {
+                        spot_id: spot.spot_id,
+                        psi: { [Op.gte]: spot.normal_value }
+                    },
+                    attributes: ['psi', 'timestamp'],
+                    order: [['timestamp', 'DESC']],
+                    limit: 5,
+                    raw: true
+                })
+        
+                const sumNormal = pred_normal.reduce((acc, p) => acc + (p.psi || 0), 0)
+                spot.dataValues.avg_normal = pred_normal.length > 0 ? sumNormal / pred_normal.length : 0
+        
+                spot.dataValues.avg_delta =
+                    spot.dataValues.avg_drop === 0 || spot.dataValues.avg_normal === 0
+                        ? 0
+                        : spot.dataValues.avg_normal - spot.dataValues.avg_drop
+
+                inputs.push(spot.dataValues.avg_delta)
+                delete spot.dataValues[alias]
+            }
+        }
+
+        const result = await leak(spot.tline_id, inputs)
+        res.json(result)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
     }
+}
+
+export const leakDetect = async (req, res) => {
+    try {
+        const { tline_id, inputs } = req.body
+        const result = await leak(tline_id, inputs)
+        res.json(result)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+const leak = async (tline_id, inputs) => {
+    const pythonBin = process.env.PYTHON_BIN || "python"
+
+    const scriptPath = path.resolve("./predict.py")
+    const args = [scriptPath, tline_id, ...inputs.map(String)]
+    const py = spawn(pythonBin, args)
+
+    let data = ""
+    py.stdout.on("data", (chunk) => {
+        data += chunk.toString()
+    })
+
+    py.stderr.on("data", (err) => {
+        console.error("Python error:", err.toString())
+    })
+
+    py.on("close", async () => {
+        try {
+            if (data.trim() !== "") {
+                const parsed = JSON.parse(data)
+                const result = parsed.result
+
+                const tlineData = await PredValue.findOne({
+                    where: { tline_id },
+                    attributes: ["tline_id", "tline_length", "pu"],
+                    include: {
+                        model: Spot,
+                        as: 'spot',
+                        attributes: ['spot_id', 'spot_name']
+                    }
+                })
+
+                if (result > tlineData.tline_length || result < 0) {
+                    return { message: "Tidak terjadi kebocoran" }
+                }
+
+                let leakCoord = null
+                let gmapsLink = null
+                const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
+                if (fs.existsSync(geojsonFilePath)) {
+                    const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
+
+                    let dist = 0
+                    for (let i = 0; i < coords.length - 1; i++) {
+                        const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
+                        const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
+                        const segLen = haversine(p1, p2) / 1000
+
+                        if (dist + segLen >= result) {
+                            const ratio = (result - dist) / segLen
+                            const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
+                            const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
+                            leakCoord = [lon, lat]
+                            gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
+                            break
+                        }
+                        dist += segLen
+                    }
+                }
+
+                let formula = tlineData.pu.replace(/\s+/g, "")
+
+                const scope = { y: result }
+                const finalValue = math.evaluate(formula, scope)
+
+                return {
+                    message: `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU).`,
+                    gmaps: gmapsLink
+                }
+            }
+        } catch (error) {
+            console.error("Error on close:", error)
+            return { message: error.message }
+        }
+    })
 }
 
 export const shareReport = async (req, res) => {
