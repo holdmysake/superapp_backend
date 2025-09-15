@@ -364,7 +364,10 @@ export const getAllSpots = async (req, res) => {
                         order: [['sort', 'ASC']]
                     }
                 ]
-            }
+            },
+            order: [
+                [{ model: Trunkline, as: 'trunklines' }, 'id', 'ASC']
+            ]
         }
 
         if (!isSA) {
@@ -387,7 +390,7 @@ export const getAllSpots = async (req, res) => {
                     tline.pred_value.geojson = fs.existsSync(geojsonFilePath)
                         ? `${tline.tline_id}.json`
                         : null
-                }                
+                }
 
                 return tline || null
             })
