@@ -116,16 +116,22 @@ export const downloadDataCSVMulti = async (req, res) => {
         })
         const spotIds = spots.map(s => s.spot_id)
 
-        const pressureData = await Pressure.findAll({
-            where: {
-                spot_id: spotIds,
-                timestamp: {
-                    [Op.gte]: startOfDay,
-                    [Op.lt]: endOfDay
-                }
+        const query = `
+            SELECT spot_id, timestamp, psi
+            FROM ${tableName}
+            WHERE spot_id IN(:spotIds)
+                AND timestamp BETWEEN :start AND :end
+            ORDER BY timestamp ASC
+        `
+        const pressureData = await sequelize.query(query, {
+            replacements: {
+                spotIds,
+                start: startOfDay.format('YYYY-MM-DD HH:mm:ss'),
+                end: endOfDay.format('YYYY-MM-DD HH:mm:ss')
             },
-            attributes: ['spot_id', 'timestamp', 'psi'],
-            order: [['timestamp', 'ASC']]
+            type: QueryTypes.SELECT,
+            raw: true,
+            logging: false
         })
 
         if (pressureData.length === 0) {
