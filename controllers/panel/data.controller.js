@@ -4,7 +4,8 @@ import archiver from 'archiver'
 import { Op } from "sequelize"
 import defineUserDataModel from "../../models/pressure.model.js"
 import moment from "moment-timezone"
-import Spot from '../../models/spot.model.js';
+import Spot from '../../models/spot.model.js'
+import fastcsv from 'fast-csv'
 
 export const downloadDataCSV = async (req, res) => {
     try {
@@ -177,6 +178,76 @@ export const downloadDataCSVMulti = async (req, res) => {
         archive.append(excelBuffer, { name: `${baseFileName}.xlsx` })
 
         await archive.finalize()
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const downloadDataCSVStream = async (req, res) => {
+    try {
+        const { field_id, tline_id = [], timestamp } = req.body
+        const tableName = `pressure_${field_id}`
+
+        let startOfDay, endOfDay
+        if (Array.isArray(timestamp) && timestamp.length === 2) {
+            startOfDay = moment.tz(timestamp[0], 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
+            endOfDay = moment.tz(timestamp[1], 'YYYY-MM-DD', 'Asia/Jakarta').endOf('day')
+        } else {
+            startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
+            endOfDay = moment(startOfDay).add(1, 'day')
+        }
+
+        const tlineArray = Array.isArray(tline_id) ? tline_id : [tline_id]
+
+        // ambil spot_id
+        const spots = await Spot.findAll({
+            where: { tline_id: tlineArray },
+            attributes: ['spot_id']
+        })
+        const spotIds = spots.map(s => s.spot_id)
+
+        if (spotIds.length === 0) {
+            return res.status(404).json({ message: 'No spots found' })
+        }
+
+        // query manual biar bisa stream
+        const query = `
+            SELECT spot_id, timestamp, psi
+            FROM ${tableName}
+            WHERE spot_id IN(:spotIds)
+                AND timestamp BETWEEN :start AND :end
+            ORDER BY timestamp ASC
+        `
+
+        const dateStart = moment(startOfDay).format('DD_MM_YYYY')
+        const dateEnd = moment(endOfDay).format('DD_MM_YYYY')
+        const fileName = `pressure_${field_id}_${dateStart}_to_${dateEnd}.csv`
+
+        res.setHeader('Content-Type', 'text/csv')
+        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`)
+
+        const csvStream = fastcsv.format({ headers: true })
+        csvStream.pipe(res)
+
+        const result = await sequelize.query(query, {
+            replacements: { spotIds, start: startOfDay.toDate(), end: endOfDay.toDate() },
+            type: QueryTypes.SELECT,
+            raw: true,
+            logging: false
+        })
+
+        for (const row of result) {
+            const ts = moment(row.timestamp)
+            csvStream.write({
+                date: ts.format('YYYY-MM-DD'),
+                time: ts.format('HH:mm:ss'),
+                spot_id: row.spot_id,
+                psi: row.psi
+            })
+        }
+
+        csvStream.end()
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
