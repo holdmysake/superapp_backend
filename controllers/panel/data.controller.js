@@ -6,6 +6,7 @@ import defineUserDataModel from "../../models/pressure.model.js"
 import moment from "moment-timezone"
 import Spot from '../../models/spot.model.js'
 import fastcsv from 'fast-csv'
+import sequelize from '../../config/db.js'
 
 export const downloadDataCSV = async (req, res) => {
     try {
