@@ -1,7 +1,7 @@
 import { Parser } from 'json2csv'
 import ExcelJS from 'exceljs'
 import archiver from 'archiver'
-import { Op } from "sequelize"
+import { Op, QueryTypes } from "sequelize"
 import defineUserDataModel from "../../models/pressure.model.js"
 import moment from "moment-timezone"
 import Spot from '../../models/spot.model.js'
