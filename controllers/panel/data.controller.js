@@ -185,18 +185,21 @@ export const downloadDataCSVMulti = async (req, res) => {
     }
 }
 
-export const downloadDataCSVStream = async (req, res) => {
+import archiver from "archiver"
+import fastcsv from "fast-csv"
+
+export const downloadDataCSVZip = async (req, res) => {
     try {
         const { field_id, tline_id = [], timestamp } = req.body
         const tableName = `pressure_${field_id}`
 
         let startOfDay, endOfDay
         if (Array.isArray(timestamp) && timestamp.length === 2) {
-            startOfDay = moment.tz(timestamp[0], 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
-            endOfDay   = moment.tz(timestamp[1], 'YYYY-MM-DD', 'Asia/Jakarta').endOf('day')
+            startOfDay = moment.tz(timestamp[0], "YYYY-MM-DD", "Asia/Jakarta").startOf("day")
+            endOfDay   = moment.tz(timestamp[1], "YYYY-MM-DD", "Asia/Jakarta").endOf("day")
         } else {
-            startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
-            endOfDay   = moment(startOfDay).endOf('day')
+            startOfDay = moment.tz(timestamp, "YYYY-MM-DD", "Asia/Jakarta").startOf("day")
+            endOfDay   = moment(startOfDay).endOf("day")
         }
 
         const tlineArray = Array.isArray(tline_id) ? tline_id : [tline_id]
@@ -204,38 +207,42 @@ export const downloadDataCSVStream = async (req, res) => {
         // ambil spot_id
         const spots = await Spot.findAll({
             where: { tline_id: tlineArray },
-            attributes: ['spot_id']
+            attributes: ["spot_id"]
         })
         const spotIds = spots.map(s => s.spot_id)
 
         if (spotIds.length === 0) {
-            return res.status(404).json({ message: 'No spots found' })
+            return res.status(404).json({ message: "No spots found" })
         }
 
-        // query manual biar bisa stream
         const query = `
             SELECT spot_id, timestamp, psi
             FROM ${tableName}
             WHERE spot_id IN(:spotIds)
-                AND timestamp BETWEEN :start AND :end
+              AND timestamp BETWEEN :start AND :end
             ORDER BY timestamp ASC
         `
 
-        const dateStart = startOfDay.format('DD_MM_YYYY')
-        const dateEnd   = endOfDay.format('DD_MM_YYYY')
-        const fileName  = `pressure_${field_id}_${dateStart}_to_${dateEnd}.csv`
+        const dateStart = startOfDay.format("DD_MM_YYYY")
+        const dateEnd   = endOfDay.format("DD_MM_YYYY")
+        const baseName  = `pressure_${field_id}_${dateStart}_to_${dateEnd}`
 
-        res.setHeader('Content-Type', 'text/csv')
-        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`)
+        res.setHeader("Content-Type", "application/zip")
+        res.setHeader("Content-Disposition", `attachment; filename=${baseName}.zip`)
 
+        const archive = archiver("zip")
+        archive.pipe(res)
+
+        // bikin stream CSV
         const csvStream = fastcsv.format({ headers: true })
-        csvStream.pipe(res)
+        archive.append(csvStream, { name: `${baseName}.csv` })
 
+        // query data
         const result = await sequelize.query(query, {
             replacements: {
                 spotIds,
-                start: startOfDay.format('YYYY-MM-DD HH:mm:ss'),
-                end: endOfDay.format('YYYY-MM-DD HH:mm:ss')
+                start: startOfDay.format("YYYY-MM-DD HH:mm:ss"),
+                end: endOfDay.format("YYYY-MM-DD HH:mm:ss")
             },
             type: QueryTypes.SELECT,
             raw: true,
@@ -245,14 +252,15 @@ export const downloadDataCSVStream = async (req, res) => {
         for (const row of result) {
             const ts = moment(row.timestamp)
             csvStream.write({
-                date: ts.format('YYYY-MM-DD'),
-                time: ts.format('HH:mm:ss'),
+                date: ts.format("YYYY-MM-DD"),
+                time: ts.format("HH:mm:ss"),
                 spot_id: row.spot_id,
                 psi: row.psi
             })
         }
 
         csvStream.end()
+        await archive.finalize()
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
