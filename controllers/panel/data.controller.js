@@ -185,7 +185,7 @@ export const downloadDataCSVMulti = async (req, res) => {
     }
 }
 
-export const downloadDataCSVZip = async (req, res) => {
+export const downloadDataCSVStream = async (req, res) => {
     try {
         const { field_id, tline_id = [], timestamp } = req.body
         const tableName = `pressure_${field_id}`
