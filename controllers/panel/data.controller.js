@@ -185,9 +185,6 @@ export const downloadDataCSVMulti = async (req, res) => {
     }
 }
 
-import archiver from "archiver"
-import fastcsv from "fast-csv"
-
 export const downloadDataCSVZip = async (req, res) => {
     try {
         const { field_id, tline_id = [], timestamp } = req.body
@@ -219,7 +216,7 @@ export const downloadDataCSVZip = async (req, res) => {
             SELECT spot_id, timestamp, psi
             FROM ${tableName}
             WHERE spot_id IN(:spotIds)
-              AND timestamp BETWEEN :start AND :end
+                AND timestamp BETWEEN :start AND :end
             ORDER BY timestamp ASC
         `
 
