@@ -232,7 +232,7 @@ export const downloadDataCSVStream = async (req, res) => {
         csvStream.pipe(res)
 
         const result = await sequelize.query(query, {
-            replacements: { spotIds, start: startOfDay.toDate(), end: endOfDay.toDate() },
+            replacements: { spotIds, start: startOfDay, end: endOfDay },
             type: QueryTypes.SELECT,
             raw: true,
             logging: false
