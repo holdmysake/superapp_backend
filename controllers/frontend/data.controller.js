@@ -55,7 +55,8 @@ export const getDataBySpot = async (req, res) => {
                     [Op.gte]: startOfDay,
                     [Op.lt]: endOfDay
                 }
-            }
+            },
+            order: [['timestamp', 'ASC']]
         })
 
         res.json(data)
