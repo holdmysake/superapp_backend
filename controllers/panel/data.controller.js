@@ -8,6 +8,32 @@ import Spot from '../../models/spot.model.js'
 import fastcsv from 'fast-csv'
 import sequelize from '../../config/db.js'
 
+export const getDataBySpot = async (req, res) => {
+    try {
+        const { field_id, spot_id, timestamp } = req.body
+        const Pressure = defineUserDataModel(`pressure_${field_id}`)
+
+        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
+        const endOfDay = moment(startOfDay).add(1, 'day')
+
+        const data = await Pressure.findAll({
+            where: {
+                spot_id,
+                timestamp: {
+                    [Op.gte]: startOfDay,
+                    [Op.lt]: endOfDay
+                }
+            },
+            order: [['timestamp', 'ASC']]
+        })
+
+        res.json(data)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const downloadDataCSV = async (req, res) => {
     try {
         const { field_id, tline_id, timestamp } = req.body

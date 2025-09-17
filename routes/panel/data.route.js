@@ -3,7 +3,8 @@ import {
     downloadDataCSV,
     downloadDataCSVMulti,
     downloadDataCSVMultiFaster,
-    downloadDataCSVStream
+    downloadDataCSVStream,
+    getDataBySpot
 } from '../../controllers/panel/data.controller.js'
 import {
     verifyTokenSA,
@@ -17,5 +18,6 @@ router.post('/downloadDataCSV', verifyTokenAdmin, downloadDataCSV)
 router.post('/downloadDataCSVMulti', verifyTokenAdmin, downloadDataCSVMulti)
 router.post('/downloadDataCSVMultiFaster', verifyTokenAdmin, downloadDataCSVMultiFaster)
 router.post('/downloadDataCSVStream', verifyTokenAdmin, downloadDataCSVStream)
+router.post('/getDataBySpot', verifyTokenAdmin, getDataBySpot)
 
 export default router
