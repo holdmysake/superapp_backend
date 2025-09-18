@@ -44,6 +44,8 @@ try:
     else:
         pred_value = float(pred)
 
+    print(f"[DEBUG] pred_value (first element): {pred_value}", file=sys.stderr)
+
 except Exception as e:
     print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}))
     sys.exit(1)
