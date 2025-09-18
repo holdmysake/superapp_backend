@@ -25,6 +25,7 @@ else:
     model_dir = os.path.join(DATA_DIR, "single")
 
 model_path = os.path.join(DATA_DIR, f"{model_name}.sav")
+print(f"[DEBUG] model_path: {model_path}", file=sys.stderr)
 
 if not os.path.exists(model_path):
     print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}))
