@@ -211,7 +211,16 @@ export const updateFilePy = async (req, res) => {
     try {
         const storage = multer.diskStorage({
             destination: (req, file, cb) => {
-                cb(null, path.resolve('data/pred/single'))
+                const type = req.body.type
+                let folder = ""
+
+                if (type === "multi") {
+                    folder = path.resolve("data/pred/multi")
+                } else {
+                    folder = path.resolve("data/pred/single")
+                }
+
+                cb(null, folder)
             },
             filename: (req, file, cb) => {
                 const tlineId = path.parse(file.originalname).name
@@ -219,18 +228,19 @@ export const updateFilePy = async (req, res) => {
             }
         })
 
-        const upload = multer({ storage }).single('model_file')
+        const upload = multer({ storage }).single("model_file")
 
         upload(req, res, async (error) => {
             if (error) {
                 console.error(error)
-                res.status(500).json({ message: error.message })
+                return res.status(500).json({ message: error.message })
             }
-        })
 
-        res.json({
-            message: "Model file berhasil diupload / diperbarui",
-            file: `${req.body.tline_id}.sav`
+            res.json({
+                message: "Model file berhasil diupload / diperbarui",
+                file: `${req.body.tline_id}.sav`,
+                type: req.body.type || "single"
+            })
         })
     } catch (error) {
         console.error(error)
