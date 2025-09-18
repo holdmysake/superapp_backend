@@ -17,6 +17,8 @@ model_name = sys.argv[1]
 model_type = sys.argv[2]
 args = sys.argv[3:]
 
+print("type file '{model_type}'")
+
 if model_type == "multi":
     model_dir = os.path.join(DATA_DIR, "multi")
 else:
