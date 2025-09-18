@@ -209,6 +209,7 @@ export const updateTrunkline = async (req, res) => {
 
 export const updateFilePy = async (req, res) => {
     try {
+        console.log('tipe file: ', req.body.type)
         const storage = multer.diskStorage({
             destination: (req, file, cb) => {
                 const type = req.body.type
