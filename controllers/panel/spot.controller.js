@@ -211,7 +211,7 @@ export const updateFilePy = async (req, res) => {
     try {
         const storage = multer.diskStorage({
             destination: (req, file, cb) => {
-                cb(null, path.resolve('data/pred'))
+                cb(null, path.resolve('data/pred/single'))
             },
             filename: (req, file, cb) => {
                 const tlineId = path.parse(file.originalname).name
@@ -379,7 +379,7 @@ export const getAllSpots = async (req, res) => {
         const result = fields.map(field => {
             const f = field.toJSON()
             f.trunklines = f.trunklines.map(tline => {
-                const modelFilePath = path.resolve(`data/pred/${tline.tline_id}.sav`)
+                const modelFilePath = path.resolve(`data/pred/single/${tline.tline_id}.sav`)
                 const geojsonFilePath = path.resolve(`data/maps/${tline.tline_id}.json`)
 
                 if (tline.pred_value) {
