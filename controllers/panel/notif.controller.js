@@ -624,32 +624,39 @@ const leak = (tline_id, inputs) => {
 
                 const validResults = results.filter(r => r >= 0 && r <= tlineData.tline_length)
 
-                let leakCoord = null
-                let gmapsLink = null
                 const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
-                if (fs.existsSync(geojsonFilePath) && validResults.length > 0) {
-                    const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
-                    const firstResult = validResults[0]  // untuk koordinat, ambil yang pertama saja
-                    let dist = 0
-                    for (let i = 0; i < coords.length - 1; i++) {
-                        const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
-                        const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
-                        const segLen = haversine(p1, p2) / 1000
+                let gmapsLinks = []
 
-                        if (dist + segLen >= firstResult) {
-                            const ratio = (firstResult - dist) / segLen
-                            const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
-                            const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
-                            leakCoord = [lon, lat]
-                            gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
-                            break
+                if (fs.existsSync(geojsonFilePath)) {
+                    const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
+
+                    for (const r of validResults) {
+                        let leakCoord = null
+                        let gmapsLink = null
+                        let dist = 0
+
+                        for (let i = 0; i < coords.length - 1; i++) {
+                            const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
+                            const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
+                            const segLen = haversine(p1, p2) / 1000
+
+                            if (dist + segLen >= r) {
+                                const ratio = (r - dist) / segLen
+                                const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
+                                const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
+                                leakCoord = [lon, lat]
+                                gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
+                                break
+                            }
+                            dist += segLen
                         }
-                        dist += segLen
+
+                        gmapsLinks.push(gmapsLink)
                     }
                 }
 
                 const formula = tlineData.pu.replace(/\s+/g, "")
-                const messages = validResults.map(r => {
+                const messages = validResults.map((r, idx) => {
                     let finalValue = null
                     try { finalValue = math.evaluate(formula, { y: r }) } catch {}
                     let msg = `Indikasi kebocoran pada titik ${r} KM dari ${tlineData.spot.spot_name}`
@@ -659,7 +666,7 @@ const leak = (tline_id, inputs) => {
 
                 return resolve({
                     messages,
-                    gmaps: gmapsLink,
+                    gmaps: gmapsLinks,
                     results: validResults
                 })
             } catch (err) {
