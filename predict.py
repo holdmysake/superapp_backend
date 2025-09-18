@@ -38,25 +38,17 @@ try:
     pred = model.predict([titik_list])
     print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr)
 
-    # ambil elemen pertama saja untuk tahap dev
     if hasattr(pred, "__len__"):
-        pred_value = float(np.ravel(pred)[0])
+        pred_values = np.ravel(pred).tolist()
     else:
-        pred_value = float(pred)
+        pred_values = [float(pred)]
 
-    print(f"[DEBUG] pred_value (first element): {pred_value}", file=sys.stderr)
+    print(f"[DEBUG] pred_values: {pred_values}", file=sys.stderr)
 
 except Exception as e:
     print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}))
     sys.exit(1)
 
-if pred_value == 0:
-    hasil = "Pipa Aman"
-elif pred_value == 26.8:
-    hasil = "Tidak Terdapat Fluida yang Mengalir"
-else:
-    hasil = f"Terjadi di titik {pred_value} KM"
-
 print(json.dumps({
-    "result": pred_value
+    "result": pred_values
 }))
