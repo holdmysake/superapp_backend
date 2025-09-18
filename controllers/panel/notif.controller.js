@@ -623,7 +623,6 @@ const leak = (tline_id, inputs) => {
                 })
 
                 if (result > tlineData.tline_length || result < 0) {
-                    console.log("Leak detection result:", result)
                     return resolve({ message: "Tidak terjadi kebocoran" })
                 }
 
@@ -652,10 +651,21 @@ const leak = (tline_id, inputs) => {
 
                 const formula = tlineData.pu.replace(/\s+/g, "")
                 const scope = { y: result }
-                const finalValue = math.evaluate(formula, scope)
+
+                let finalValue
+                try {
+                    finalValue = math.evaluate(formula, scope)
+                } catch (err) {
+                    finalValue = null
+                }
+
+                let message = `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name}`
+                if (finalValue != null && finalValue !== undefined) {
+                    message += ` (KM ${finalValue} Jalan PU)`
+                }
 
                 return resolve({
-                    message: `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name} (KM ${finalValue} Jalan PU).`,
+                    message,
                     gmaps: gmapsLink
                 })
             } catch (err) {
