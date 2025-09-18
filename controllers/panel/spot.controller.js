@@ -380,10 +380,15 @@ export const getAllSpots = async (req, res) => {
             const f = field.toJSON()
             f.trunklines = f.trunklines.map(tline => {
                 const modelFilePath = path.resolve(`data/pred/single/${tline.tline_id}.sav`)
+                const modelMultiFilePath = path.resolve(`data/pred/multi/${tline.tline_id}.sav`)
                 const geojsonFilePath = path.resolve(`data/maps/${tline.tline_id}.json`)
 
                 if (tline.pred_value) {
                     tline.pred_value.model_file = fs.existsSync(modelFilePath)
+                        ? `${tline.tline_id}.sav`
+                        : null
+
+                    tline.pred_value.model_file = fs.existsSync(modelMultiFilePath)
                         ? `${tline.tline_id}.sav`
                         : null
 
