@@ -657,18 +657,6 @@ const leak = (tline_id, inputs) => {
                     return msg
                 })
 
-                let finalValue
-                try {
-                    finalValue = math.evaluate(formula, scope)
-                } catch (err) {
-                    finalValue = null
-                }
-
-                let message = `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name}`
-                if (finalValue != null && finalValue !== undefined) {
-                    message += ` (KM ${finalValue} Jalan PU)`
-                }
-
                 return resolve({
                     messages,
                     gmaps: gmapsLink,
