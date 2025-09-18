@@ -611,6 +611,7 @@ const leak = (tline_id, inputs) => {
 
                 const parsed = JSON.parse(data)
                 const results = parsed.result
+                console.log("Leak detection results:", results)
 
                 const tlineData = await PredValue.findOne({
                     where: { tline_id },
