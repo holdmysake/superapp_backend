@@ -207,39 +207,61 @@ export const updateTrunkline = async (req, res) => {
     }
 }
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const folder =
-            req.body.type === "multi"
-                ? path.resolve("data/pred/multi")
-                : path.resolve("data/pred/single")
-
-        cb(null, folder)
-    },
-    filename: (req, file, cb) => {
-        const tlineId = path.parse(file.originalname).name
-        cb(null, `${tlineId}.sav`)
-    }
-})
-
-const upload = multer({ storage }).fields([
-    { name: "model_file", maxCount: 1 },
-    { name: "model_multi_file", maxCount: 1 }
-])
-
 export const updateFilePy = async (req, res) => {
     try {
-        upload(req, res, (error) => {
+        const storage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                cb(null, path.resolve('data/pred/single'))
+            },
+            filename: (req, file, cb) => {
+                const tlineId = path.parse(file.originalname).name
+                cb(null, `${tlineId}.sav`)
+            }
+        })
+
+        const upload = multer({ storage }).single('model_file')
+
+        upload(req, res, async (error) => {
             if (error) {
                 console.error(error)
-                return res.status(500).json({ message: error.message })
+                res.status(500).json({ message: error.message })
             }
+        })
 
-            res.json({
-                message: "Model file berhasil diupload / diperbarui",
-                file: `${req.body.tline_id}.sav`,
-                type: req.body.type || "single"
-            })
+        res.json({
+            message: "Model file berhasil diupload / diperbarui",
+            file: `${req.body.tline_id}.sav`
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const updateFilePyMulti = async (req, res) => {
+    try {
+        const storage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                cb(null, path.resolve('data/pred/multi'))
+            },
+            filename: (req, file, cb) => {
+                const tlineId = path.parse(file.originalname).name
+                cb(null, `${tlineId}.sav`)
+            }
+        })
+
+        const upload = multer({ storage }).single('model_file')
+
+        upload(req, res, async (error) => {
+            if (error) {
+                console.error(error)
+                res.status(500).json({ message: error.message })
+            }
+        })
+
+        res.json({
+            message: "Model file berhasil diupload / diperbarui",
+            file: `${req.body.tline_id}.sav`
         })
     } catch (error) {
         console.error(error)

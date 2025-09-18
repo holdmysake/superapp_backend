@@ -14,6 +14,7 @@ import {
     deleteSpot,
     updateTrunkline,
     updateFilePy,
+    updateFilePyMulti,
     getSpotsByField,
     updateFileKmz
 } from '../../controllers/panel/spot.controller.js'
@@ -39,6 +40,7 @@ router.post('/updateSort', verifyTokenAdmin, updateSort)
 router.post('/deleteSpot', verifyTokenAdmin, deleteSpot)
 router.post('/updateTrunkline', verifyTokenAdmin, updateTrunkline)
 router.post('/updateFilePy', verifyTokenAdmin, updateFilePy)
+router.post('/updateFilePyMulti', verifyTokenAdmin, updateFilePyMulti)
 router.post('/getSpotsByField', verifyTokenAdmin, getSpotsByField)
 router.post('/updateFileKmz', verifyTokenAdmin, updateFileKmz)
 
