@@ -5,7 +5,7 @@ import json
 import numpy as np
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data", "pred")
+DATA_DIR = os.path.join(BASE_DIR, "data", "pred", "multi")
 
 if len(sys.argv) < 4:
     print(json.dumps({
@@ -17,12 +17,10 @@ model_name = sys.argv[1]
 model_type = sys.argv[2]
 args = sys.argv[3:]
 
-print("type file '{model_type}'")
-
-if model_type == "multi":
-    model_dir = os.path.join(DATA_DIR, "multi")
-else:
-    model_dir = os.path.join(DATA_DIR, "single")
+# if model_type == "multi":
+#     model_dir = os.path.join(DATA_DIR, "multi")
+# else:
+#     model_dir = os.path.join(DATA_DIR, "single")
 
 model_path = os.path.join(DATA_DIR, f"{model_name}.sav")
 
