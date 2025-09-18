@@ -34,23 +34,25 @@ except ValueError:
     sys.exit(1)
 
 try:
-    pred = model.predict([titik_list])[0]
+    pred = model.predict([titik_list])
+
+    if isinstance(pred, (list, tuple)):  # kalau list/tuple
+        pred_value = float(pred[0])
+    elif hasattr(pred, "__len__"):       # kalau numpy array
+        pred_value = float(pred.flatten()[0])
+    else:                                # kalau scalar langsung
+        pred_value = float(pred)
 except Exception as e:
     print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}))
     sys.exit(1)
 
-if pred == 0:
+if pred_value == 0:
     hasil = "Pipa Aman"
-elif pred == 26.8:
+elif pred_value == 26.8:
     hasil = "Tidak Terdapat Fluida yang Mengalir"
 else:
-    hasil = f"Terjadi di titik {pred} KM"
+    hasil = f"Terjadi di titik {pred_value} KM"
 
 print(json.dumps({
-    # "model": model_name,
-    # "input_count": len(titik_list),
-    # "inputs": titik_list,
-    # "prediction": float(pred),
-    # "message": hasil
-    "result": float(pred)
+    "result": pred_value
 }))
