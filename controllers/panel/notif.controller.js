@@ -610,8 +610,10 @@ const leak = (tline_id, inputs, model_type) => {
                 }
 
                 const parsed = JSON.parse(data)
+                if (!parsed.result) {
+                    return resolve({ message: "Python tidak mengembalikan hasil (result undefined)" })
+                }
                 const results = parsed.result
-                console.log("Leak detection results:", results)
 
                 const tlineData = await PredValue.findOne({
                     where: { tline_id },

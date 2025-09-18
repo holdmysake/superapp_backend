@@ -17,10 +17,7 @@ model_name = sys.argv[1]
 model_type = sys.argv[2]
 args = sys.argv[3:]
 
-print(f"[DEBUG] model_type: {model_type}", file=sys.stderr)
-
 model_path = os.path.join(DATA_DIR, model_type, f"{model_name}.sav")
-print(f"[DEBUG] model_path: {model_path}", file=sys.stderr)
 
 if not os.path.exists(model_path):
     print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}))
