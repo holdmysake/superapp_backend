@@ -35,6 +35,7 @@ except ValueError:
 
 try:
     pred = model.predict([titik_list])
+    print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr)
 
     if isinstance(pred, (list, tuple)):  # kalau list/tuple
         pred_value = float(pred[0])
