@@ -610,65 +610,70 @@ const leak = (tline_id, inputs) => {
                 }
 
                 const parsed = JSON.parse(data)
-                const result = parsed.result
-                console.log("Leak detection result:", result)
+                const results = parsed.result
 
-                // const tlineData = await PredValue.findOne({
-                //     where: { tline_id },
-                //     attributes: ["tline_id", "tline_length", "pu"],
-                //     include: {
-                //         model: Spot,
-                //         as: "spot",
-                //         attributes: ["spot_id", "spot_name"]
-                //     }
-                // })
+                const tlineData = await PredValue.findOne({
+                    where: { tline_id },
+                    attributes: ["tline_id", "tline_length", "pu"],
+                    include: {
+                        model: Spot,
+                        as: "spot",
+                        attributes: ["spot_id", "spot_name"]
+                    }
+                })
 
-                // if (result > tlineData.tline_length || result < 0) {
-                //     return resolve({ message: "Tidak terjadi kebocoran" })
-                // }
+                const validResults = results.filter(r => r >= 0 && r <= tlineData.tline_length)
 
-                // let leakCoord = null
-                // let gmapsLink = null
-                // const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
-                // if (fs.existsSync(geojsonFilePath)) {
-                //     const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
-                //     let dist = 0
-                //     for (let i = 0; i < coords.length - 1; i++) {
-                //         const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
-                //         const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
-                //         const segLen = haversine(p1, p2) / 1000
+                let leakCoord = null
+                let gmapsLink = null
+                const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
+                if (fs.existsSync(geojsonFilePath) && validResults.length > 0) {
+                    const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
+                    const firstResult = validResults[0]  // untuk koordinat, ambil yang pertama saja
+                    let dist = 0
+                    for (let i = 0; i < coords.length - 1; i++) {
+                        const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
+                        const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
+                        const segLen = haversine(p1, p2) / 1000
 
-                //         if (dist + segLen >= result) {
-                //             const ratio = (result - dist) / segLen
-                //             const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
-                //             const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
-                //             leakCoord = [lon, lat]
-                //             gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
-                //             break
-                //         }
-                //         dist += segLen
-                //     }
-                // }
+                        if (dist + segLen >= firstResult) {
+                            const ratio = (firstResult - dist) / segLen
+                            const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
+                            const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
+                            leakCoord = [lon, lat]
+                            gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
+                            break
+                        }
+                        dist += segLen
+                    }
+                }
 
-                // const formula = tlineData.pu.replace(/\s+/g, "")
-                // const scope = { y: result }
+                const formula = tlineData.pu.replace(/\s+/g, "")
+                const messages = validResults.map(r => {
+                    let finalValue = null
+                    try { finalValue = math.evaluate(formula, { y: r }) } catch {}
+                    let msg = `Indikasi kebocoran pada titik ${r} KM dari ${tlineData.spot.spot_name}`
+                    if (finalValue != null) msg += ` (KM ${finalValue} Jalan PU)`
+                    return msg
+                })
 
-                // let finalValue
-                // try {
-                //     finalValue = math.evaluate(formula, scope)
-                // } catch (err) {
-                //     finalValue = null
-                // }
+                let finalValue
+                try {
+                    finalValue = math.evaluate(formula, scope)
+                } catch (err) {
+                    finalValue = null
+                }
 
-                // let message = `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name}`
-                // if (finalValue != null && finalValue !== undefined) {
-                //     message += ` (KM ${finalValue} Jalan PU)`
-                // }
+                let message = `Indikasi kebocoran pada titik ${result} KM dari ${tlineData.spot.spot_name}`
+                if (finalValue != null && finalValue !== undefined) {
+                    message += ` (KM ${finalValue} Jalan PU)`
+                }
 
-                // return resolve({
-                //     message,
-                //     gmaps: gmapsLink
-                // })
+                return resolve({
+                    messages,
+                    gmaps: gmapsLink,
+                    results: validResults
+                })
             } catch (err) {
                 console.error("Error on close:", err)
                 reject(err)
