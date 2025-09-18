@@ -19,12 +19,7 @@ args = sys.argv[3:]
 
 print(f"[DEBUG] model_type: {model_type}", file=sys.stderr)
 
-if model_type == "multi":
-    model_dir = os.path.join(DATA_DIR, "multi")
-else:
-    model_dir = os.path.join(DATA_DIR, "single")
-
-model_path = os.path.join(DATA_DIR, f"{model_name}.sav")
+model_path = os.path.join(DATA_DIR, model_type, f"{model_name}.sav")
 print(f"[DEBUG] model_path: {model_path}", file=sys.stderr)
 
 if not os.path.exists(model_path):
