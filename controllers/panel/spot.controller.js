@@ -207,31 +207,29 @@ export const updateTrunkline = async (req, res) => {
     }
 }
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const folder =
+            req.body.type === "multi"
+                ? path.resolve("data/pred/multi")
+                : path.resolve("data/pred/single")
+
+        cb(null, folder)
+    },
+    filename: (req, file, cb) => {
+        const tlineId = path.parse(file.originalname).name
+        cb(null, `${tlineId}.sav`)
+    }
+})
+
+const upload = multer({ storage }).fields([
+    { name: "model_file", maxCount: 1 },
+    { name: "model_multi_file", maxCount: 1 }
+])
+
 export const updateFilePy = async (req, res) => {
     try {
-        console.log('tipe file: ', req.body.type)
-        const storage = multer.diskStorage({
-            destination: (req, file, cb) => {
-                const type = req.body.type
-                let folder = ""
-
-                if (type === "multi") {
-                    folder = path.resolve("data/pred/multi")
-                } else {
-                    folder = path.resolve("data/pred/single")
-                }
-
-                cb(null, folder)
-            },
-            filename: (req, file, cb) => {
-                const tlineId = path.parse(file.originalname).name
-                cb(null, `${tlineId}.sav`)
-            }
-        })
-
-        const upload = multer({ storage }).single("model_file")
-
-        upload(req, res, async (error) => {
+        upload(req, res, (error) => {
             if (error) {
                 console.error(error)
                 return res.status(500).json({ message: error.message })
