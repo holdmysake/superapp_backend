@@ -5,7 +5,7 @@ import json
 import numpy as np
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data", "pred", "multi")
+DATA_DIR = os.path.join(BASE_DIR, "data", "pred", "single")
 
 if len(sys.argv) < 4:
     print(json.dumps({
