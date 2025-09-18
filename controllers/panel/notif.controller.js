@@ -578,8 +578,8 @@ export const leakCheck = async (req, res) => {
 
 export const leakDetect = async (req, res) => {
     try {
-        const { tline_id, inputs } = req.body
-        const result = await leak(tline_id, inputs)
+        const { tline_id, inputs, model_type } = req.body
+        const result = await leak(tline_id, inputs, model_type)
         res.json(result)
     } catch (error) {
         console.error(error)
@@ -587,11 +587,11 @@ export const leakDetect = async (req, res) => {
     }
 }
 
-const leak = (tline_id, inputs) => {
+const leak = (tline_id, inputs, model_type) => {
     return new Promise((resolve, reject) => {
         const pythonBin = process.env.PYTHON_BIN || "python"
         const scriptPath = path.resolve("./predict.py")
-        const args = [scriptPath, tline_id, ...inputs.map(String)]
+        const args = [scriptPath, tline_id, model_type, ...inputs.map(String)]
         const py = spawn(pythonBin, args)
 
         let data = ""
