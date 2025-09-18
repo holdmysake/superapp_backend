@@ -611,7 +611,6 @@ const leak = (tline_id, inputs) => {
 
                 const parsed = JSON.parse(data)
                 const result = parsed.result
-                console.log("Leak detection result:", result)
 
                 const tlineData = await PredValue.findOne({
                     where: { tline_id },
@@ -624,6 +623,7 @@ const leak = (tline_id, inputs) => {
                 })
 
                 if (result > tlineData.tline_length || result < 0) {
+                    console.log("Leak detection result:", result)
                     return resolve({ message: "Tidak terjadi kebocoran" })
                 }
 
