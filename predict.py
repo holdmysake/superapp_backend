@@ -2,6 +2,7 @@ import os
 import pickle
 import sys
 import json
+import numpy as np
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data", "pred")
@@ -37,12 +38,12 @@ try:
     pred = model.predict([titik_list])
     print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr)
 
-    if isinstance(pred, (list, tuple)):  # kalau list/tuple
-        pred_value = float(pred[0])
-    elif hasattr(pred, "__len__"):       # kalau numpy array
-        pred_value = float(pred.flatten()[0])
-    else:                                # kalau scalar langsung
+    # ambil elemen pertama saja untuk tahap dev
+    if hasattr(pred, "__len__"):
+        pred_value = float(np.ravel(pred)[0])
+    else:
         pred_value = float(pred)
+
 except Exception as e:
     print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}))
     sys.exit(1)
