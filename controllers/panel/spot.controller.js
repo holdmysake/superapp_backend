@@ -388,7 +388,7 @@ export const getAllSpots = async (req, res) => {
                         ? `${tline.tline_id}.sav`
                         : null
 
-                    tline.pred_value.model_file = fs.existsSync(modelMultiFilePath)
+                    tline.pred_value.model_multi_file = fs.existsSync(modelMultiFilePath)
                         ? `${tline.tline_id}.sav`
                         : null
 
