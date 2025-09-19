@@ -7,6 +7,9 @@ import moment from "moment-timezone"
 import Spot from '../../models/spot.model.js'
 import fastcsv from 'fast-csv'
 import sequelize from '../../config/db.js'
+import Field from '../../models/field.model.js'
+import Trunkline from '../../models/trunkline.model.js'
+import PredValue from '../../models/pred_value.model.js'
 
 export const getDataBySpot = async (req, res) => {
     try {
