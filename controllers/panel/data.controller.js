@@ -38,7 +38,7 @@ export const getDataBySpot = async (req, res) => {
     }
 }
 
-export const getAllSpots = async (req, res) => {
+export const getAllSpotsMonitoring = async (req, res) => {
     try {
         const { field_id } = req.body
 
