@@ -9,7 +9,6 @@ import fastcsv from 'fast-csv'
 import sequelize from '../../config/db.js'
 import Field from '../../models/field.model.js'
 import Trunkline from '../../models/trunkline.model.js'
-import PredValue from '../../models/pred_value.model.js'
 
 export const getDataBySpot = async (req, res) => {
     try {
@@ -45,20 +44,30 @@ export const getAllSpotsMonitoring = async (req, res) => {
     try {
         const { field_id } = req.body
 
+        const field = await Field.findOne({
+            where: { field_id },
+            include: {
+                model: Trunkline,
+                as: 'trunklines',
+                attributes: ['tline_id', 'tline_name']
+            }
+        })
+
         const spots = await Spot.findAll({
-            where: {
-                is_seen: true
-            },
+            where: { is_seen: true },
             include: {
                 model: Trunkline,
                 as: 'trunkline',
                 where: { field_id },
-                attributes: []
+                attributes: ['tline_id']
             },
             order: [['sort', 'ASC']]
         })
 
-        res.json(spots)
+        res.json({
+            ...field.toJSON(),
+            spots // ini list global urut sort
+        })
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
