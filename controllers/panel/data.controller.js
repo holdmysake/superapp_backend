@@ -45,34 +45,17 @@ export const getAllSpotsMonitoring = async (req, res) => {
     try {
         const { field_id } = req.body
 
-        const spots = await Field.findOne({
+        const spots = await Spot.findAll({
             where: {
-                field_id
+                is_seen: true
             },
             include: {
                 model: Trunkline,
-                as: 'trunklines',
-                include: [
-                    {
-                        model: PredValue,
-                        as: 'pred_value',
-                        include: {
-                            model: Spot,
-                            as: 'spot',
-                            attributes: ['spot_id', 'spot_name']
-                        }
-                    },
-                    {
-                        model: Spot,
-                        where: {
-                            is_seen: true
-                        },
-                        as: 'spots',
-                        separate: true,
-                        order: [['sort', 'ASC']]
-                    }
-                ]
-            }
+                as: 'trunkline',
+                where: { field_id },
+                attributes: []
+            },
+            order: [['sort', 'ASC']]
         })
 
         res.json(spots)
