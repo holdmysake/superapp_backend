@@ -4,6 +4,7 @@ import {
     downloadDataCSVMulti,
     downloadDataCSVMultiFaster,
     downloadDataCSVStream,
+    getDataByTrunkline,
     getDataBySpot,
     getAllSpotsMonitoring
 } from '../../controllers/panel/data.controller.js'
@@ -19,6 +20,7 @@ router.post('/downloadDataCSV', verifyTokenAdmin, downloadDataCSV)
 router.post('/downloadDataCSVMulti', verifyTokenAdmin, downloadDataCSVMulti)
 router.post('/downloadDataCSVMultiFaster', verifyTokenAdmin, downloadDataCSVMultiFaster)
 router.post('/downloadDataCSVStream', verifyTokenAdmin, downloadDataCSVStream)
+router.post('/getDataByTrunkline', verifyTokenUser, getDataByTrunkline)
 router.post('/getDataBySpot', verifyTokenUser, getDataBySpot)
 router.post('/getAllSpotsMonitoring', verifyTokenUser, getAllSpotsMonitoring)
 

@@ -10,6 +10,56 @@ import sequelize from '../../config/db.js'
 import Field from '../../models/field.model.js'
 import Trunkline from '../../models/trunkline.model.js'
 
+export const getDataByTrunkline = async (req, res) => {
+    try {
+        const { field_id, tline_id, timestamp } = req.body
+
+        const Pressure = defineUserDataModel(`pressure_${field_id}`)
+        const alias = `pressures_${field_id}`
+
+        if (!Spot.associations[alias]) {
+            Pressure.belongsTo(models.Spot, {
+                foreignKey: 'spot_id',
+                targetKey: 'spot_id',
+                as: `spot_${field_id}`
+            })
+            models.Spot.hasMany(Pressure, {
+                foreignKey: 'spot_id',
+                sourceKey: 'spot_id',
+                as: alias
+            })
+        }
+
+        const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta')
+                            .startOf('day')
+        const endOfDay   = moment(startOfDay)
+                            .add(1, 'day')
+
+        const pressureData = await Trunkline.findOne({
+            where: { tline_id },
+            include: [{
+                model: Spot,
+                as: 'spots',
+                include: [{
+                    model: Pressure,
+                    as: field_id,
+                    where: {
+                        timestamp: {
+                            [Op.gte]: startOfDay,
+                            [Op.lt]: endOfDay
+                        }
+                    }
+                }]
+            }]
+        })
+
+        res.json(pressureData)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const getDataBySpot = async (req, res) => {
     try {
         const { field_id, spot_id, timestamp } = req.body
@@ -66,7 +116,7 @@ export const getAllSpotsMonitoring = async (req, res) => {
 
         res.json({
             ...field.toJSON(),
-            spots // ini list global urut sort
+            spots
         })
     } catch (error) {
         res.status(500).json({ message: error.message })
