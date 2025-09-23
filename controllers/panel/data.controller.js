@@ -52,7 +52,8 @@ export const getDataByTrunkline = async (req, res) => {
                             [Op.gte]: startOfDay,
                             [Op.lt]: endOfDay
                         }
-                    }
+                    },
+                    order: [['timestamp', 'ASC']]
                 }]
             }]
         })
