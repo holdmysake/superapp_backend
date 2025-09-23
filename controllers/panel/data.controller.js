@@ -42,7 +42,7 @@ export const getDataByTrunkline = async (req, res) => {
             include: [{
                 model: Spot,
                 as: 'spots',
-                attributes: ['spot_id'],
+                attributes: ['spot_id', 'spot_name'],
                 include: [{
                     model: Pressure,
                     as: `pressures_${field_id}`,
