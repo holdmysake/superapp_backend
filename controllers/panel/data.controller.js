@@ -43,7 +43,7 @@ export const getDataByTrunkline = async (req, res) => {
                 as: 'spots',
                 include: [{
                     model: Pressure,
-                    as: field_id,
+                    as: `pressures_${field_id}`,
                     where: {
                         timestamp: {
                             [Op.gte]: startOfDay,
