@@ -39,23 +39,28 @@ export const getDataByTrunkline = async (req, res) => {
         const pressureData = await Trunkline.findOne({
             where: { tline_id },
             attributes: [],
-            include: [{
-                model: Spot,
-                as: 'spots',
-                attributes: ['spot_id', 'spot_name'],
-                include: [{
-                    model: Pressure,
-                    as: `pressures_${field_id}`,
-                    attributes: ['psi', 'timestamp'],
-                    where: {
-                        timestamp: {
-                            [Op.gte]: startOfDay,
-                            [Op.lt]: endOfDay
+            include: [
+                {
+                    model: Spot,
+                    as: 'spots',
+                    attributes: ['spot_id', 'spot_name'],
+                    include: [
+                        {
+                            model: Pressure,
+                            as: `pressures_${field_id}`,
+                            attributes: ['psi', 'timestamp'],
+                            where: {
+                                timestamp: {
+                                    [Op.gte]: startOfDay,
+                                    [Op.lt]: endOfDay
+                                }
+                            },
+                            separate: true,
+                            order: [['timestamp', 'ASC']]
                         }
-                    }
-                }]
-            }],
-            order: [[{ model: Spot, as: 'spots' }, { model: Pressure, as: `pressures_${field_id}` }, 'timestamp', 'ASC']]
+                    ]
+                }
+            ]
         })
 
         res.json(pressureData)
