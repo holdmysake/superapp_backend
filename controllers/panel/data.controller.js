@@ -52,10 +52,10 @@ export const getDataByTrunkline = async (req, res) => {
                             [Op.gte]: startOfDay,
                             [Op.lt]: endOfDay
                         }
-                    },
-                    order: [['timestamp', 'ASC']]
+                    }
                 }]
-            }]
+            }],
+            order: [[{ model: Spot, as: 'spots' }, { model: Pressure, as: `pressures_${field_id}` }, 'timestamp', 'ASC']]
         })
 
         res.json(pressureData)
