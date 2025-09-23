@@ -9,6 +9,7 @@ import fastcsv from 'fast-csv'
 import sequelize from '../../config/db.js'
 import Field from '../../models/field.model.js'
 import Trunkline from '../../models/trunkline.model.js'
+import { models } from "../../models/index.js"
 
 export const getDataByTrunkline = async (req, res) => {
     try {
