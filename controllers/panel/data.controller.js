@@ -229,7 +229,7 @@ export const downloadDataCSVMulti = async (req, res) => {
 			startOfDay = moment.tz(timestamp[0], 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
 			endOfDay = moment.tz(timestamp[1], 'YYYY-MM-DD', 'Asia/Jakarta').endOf('day')
 		} else {
-			startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
+			startOfDay = moment.tz(timestamp[0], 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
 			endOfDay = moment(startOfDay).add(1, 'day')
 		}
 
