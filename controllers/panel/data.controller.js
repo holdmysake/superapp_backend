@@ -38,7 +38,7 @@ export const getDataByTrunkline = async (req, res) => {
 
         const pressureData = await Trunkline.findOne({
             where: { tline_id },
-            attributes: [],
+            attributes: ['tline_name'],
             include: [
                 {
                     model: Spot,
