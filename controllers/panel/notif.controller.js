@@ -576,7 +576,7 @@ export const leakCheck = async (req, res) => {
     }
 }
 
-export const leakDetect = async (req, res) => {
+export const leakDetectMulti = async (req, res) => {
     try {
         const { tline_id, inputs, model_type } = req.body
 
@@ -599,17 +599,17 @@ export const leakDetect = async (req, res) => {
     }
 }
 
-// export const leakDetect = async (req, res) => {
-//     try {
-//         const { tline_id, inputs, model_type } = req.body
-//         console.log(inputs)
-//         const result = await leak(tline_id, inputs, model_type)
-//         res.json(result)
-//     } catch (error) {
-//         console.error(error)
-//         res.status(500).json({ message: error.message })
-//     }
-// }
+export const leakDetect = async (req, res) => {
+    try {
+        const { tline_id, inputs, model_type } = req.body
+        console.log(inputs)
+        const result = await leak(tline_id, inputs, model_type)
+        res.json(result)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
 
 const leak = (tline_id, inputs, model_type) => {
     return new Promise((resolve, reject) => {
