@@ -579,13 +579,37 @@ export const leakCheck = async (req, res) => {
 export const leakDetect = async (req, res) => {
     try {
         const { tline_id, inputs, model_type } = req.body
-        const result = await leak(tline_id, inputs, model_type)
-        res.json(result)
+
+        const maxLen = Math.max(...inputs.map(arr => arr.length))
+
+        const results = []
+        for (let i = 0; i < maxLen; i++) {
+            const currentInput = inputs.map(arr => arr[i] ?? 0)
+            console.log("Current Input:", currentInput)
+
+            const result = await leak(tline_id, currentInput, model_type)
+            results.push(result)
+        }
+
+        console.log(results)
+        res.json({ results })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
     }
 }
+
+// export const leakDetect = async (req, res) => {
+//     try {
+//         const { tline_id, inputs, model_type } = req.body
+//         console.log(inputs)
+//         const result = await leak(tline_id, inputs, model_type)
+//         res.json(result)
+//     } catch (error) {
+//         console.error(error)
+//         res.status(500).json({ message: error.message })
+//     }
+// }
 
 const leak = (tline_id, inputs, model_type) => {
     return new Promise((resolve, reject) => {
