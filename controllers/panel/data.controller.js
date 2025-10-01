@@ -43,6 +43,7 @@ export const getDataByTrunkline = async (req, res) => {
                 {
                     model: Spot,
                     as: 'spots',
+                    where: { is_seen: true },
                     attributes: ['spot_id', 'spot_name'],
                     include: [
                         {
