@@ -5,7 +5,7 @@ import Trunkline from '../../models/trunkline.model.js'
 import jwt from 'jsonwebtoken'
 import User from '../../models/user.model.js'
 import PredValue from '../../models/pred_value.model.js'
-import { Op } from 'sequelize'
+import { Op, where } from 'sequelize'
 import fs from 'fs'
 import path from 'path'
 import multer from 'multer'
@@ -392,6 +392,7 @@ export const getAllSpots = async (req, res) => {
                         model: Spot,
                         as: 'spots',
                         separate: true,
+                        where: { is_seen: true },
                         order: [['sort', 'ASC']]
                     }
                 ]
