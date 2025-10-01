@@ -8,6 +8,7 @@ import {
     storeTline,
     deleteTline,
     getAllSpots,
+    getAllSpotsPredict,
     createSpot,
     updateSpot,
     updateSort,
@@ -34,6 +35,7 @@ router.post('/getTline', verifyTokenAdmin, getTline)
 router.post('/storeTline', verifyTokenAdmin, storeTline)
 router.post('/deleteTline', verifyTokenAdmin, deleteTline)
 router.post('/getAllSpots', verifyTokenAdmin, getAllSpots)
+router.post('/getAllSpotsPredict', verifyTokenAdmin, getAllSpotsPredict)
 router.post('/createSpot', verifyTokenAdmin, createSpot)
 router.post('/updateSpot', verifyTokenAdmin, updateSpot)
 router.post('/updateSort', verifyTokenAdmin, updateSort)

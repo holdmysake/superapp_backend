@@ -439,6 +439,87 @@ export const getAllSpots = async (req, res) => {
     }
 }
 
+export const getAllSpotsPredict = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1]
+
+        const decoded = jwt.verify(token, JWT_SECRET)
+
+        const user = await User.findOne({
+            where: {
+                user_id: decoded.user_id
+            }
+        })
+
+        const isSA = user.role === 'superadmin'
+
+        const queryOptions = {
+            include: {
+                model: Trunkline,
+                as: 'trunklines',
+                order: [['id', 'DESC']],
+                include: [
+                    {
+                        model: PredValue,
+                        as: 'pred_value',
+                        include: {
+                            model: Spot,
+                            as: 'spot',
+                            attributes: ['spot_id', 'spot_name']
+                        }
+                    },
+                    {
+                        model: Spot,
+                        as: 'spots',
+                        separate: true,
+                        where: { is_seen: true },
+                        order: [['sort', 'ASC']]
+                    }
+                ]
+            },
+            order: [
+                [{ model: Trunkline, as: 'trunklines' }, 'id', 'ASC']
+            ]
+        }
+
+        if (!isSA) {
+            queryOptions.where = { field_id: user.field_id }
+        }
+
+        const fields = await Field.findAll(queryOptions)
+
+        const result = fields.map(field => {
+            const f = field.toJSON()
+            f.trunklines = f.trunklines.map(tline => {
+                const modelFilePath = path.resolve(`data/pred/single/${tline.tline_id}.sav`)
+                const modelMultiFilePath = path.resolve(`data/pred/multi/${tline.tline_id}.sav`)
+                const geojsonFilePath = path.resolve(`data/maps/${tline.tline_id}.json`)
+
+                if (tline.pred_value) {
+                    tline.pred_value.model_file = fs.existsSync(modelFilePath)
+                        ? `${tline.tline_id}.sav`
+                        : null
+
+                    tline.pred_value.model_multi_file = fs.existsSync(modelMultiFilePath)
+                        ? `${tline.tline_id}.sav`
+                        : null
+
+                    tline.pred_value.geojson = fs.existsSync(geojsonFilePath)
+                        ? `${tline.tline_id}.json`
+                        : null
+                }
+
+                return tline || null
+            })
+            return f
+        })
+
+        res.json(result)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const createSpot = async (req, res) => {
     try {
         const { tline_id, spot_id, spot_name, sort: requestedSort, is_seen, is_battery, y_max, y_interval, safe_mark, normal_value, drop_value } = req.body
