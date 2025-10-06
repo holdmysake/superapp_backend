@@ -59,10 +59,10 @@ export const getDataByTrunkline = async (req, res) => {
                             separate: true,
                             order: [['timestamp', 'ASC']]
                         }
-                    ],
-                    order: [['sort', 'ASC']]
+                    ]
                 }
-            ]
+            ],
+            order: [[{ model: Spot, as: 'spots' }, 'sort', 'ASC']]
         })
 
         res.json(pressureData)
