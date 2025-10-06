@@ -59,7 +59,8 @@ export const getDataByTrunkline = async (req, res) => {
                             separate: true,
                             order: [['timestamp', 'ASC']]
                         }
-                    ]
+                    ],
+                    order: [['sort', 'ASC']]
                 }
             ]
         })
