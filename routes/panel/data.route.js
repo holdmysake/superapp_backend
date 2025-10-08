@@ -6,7 +6,8 @@ import {
     downloadDataCSVStream,
     getDataByTrunkline,
     getDataBySpot,
-    getAllSpotsMonitoring
+    getAllSpotsMonitoring,
+    getCombinedTrunklineData
 } from '../../controllers/panel/data.controller.js'
 import {
     verifyTokenSA,
@@ -23,5 +24,6 @@ router.post('/downloadDataCSVStream', verifyTokenAdmin, downloadDataCSVStream)
 router.post('/getDataByTrunkline', verifyTokenUser, getDataByTrunkline)
 router.post('/getDataBySpot', verifyTokenUser, getDataBySpot)
 router.post('/getAllSpotsMonitoring', verifyTokenUser, getAllSpotsMonitoring)
+router.post('/getCombinedTrunklineData', verifyTokenUser, getCombinedTrunklineData)
 
 export default router
