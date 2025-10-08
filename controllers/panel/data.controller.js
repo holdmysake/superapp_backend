@@ -139,50 +139,68 @@ export const getCombinedTrunklineData = async (req, res) => {
     try {
         const { field_id, tline_id = [], timestamp } = req.body
 
-        const tableName = `pressure_${field_id}`
-        const Pressure = defineUserDataModel(tableName)
+        const Pressure = defineUserDataModel(`pressure_${field_id}`)
+        const alias = `pressures_${field_id}`
+
+        if (!Spot.associations[alias]) {
+            Pressure.belongsTo(models.Spot, {
+                foreignKey: 'spot_id',
+                targetKey: 'spot_id',
+                as: `spot_${field_id}`
+            })
+            models.Spot.hasMany(Pressure, {
+                foreignKey: 'spot_id',
+                sourceKey: 'spot_id',
+                as: alias
+            })
+        }
 
         const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
         const endOfDay = moment(startOfDay).add(1, 'day')
 
-        const tlineArray = Array.isArray(tline_id) ? tline_id : [tline_id]
-
-        const spots = await Spot.findAll({
-            where: { tline_id: tlineArray },
-            attributes: ['spot_id', 'spot_name', 'sort'],
-            order: [['sort', 'ASC']]
-        })
-        const spotIds = spots.map(s => s.spot_id)
-
-        const pressures = await Pressure.findAll({
-            where: {
-                spot_id: spotIds,
-                timestamp: {
-                    [Op.gte]: startOfDay,
-                    [Op.lt]: endOfDay
+        const trunklines = await Trunkline.findAll({
+            where: { tline_id },
+            attributes: [],
+            include: [
+                {
+                    model: Spot,
+                    as: 'spots',
+                    where: { is_seen: true },
+                    attributes: ['spot_id', 'spot_name', 'sort'],
+                    include: [
+                        {
+                            model: Pressure,
+                            as: `pressures_${field_id}`,
+                            attributes: ['psi', 'timestamp'],
+                            where: {
+                                timestamp: {
+                                    [Op.gte]: startOfDay,
+                                    [Op.lt]: endOfDay
+                                }
+                            },
+                            separate: true,
+                            order: [['timestamp', 'ASC']]
+                        }
+                    ]
                 }
-            },
-            attributes: ['spot_id', 'timestamp', 'psi'],
-            order: [['timestamp', 'ASC']]
+            ],
+            order: [[{ model: Spot, as: 'spots' }, 'sort', 'ASC']]
         })
 
-        const result = spots.map(spot => ({
-            spot_id: spot.spot_id,
-            spot_name: spot.spot_name,
-            sort: spot.sort,
-            pressures: pressures
-                .filter(p => p.spot_id === spot.spot_id)
-                .map(p => ({
-                    psi: p.psi,
-                    timestamp: p.timestamp
-                }))
-        }))
+        const pressureData = trunklines.flatMap(tl =>
+            tl.spots.map(s => {
+                const spot = s.toJSON()
+                const key = `pressures_${field_id}`
+                return {
+                    spot_id: spot.spot_id,
+                    spot_name: spot.spot_name,
+                    sort: spot.sort,
+                    pressures: spot[key] || []
+                }
+            })
+        )
 
-        if (result.every(r => r.pressures.length === 0)) {
-            return res.status(404).json({ message: 'Data not found' })
-        }
-
-        res.json(result)
+        res.json(pressureData)
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
