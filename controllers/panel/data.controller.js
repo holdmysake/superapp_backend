@@ -160,7 +160,7 @@ export const getCombinedTrunklineData = async (req, res) => {
 
         const pressureData = await Trunkline.findAll({
             where: { tline_id },
-            attributes: [],
+            attributes: ['tline_id', 'tline_name'],
             include: [
                 {
                     model: Spot,
