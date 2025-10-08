@@ -187,18 +187,7 @@ export const getCombinedTrunklineData = async (req, res) => {
             order: [[{ model: Spot, as: 'spots' }, 'sort', 'ASC']]
         })
 
-        const pressureData = trunklines.flatMap(tl =>
-            tl.spots.map(s => {
-                const spot = s.toJSON()
-                const key = `pressures_${field_id}`
-                return {
-                    spot_id: spot.spot_id,
-                    spot_name: spot.spot_name,
-                    sort: spot.sort,
-                    pressures: spot[key] || []
-                }
-            })
-        )
+        const pressureData = trunklines.flatMap(tl => tl.spots)
 
         res.json(pressureData)
     } catch (error) {
