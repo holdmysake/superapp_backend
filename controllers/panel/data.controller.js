@@ -158,7 +158,7 @@ export const getCombinedTrunklineData = async (req, res) => {
         const startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
         const endOfDay = moment(startOfDay).add(1, 'day')
 
-        const trunklines = await Trunkline.findAll({
+        const pressureData = await Trunkline.findAll({
             where: { tline_id },
             attributes: [],
             include: [
@@ -186,8 +186,6 @@ export const getCombinedTrunklineData = async (req, res) => {
             ],
             order: [[{ model: Spot, as: 'spots' }, 'sort', 'ASC']]
         })
-
-        const pressureData = trunklines.flatMap(tl => tl.spots)
 
         res.json(pressureData)
     } catch (error) {
