@@ -1,9 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import pkg from '@whiskeysockets/baileys'
+// import pkg from '@whiskeysockets/baileys'
 import { models } from '../models/index.js'
+import makeWASocket, { DisconnectReason } from '@whiskeysockets/baileys'
+import { useMultiFileAuthState } from '@whiskeysockets/baileys/lib/Utils/index.js'
 
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
+// const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
 const LOG = process.env.LOG_SOCKET !== '0'
 
