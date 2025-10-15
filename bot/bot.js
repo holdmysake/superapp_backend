@@ -82,7 +82,7 @@ async function ensureSession(field_id, io) {
 
 	const sock = makeWASocket({
 		auth: state,
-		printQRInTerminal: true,
+		printQRInTerminal: false,
 		browser: [`FLIP Bot ${field_id}`, 'Chrome', '1.0.0']
 	})
 
@@ -101,7 +101,11 @@ async function ensureSession(field_id, io) {
 		const { connection, lastDisconnect, qr } = update
 		log(`[WA][conn.update] field_id=${field_id} conn=${connection} hasQR=${!!qr}`)
 
+		// 🔹 LOG saat QR baru diterima dari WhatsApp
 		if (qr && !s.lastStatus?.connected) {
+			const qrPreview = qr.slice(0, 20) + '...' // untuk keamanan, potong biar tidak terlalu panjang
+			log(`[WA][QR][RECEIVED] field_id=${field_id} qrLen=${qr.length} preview="${qrPreview}"`)
+
 			s.lastQR = qr
 			emitStatus(io, field_id)
 		}
@@ -112,6 +116,7 @@ async function ensureSession(field_id, io) {
 			s.lastQR = null
 			s.qrHash = null
 			s.qrAt = 0
+			log(`[WA][CONNECTED] field_id=${field_id} no_wa=${no_wa}`)
 			emitStatus(io, field_id)
 		}
 
@@ -122,17 +127,19 @@ async function ensureSession(field_id, io) {
 				err?.data?.disconnectReason ??
 				err?.status ??
 				err?.code
-		
+
 			console.log('[WA][close]', { field_id, code, message: String(err?.message || '') })
-		
+
 			s.lastStatus = { connected: false, no_wa: null }
 			s.lastQR = null
 			emitStatus(io, field_id)
-		
+
 			if (code === DisconnectReason.loggedOut) {
 				clearDirContents(dir)
-			} else if (String(err?.message || '').includes('Stream Errored') ||
-				String(err?.message || '').includes('Connection Terminated')) {
+			} else if (
+				String(err?.message || '').includes('Stream Errored') ||
+				String(err?.message || '').includes('Connection Terminated')
+			) {
 				setTimeout(() => restartSession(field_id, io), 0)
 			}
 		}
