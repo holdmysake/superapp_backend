@@ -291,3 +291,23 @@ export async function sendWaText(field_id, io, { to, text }) {
 		timestamp: Date.now()
 	}
 }
+
+export async function forceGetQr(field_id, io) {
+	await ensureSession(field_id, io)
+	const s = sessions.get(field_id)
+	if (!s) throw new Error('Session not found')
+
+	// kalau belum ada QR aktif, paksa refresh QR
+	if (!s.lastQR) {
+		await hardRefreshQr(field_id, io)
+	}
+
+	const qr = s.lastQR
+	if (!qr) throw new Error('QR belum tersedia, tunggu beberapa detik lalu coba lagi')
+
+	return {
+		field_id,
+		qr,
+		generated_at: new Date().toISOString(),
+	}
+}

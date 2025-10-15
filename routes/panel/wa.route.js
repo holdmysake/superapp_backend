@@ -6,7 +6,8 @@ import {
     deleteWaGroup,
     disconnectWa,
     getGroups,
-    refreshGroups
+    refreshGroups,
+    getQRCode
 } from '../../controllers/panel/wa.controller.js'
 import {
     verifyTokenSA,
@@ -23,5 +24,6 @@ router.post('/deleteWaGroup', verifyTokenAdmin, deleteWaGroup)
 router.post('/disconnectWa', verifyTokenAdmin, disconnectWa)
 router.post('/getGroups', verifyTokenAdmin, getGroups)
 router.post('/refreshGroups', verifyTokenAdmin, refreshGroups)
+router.post('/getQRCode', getQRCode)
 
 export default router

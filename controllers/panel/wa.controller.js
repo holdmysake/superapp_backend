@@ -112,3 +112,13 @@ export const disconnectWa = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const getQRCode = async (req, res) => {
+	try {
+		const { field_id } = req.body
+		const result = await forceGetQr(field_id, getIO())
+		res.json({ success: true, ...result })
+	} catch (err) {
+		res.status(400).json({ success: false, message: err.message })
+	}
+}
