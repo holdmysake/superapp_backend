@@ -1,4 +1,4 @@
-import { readGroupsJson, stopSession, updateGroupsJson } from "../../bot/bot.js"
+import { forceGetQr, readGroupsJson, stopSession, updateGroupsJson } from "../../bot/bot.js"
 import WAGroup from "../../models/wa_group.js"
 import { getIO } from "../../socket.js"
 
