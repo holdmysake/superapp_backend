@@ -82,7 +82,7 @@ async function ensureSession(field_id, io) {
 
 	const sock = makeWASocket({
 		auth: state,
-		printQRInTerminal: false,
+		printQRInTerminal: true,
 		browser: [`FLIP Bot ${field_id}`, 'Chrome', '1.0.0']
 	})
 
