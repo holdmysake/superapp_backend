@@ -376,7 +376,7 @@ const getElevationData = async (data, tline_id) => {
         )
 
         const cleaned = []
-        for (d of res.data.results) {
+        for (const d of res.data.results) {
             cleaned.push([d.longitude, d.latitude, d.elevation])
         }
 
