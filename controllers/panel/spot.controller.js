@@ -411,9 +411,9 @@ export const getKMZFile = async (req, res) => {
 		const workbook = new ExcelJS.Workbook()
 		const sheet = workbook.addWorksheet("Elevation Data")
 		sheet.columns = [
-			{ header: "Latitude", key: "lat", width: 15 },
-			{ header: "Longitude", key: "lon", width: 15 },
-			{ header: "Altitude (m)", key: "alt", width: 15 }
+			{ header: "latitude", key: "lat", width: 15 },
+			{ header: "longitude", key: "lon", width: 15 },
+			{ header: "altitude(m)", key: "alt", width: 15 }
 		]
 
 		data.forEach(([lon, lat, elev]) => {
