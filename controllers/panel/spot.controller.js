@@ -366,13 +366,7 @@ const getElevationData = async (data) => {
         
         const res = await axios.post(
             "https://api.open-elevation.com/api/v1/lookup",
-            {
-                locations: [
-                    { latitude: 10, longitude: 10 },
-                    { latitude: 20, longitude: 20 },
-                    { latitude: 41.161758, longitude: -8.583933 }
-                ]
-            },
+            { locations },
             {
                 headers: {
                     Accept: "application/json",
