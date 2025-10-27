@@ -382,8 +382,8 @@ const getElevationData = async (data) => {
                 httpsAgent: agent
             }
         )
-        console.log(res)
-        return res
+        console.log(res.data)
+        return res.data
 
         // return locations
     } catch (error) {
