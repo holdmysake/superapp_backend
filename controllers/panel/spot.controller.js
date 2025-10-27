@@ -441,6 +441,7 @@ export const getKMZFile = async (req, res) => {
 		fs.writeFileSync(kmlPath, kmlContent, "utf8")
 
 		const zip = new AdmZip()
+		zip.addLocalFile(filePath)
 		zip.addLocalFile(excelPath)
 		zip.addLocalFile(kmlPath)
 
