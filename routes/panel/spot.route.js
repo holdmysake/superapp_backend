@@ -17,7 +17,8 @@ import {
     updateFilePy,
     updateFilePyMulti,
     getSpotsByField,
-    updateFileKmz
+    updateFileKmz,
+    getKMZFile
 } from '../../controllers/panel/spot.controller.js'
 import {
     verifyTokenSA,
@@ -45,5 +46,6 @@ router.post('/updateFilePy', verifyTokenAdmin, updateFilePy)
 router.post('/updateFilePyMulti', verifyTokenAdmin, updateFilePyMulti)
 router.post('/getSpotsByField', verifyTokenAdmin, getSpotsByField)
 router.post('/updateFileKmz', verifyTokenAdmin, updateFileKmz)
+router.post('/getKMZFile', verifyTokenAdmin, getKMZFile)
 
 export default router

@@ -14,6 +14,7 @@ import { DOMParser } from "xmldom"
 import togeojson from '@mapbox/togeojson'
 import axios from 'axios'
 import https from "https"
+import ExcelJS from "exceljs"
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -378,9 +379,9 @@ const getElevationData = async (data, tline_id) => {
 		const elevations = res.data.results.map(r => r.elevation)
 
 		const cleaned = data.map((coord, i) => [
-			coord[0], // lon asli
-			coord[1], // lat asli
-			elevations[i] ?? null // elevation dari API
+			coord[0],
+			coord[1],
+			elevations[i] ?? null
 		])
 
 		const outDir = path.resolve("data/maps")
@@ -393,6 +394,71 @@ const getElevationData = async (data, tline_id) => {
 	} catch (error) {
         console.error(error)
     }
+}
+
+export const getKMZFile = async (req, res) => {
+	try {
+		const { tline_id } = req.body
+		if (!tline_id) return res.status(400).json({ message: "tline_id wajib diisi" })
+
+		const filePath = path.resolve(`data/maps/${tline_id}.json`)
+		if (!fs.existsSync(filePath))
+			return res.status(404).json({ message: "File data tidak ditemukan" })
+
+		const data = JSON.parse(fs.readFileSync(filePath, "utf8"))
+
+		const workbook = new ExcelJS.Workbook()
+		const sheet = workbook.addWorksheet("Elevation Data")
+		sheet.columns = [
+			{ header: "Latitude", key: "lat", width: 15 },
+			{ header: "Longitude", key: "lon", width: 15 },
+			{ header: "Altitude (m)", key: "alt", width: 15 }
+		]
+
+		data.forEach(([lon, lat, elev]) => {
+			sheet.addRow({ lat, lon, alt: elev })
+		})
+
+		const excelPath = path.resolve(`data/maps/${tline_id}.xlsx`)
+		await workbook.xlsx.writeFile(excelPath)
+
+		let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+	<name>${tline_id}</name>
+	<Placemark>
+		<name>${tline_id}</name>
+		<LineString>
+			<coordinates>
+				${data.map(d => `${d[0]},${d[1]}`).join(" ")}
+			</coordinates>
+		</LineString>
+	</Placemark>
+</Document>
+</kml>`
+
+		const kmlPath = path.resolve(`data/maps/${tline_id}.kml`)
+		fs.writeFileSync(kmlPath, kmlContent, "utf8")
+
+		const zip = new AdmZip()
+		zip.addLocalFile(excelPath)
+		zip.addLocalFile(kmlPath)
+
+		const zipPath = path.resolve(`data/maps/${tline_id}.zip`)
+		zip.writeZip(zipPath)
+
+		res.download(zipPath, `${tline_id}.zip`, err => {
+			if (err) console.error("Download error:", err)
+			try {
+				fs.unlinkSync(excelPath)
+				fs.unlinkSync(kmlPath)
+				fs.unlinkSync(zipPath)
+			} catch (_) {}
+		})
+	} catch (error) {
+		console.error(error)
+		res.status(500).json({ message: error.message })
+	}
 }
 
 export const deleteTline = async (req, res) => {
