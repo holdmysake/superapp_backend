@@ -12,6 +12,8 @@ import multer from 'multer'
 import AdmZip from 'adm-zip'
 import { DOMParser } from "xmldom"
 import togeojson from '@mapbox/togeojson'
+import axios from 'axios'
+import https from "https"
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -335,15 +337,58 @@ export const updateFileKmz = async (req, res) => {
 
 		try { fs.unlinkSync(filePath) } catch (_) {}
 
-		return res.json({
-			message: "File map berhasil diupload & diproses",
-			file: `${tline_id}.json`,
-			totalCoords: cleaned.length
-		})
+        const elev = await getElevationData(cleaned)
+
+        res.json(elev)
+
+		// return res.json({
+		// 	message: "File map berhasil diupload & diproses",
+		// 	file: `${tline_id}.json`,
+		// 	totalCoords: cleaned.length
+		// })
 	} catch (error) {
 		console.error("updateFileMap error:", error)
 		return res.status(500).json({ message: error?.message ?? "Unknown error" })
 	}
+}
+
+const getElevationData = async (data) => {
+    try {
+        const locations = data.map(d => ({
+			latitude: d[1],
+			longitude: d[0]
+		}))
+
+        const agent = new https.Agent({
+            rejectUnauthorized: false, // kadang perlu karena server SSL-nya strict
+            keepAlive: true
+        })
+        
+        const res = await axios.post(
+            "https://api.open-elevation.com/api/v1/lookup",
+            {
+                locations: [
+                    { latitude: 10, longitude: 10 },
+                    { latitude: 20, longitude: 20 },
+                    { latitude: 41.161758, longitude: -8.583933 }
+                ]
+            },
+            {
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                timeout: 15000,
+                httpsAgent: agent
+            }
+        )
+        console.log(res)
+        return res
+
+        // return locations
+    } catch (error) {
+        console.error(error)
+    }
 }
 
 export const deleteTline = async (req, res) => {
