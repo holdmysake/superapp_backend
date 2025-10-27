@@ -337,22 +337,20 @@ export const updateFileKmz = async (req, res) => {
 
 		try { fs.unlinkSync(filePath) } catch (_) {}
 
-        const elev = await getElevationData(cleaned)
+        await getElevationData(cleaned, tline_id)
 
-        res.json(elev)
-
-		// return res.json({
-		// 	message: "File map berhasil diupload & diproses",
-		// 	file: `${tline_id}.json`,
-		// 	totalCoords: cleaned.length
-		// })
+		return res.json({
+			message: "File map berhasil diupload & diproses",
+			file: `${tline_id}.json`,
+			totalCoords: cleaned.length
+		})
 	} catch (error) {
 		console.error("updateFileMap error:", error)
 		return res.status(500).json({ message: error?.message ?? "Unknown error" })
 	}
 }
 
-const getElevationData = async (data) => {
+const getElevationData = async (data, tline_id) => {
     try {
         const locations = data.map(d => ({
 			latitude: d[1],
@@ -360,7 +358,7 @@ const getElevationData = async (data) => {
 		}))
 
         const agent = new https.Agent({
-            rejectUnauthorized: false, // kadang perlu karena server SSL-nya strict
+            rejectUnauthorized: false,
             keepAlive: true
         })
         
@@ -376,10 +374,19 @@ const getElevationData = async (data) => {
                 httpsAgent: agent
             }
         )
-        console.log(res.data)
-        return res.data
 
-        // return locations
+        const cleaned = []
+        for (d of res.data.results) {
+            cleaned.push([d.longitude, d.latitude, d.elevation])
+        }
+
+        const outDir = path.resolve("data/maps")
+		if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
+
+		const outputPath = path.join(outDir, `${tline_id}.json`)
+		fs.writeFileSync(outputPath, JSON.stringify(cleaned, null, 2))
+
+		try { fs.unlinkSync(filePath) } catch (_) {}
     } catch (error) {
         console.error(error)
     }
