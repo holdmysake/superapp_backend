@@ -352,42 +352,45 @@ export const updateFileKmz = async (req, res) => {
 
 const getElevationData = async (data, tline_id) => {
     try {
-        const locations = data.map(d => ({
+		const locations = data.map(d => ({
 			latitude: d[1],
 			longitude: d[0]
 		}))
 
-        const agent = new https.Agent({
-            rejectUnauthorized: false,
-            keepAlive: true
-        })
-        
-        const res = await axios.post(
-            "https://api.open-elevation.com/api/v1/lookup",
-            { locations },
-            {
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                timeout: 15000,
-                httpsAgent: agent
-            }
-        )
+		const agent = new https.Agent({
+			rejectUnauthorized: false,
+			keepAlive: true
+		})
 
-        const cleaned = []
-        for (const d of res.data.results) {
-            cleaned.push([d.longitude, d.latitude, d.elevation])
-        }
+		const res = await axios.post(
+			"https://api.open-elevation.com/api/v1/lookup",
+			{ locations },
+			{
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json"
+				},
+				timeout: 15000,
+				httpsAgent: agent
+			}
+		)
 
-        const outDir = path.resolve("data/maps")
+		const elevations = res.data.results.map(r => r.elevation)
+
+		const cleaned = data.map((coord, i) => [
+			coord[0], // lon asli
+			coord[1], // lat asli
+			elevations[i] ?? null // elevation dari API
+		])
+
+		const outDir = path.resolve("data/maps")
 		if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true })
 
 		const outputPath = path.join(outDir, `${tline_id}.json`)
 		fs.writeFileSync(outputPath, JSON.stringify(cleaned, null, 2))
 
-		try { fs.unlinkSync(filePath) } catch (_) {}
-    } catch (error) {
+		console.log(`✅ Elevation data saved: ${outputPath}`)
+	} catch (error) {
         console.error(error)
     }
 }
