@@ -15,6 +15,7 @@ import togeojson from '@mapbox/togeojson'
 import axios from 'axios'
 import https from "https"
 import ExcelJS from "exceljs"
+import archiver from "archiver"
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -419,10 +420,9 @@ export const getKMZFile = async (req, res) => {
 			sheet.addRow({ lat, lon, alt: elev })
 		})
 
-		const excelPath = path.resolve(`data/maps/${tline_id}.xlsx`)
-		await workbook.xlsx.writeFile(excelPath)
+		const excelBuffer = await workbook.xlsx.writeBuffer()
 
-		let kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+		const kmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 <Document>
 	<name>${tline_id}</name>
@@ -437,25 +437,20 @@ export const getKMZFile = async (req, res) => {
 </Document>
 </kml>`
 
-		const kmlPath = path.resolve(`data/maps/${tline_id}.kml`)
-		fs.writeFileSync(kmlPath, kmlContent, "utf8")
+		const zipName = `${tline_id}.zip`
+		res.setHeader("Content-Type", "application/zip")
+		res.setHeader("Content-Disposition", `attachment; filename=${zipName}`)
 
-		const zip = new AdmZip()
-		zip.addLocalFile(filePath)
-		zip.addLocalFile(excelPath)
-		zip.addLocalFile(kmlPath)
+		const archive = archiver("zip", { zlib: { level: 9 } })
+		archive.pipe(res)
 
-		const zipPath = path.resolve(`data/maps/${tline_id}.zip`)
-		zip.writeZip(zipPath)
+		archive.append(fs.createReadStream(filePath), { name: `${tline_id}.json` })
 
-		res.download(zipPath, `${tline_id}.zip`, err => {
-			if (err) console.error("Download error:", err)
-			try {
-				fs.unlinkSync(excelPath)
-				fs.unlinkSync(kmlPath)
-				fs.unlinkSync(zipPath)
-			} catch (_) {}
-		})
+		archive.append(excelBuffer, { name: `${tline_id}.xlsx` })
+
+		archive.append(kmlContent, { name: `${tline_id}.kml` })
+
+		await archive.finalize()
 	} catch (error) {
 		console.error(error)
 		res.status(500).json({ message: error.message })
