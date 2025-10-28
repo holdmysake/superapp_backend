@@ -16,6 +16,7 @@ import axios from 'axios'
 import https from "https"
 import ExcelJS from "exceljs"
 import archiver from "archiver"
+import ML from '../../models/ml.model.js'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -504,6 +505,10 @@ export const getAllSpots = async (req, res) => {
                         as: 'spots',
                         separate: true,
                         order: [['sort', 'ASC']]
+                    },
+                    {
+                        model: ML,
+                        as: 'mls'
                     }
                 ]
             },
