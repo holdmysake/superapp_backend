@@ -14,6 +14,7 @@ import { spawn } from "child_process"
 import { create, all } from "mathjs"
 import haversine from "haversine-distance"
 import { models } from "../../models/index.js"
+import ML from "../../models/ml.model.js"
 moment.locale('id')
 const math = create(all)
 
@@ -658,7 +659,6 @@ const leak = (tline_id, inputs, model_type) => {
                     const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
 
                     for (const r of validResults) {
-                        let leakCoord = null
                         let gmapsLink = null
                         let dist = 0
 
@@ -735,4 +735,56 @@ const fmtDuration = (minutes) => {
     const h = Math.floor(minutes / 60)
     const m = minutes % 60
     return `${String(h).padStart(2, '0')} jam ${String(m).padStart(2, '0')} menit`
+}
+
+export const uploadMLFile = async (req, res) => {
+    try {
+        const storage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                cb(null, path.resolve('data/pred'))
+            },
+            filename: (req, file, cb) => {
+                const { ml_name } = req.body
+                cb(null, `${ml_name}.sav`)
+            }
+        })
+
+        const upload = multer({ storage }).single('model_file')
+
+        upload(req, res, async (error) => {
+            if (error) {
+                console.error(error)
+                return res.status(500).json({ message: error.message })
+            }
+
+            try {
+                const { ml_name, tline_id, ml_title } = req.body
+
+                const mlRecord = await ML.create({
+                    ml_id: `ML_${tline_id}_${randomString(10)}`,
+                    ml_name,
+                    tline_id,
+                    ml_title,
+                    path: `data/pred/${ml_name}.sav`
+                })
+
+                res.json({ message: 'Model uploaded', ml: mlRecord })
+            } catch (err) {
+                console.error(err)
+                res.status(500).json({ message: err.message })
+            }
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+const randomString = (length) => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let result = ''
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return result
 }
