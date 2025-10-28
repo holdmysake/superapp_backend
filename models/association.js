@@ -49,6 +49,18 @@ const defineAssociations = models => {
         as:         'trunkline'
     })
 
+    // Trunkline -> Models
+    // models.Trunkline.hasMany(models.TrainingModels, {
+    //     foreignKey: 'id_tline',
+    //     sourceKey: 'tline_id',
+    //     as: 'models'
+    // })
+    // models.TrainingModels.belongsTo(models.Trunkline, {
+    //     foreignKey: 'id_tline',
+    //     targetKey: 'tline_id',
+    //     as: 'trunkline'
+    // })
+
     // Spot -> PredValue
     models.Spot.hasOne(models.PredValue, {
         foreignKey: 'spot_id',
@@ -59,6 +71,18 @@ const defineAssociations = models => {
         foreignKey: 'spot_id',
         targetKey:  'spot_id',
         as:         'spot'
+    })
+
+    // Trunkline -> ML
+    models.Trunkline.hasMany(models.ML, {
+        foreignKey: 'tline_id',
+        sourceKey: 'tline_id',
+        as: 'mls'
+    })
+    models.ML.belongsTo(models.Trunkline, {
+        foreignKey: 'tline_id',
+        targetKey: 'tline_id',
+        as: 'trunkline'
     })
 
     // Pressure -> Spot
