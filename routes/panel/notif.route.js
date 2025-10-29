@@ -5,7 +5,9 @@ import {
     // rekapOnOff,
     shareReport,
     leakCheck,
-    uploadMLFile
+    uploadMLFile,
+    updateMLFile,
+    deleteMLFile
 } from '../../controllers/panel/notif.controller.js'
 import {
     verifyTokenSA,
@@ -20,6 +22,8 @@ router.post('/leakDetectMulti', verifyTokenAdmin, leakDetectMulti)
 // router.post('/rekapOnOff', rekapOnOff)
 router.post('/shareReport', verifyTokenAdmin, shareReport)
 router.post('/uploadMLFile', verifyTokenAdmin, uploadMLFile)
+router.post('/updateMLFile', verifyTokenAdmin, updateMLFile)
+router.post('/deleteMLFile', verifyTokenAdmin, deleteMLFile)
 router.post('/leakCheck', leakCheck)
 
 export default router

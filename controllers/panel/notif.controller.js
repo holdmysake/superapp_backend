@@ -781,6 +781,84 @@ export const uploadMLFile = async (req, res) => {
     }
 }
 
+export const updateMLFile = async (req, res) => {
+    try {
+        const storage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                cb(null, path.resolve('data/pred'))
+            },
+            filename: (req, file, cb) => {
+                const { ml_name } = req.body
+                cb(null, `${ml_name}.sav`)
+            }
+        })
+
+        const upload = multer({ storage }).single('model_file')
+
+        upload(req, res, async (error) => {
+            if (error) {
+                console.error(error)
+                return res.status(500).json({ message: error.message })
+            }
+
+            try {
+                const { ml_id, ml_name, ml_title } = req.body
+
+                const mlRecord = await ML.findOne({ where: { ml_id } })
+                if (!mlRecord) {
+                    return res.status(404).json({ message: 'Model not found' })
+                }
+
+                mlRecord.ml_name = ml_name || mlRecord.ml_name
+                mlRecord.ml_title = ml_title || mlRecord.ml_title
+
+                if (req.file) {
+                    const oldPath = mlRecord.path
+                    const newPath = `data/pred/${ml_name}.sav`
+
+                    if (oldPath && fs.existsSync(oldPath) && oldPath !== newPath) {
+                        fs.unlinkSync(oldPath)
+                    }
+
+                    mlRecord.path = newPath
+                }
+
+                await mlRecord.save()
+
+                res.json({ message: 'Model updated', ml: mlRecord })
+            } catch (err) {
+                console.error(err)
+                res.status(500).json({ message: err.message })
+            }
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const deleteMLFile = async (req, res) => {
+    try {
+        const { ml_id } = req.params
+
+        const mlRecord = await ML.findOne({ where: { ml_id } })
+        if (!mlRecord) {
+            return res.status(404).json({ message: 'Model not found' })
+        }
+
+        if (mlRecord.path && fs.existsSync(mlRecord.path)) {
+            fs.unlinkSync(mlRecord.path)
+        }
+
+        await mlRecord.destroy()
+
+        res.json({ message: 'Model deleted' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 const randomString = (length) => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     let result = ''
