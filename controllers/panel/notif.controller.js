@@ -839,7 +839,7 @@ export const updateMLFile = async (req, res) => {
 
 export const deleteMLFile = async (req, res) => {
     try {
-        const { ml_id } = req.params
+        const { ml_id } = req.body
 
         const mlRecord = await ML.findOne({ where: { ml_id } })
         if (!mlRecord) {
