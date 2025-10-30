@@ -590,6 +590,10 @@ export const getAllSpotsPredict = async (req, res) => {
                         separate: true,
                         where: { is_seen: true },
                         order: [['sort', 'ASC']]
+                    },
+                    {
+                        model: ML,
+                        as: 'mls'
                     }
                 ]
             },

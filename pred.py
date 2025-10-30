@@ -31,7 +31,7 @@ except Exception as e:
     sys.exit(1)
 
 try:
-    pred = model.predict(sensor_locations, normal_pressure, drop_pressure)
+    pred = model.predict(sensor_locations, normal_pressure, drop_pressure, "test")
     print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr)
 
     if hasattr(pred, "__len__"):
