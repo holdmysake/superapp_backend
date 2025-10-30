@@ -906,7 +906,7 @@ const predictLeak = (ml, loc, normal, drop) => {
                 // if (!parsed.result) {
                 //     return resolve({ messages: ["Python tidak mengembalikan hasil (result undefined)"] })
                 // }
-                const results = parsed.result
+                // const results = parsed.result
 
                 // const tlineData = await PredValue.findOne({
                 //     where: { tline_id },
@@ -963,7 +963,7 @@ const predictLeak = (ml, loc, normal, drop) => {
                     // messages,
                     // gmaps: gmapsLinks,
                     // results: validResults
-                    results
+                    parsed
                 })
             } catch (err) {
                 console.error("Error on close:", err)
