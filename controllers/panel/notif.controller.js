@@ -878,7 +878,8 @@ export const predict = async (req, res) => {
         for (let i = 0; i < maxLen; i++) {
             const currentNormal = normal.map(arr => arr[i] ?? 0)
             const currentDrop = drop.map(arr => arr[i] ?? 0)
-            console.log("Current Input:", currentNormal, currentDrop)
+            const currentDelta = currentNormal.map((val, idx) => val - (currentDrop[idx] || 0))
+            console.log("Current Input:", currentNormal, currentDrop, currentDelta)
 
             const result = await predictLeak(ml, loc, currentNormal, currentDrop)
             results.push(result)
