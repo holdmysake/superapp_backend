@@ -867,3 +867,108 @@ const randomString = (length) => {
     }
     return result
 }
+
+export const predict = async (req, res) => {
+    try {
+        const { ml, loc = [], normal = [], drop = [] } = req.body
+
+        const result = await predictLeak(ml, loc, normal, drop)
+        res.json(result)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+const predictLeak = (ml, loc, normal, drop) => {
+    return new Promise((resolve, reject) => {
+        const pythonBin = process.env.PYTHON_BIN || "python"
+        const scriptPath = path.resolve("./pred.py")
+        const args = [scriptPath, ml, loc.map(String), normal.map(String), drop.map(String)]
+        const py = spawn(pythonBin, args)
+
+        let data = ""
+        py.stdout.on("data", (chunk) => {
+            data += chunk.toString()
+        })
+
+        py.stderr.on("data", (err) => {
+            console.error("Python error:", err.toString())
+        })
+
+        py.on("close", async () => {
+            try {
+                if (data.trim() === "") {
+                    return resolve({ message: "No output from Python" })
+                }
+
+                const parsed = JSON.parse(data)
+                if (!parsed.result) {
+                    return resolve({ messages: ["Python tidak mengembalikan hasil (result undefined)"] })
+                }
+                const results = parsed.result
+
+                // const tlineData = await PredValue.findOne({
+                //     where: { tline_id },
+                //     attributes: ["tline_id", "tline_length", "pu"],
+                //     include: {
+                //         model: Spot,
+                //         as: "spot",
+                //         attributes: ["spot_id", "spot_name"]
+                //     }
+                // })
+
+                // const validResults = results.filter(r => r >= 0 && r <= tlineData.tline_length)
+
+                // const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
+                // let gmapsLinks = []
+
+                // if (fs.existsSync(geojsonFilePath)) {
+                //     const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
+
+                //     for (const r of validResults) {
+                //         let gmapsLink = null
+                //         let dist = 0
+
+                //         for (let i = 0; i < coords.length - 1; i++) {
+                //             const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
+                //             const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
+                //             const segLen = haversine(p1, p2) / 1000
+
+                //             if (dist + segLen >= r) {
+                //                 const ratio = (r - dist) / segLen
+                //                 const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
+                //                 const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
+                //                 leakCoord = [lon, lat]
+                //                 gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
+                //                 break
+                //             }
+                //             dist += segLen
+                //         }
+
+                //         gmapsLinks.push(gmapsLink)
+                //     }
+                // }
+
+                // const formula = tlineData.pu.replace(/\s+/g, "")
+                // const messages = validResults.map((r, idx) => {
+                //     let finalValue = null
+                //     try { finalValue = math.evaluate(formula, { y: r }) } catch {}
+                //     let msg = `Indikasi kebocoran pada titik ${r} KM dari ${tlineData.spot.spot_name}`
+                //     if (finalValue != null) msg += ` (KM ${finalValue} Jalan PU)`
+                //     return msg
+                // })
+
+                return resolve({
+                    // messages,
+                    // gmaps: gmapsLinks,
+                    // results: validResults
+                    results
+                })
+            } catch (err) {
+                console.error("Error on close:", err)
+                reject(err)
+            }
+        })
+    })
+}
