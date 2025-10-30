@@ -643,7 +643,7 @@ export const getAllSpotsPredict = async (req, res) => {
 
 export const createSpot = async (req, res) => {
     try {
-        const { tline_id, spot_id, spot_name, sort: requestedSort, is_seen, is_battery, y_max, y_interval, safe_mark, normal_value, drop_value } = req.body
+        const { tline_id, spot_id, spot_name, sort: requestedSort, is_seen, is_battery, kp_pos, y_max, y_interval, safe_mark, normal_value, drop_value } = req.body
 
         const newSpot = await Spot.create({
             tline_id,
@@ -652,6 +652,7 @@ export const createSpot = async (req, res) => {
             sort: requestedSort,
             is_seen,
             is_battery,
+            kp_pos,
             y_max,
             y_interval,
             safe_mark,
@@ -707,6 +708,7 @@ export const updateSpot = async (req, res) => {
             sort: requestedSort,
             is_seen,
             is_battery,
+            kp_pos,
             y_max,
             y_interval,
             safe_mark,
@@ -750,6 +752,7 @@ export const updateSpot = async (req, res) => {
             spot_name,
             is_seen,
             is_battery,
+            kp_pos,
             y_max,
             y_interval,
             safe_mark,
