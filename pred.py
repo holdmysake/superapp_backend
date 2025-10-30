@@ -7,9 +7,9 @@ import numpy as np
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data", "pred")
 
-if len(sys.argv) < 5:
+if len(sys.argv) < 6:
     print(json.dumps({
-        "error": "Usage: python predict.py <model_name>"
+        "error": "Usage: python predict.py <model_name> <sensor_locations> <normal_pressure> <drop_pressure> <delta_pressure>"
     }), file=sys.stderr)
     sys.exit(1)
 
@@ -17,6 +17,7 @@ model_name = sys.argv[1]
 sensor_locations = sys.argv[2:]
 normal_pressure = sys.argv[3:]
 drop_pressure = sys.argv[4:]
+delta_pressure = sys.argv[5:]
 
 model_path = os.path.join(f"{model_name}")
 
@@ -31,7 +32,14 @@ except Exception as e:
     sys.exit(1)
 
 try:
-    pred = model.predict(sensor_locations, normal_pressure, drop_pressure, "test")
+    try:
+        # Percobaan pertama
+        pred = model.predict(sensor_locations, normal_pressure, drop_pressure, "test")
+    except Exception as e1:
+        print(json.dumps({"warn": f"Prediksi utama gagal, mencoba dengan delta_pressure: {str(e1)}"}), file=sys.stderr)
+        # Fallback ke delta_pressure
+        pred = model.predict(delta_pressure)
+
     print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr)
 
     if hasattr(pred, "__len__"):

@@ -881,7 +881,7 @@ export const predict = async (req, res) => {
             const currentDelta = currentNormal.map((val, idx) => val - (currentDrop[idx] || 0))
             console.log("Current Input:", currentNormal, currentDrop, currentDelta)
 
-            const result = await predictLeak(ml, loc, currentNormal, currentDrop)
+            const result = await predictLeak(ml, loc, currentNormal, currentDrop, currentDelta)
             results.push(result)
         }
 
@@ -893,11 +893,11 @@ export const predict = async (req, res) => {
     }
 }
 
-const predictLeak = (ml, loc, normal, drop) => {
+const predictLeak = (ml, loc, normal, drop, delta) => {
     return new Promise((resolve, reject) => {
         const pythonBin = process.env.PYTHON_BIN || "python"
         const scriptPath = path.resolve("./pred.py")
-        const args = [scriptPath, ml, loc.map(String), normal.map(String), drop.map(String)]
+        const args = [scriptPath, ml, loc.map(String), normal.map(String), drop.map(String), delta.map(String)]
         const py = spawn(pythonBin, args)
 
         let data = ""
@@ -917,7 +917,7 @@ const predictLeak = (ml, loc, normal, drop) => {
                 if (errorOutput.trim() !== "") {
                     return reject(new Error(errorOutput.trim()))
                 }
-                
+
                 if (data.trim() === "") {
                     return resolve({ message: "No output from Python" })
                 }
