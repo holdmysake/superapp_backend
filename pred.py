@@ -10,11 +10,10 @@ DATA_DIR = os.path.join(BASE_DIR, "data", "pred")
 if len(sys.argv) < 6:
     print(json.dumps({
         "error": "Usage: python predict.py <model_name> <sensor_locations> <normal_pressure> <drop_pressure> <delta_pressure>"
-    }), file=sys.stderr)
+    }), file=sys.stderr, flush=True)
     sys.exit(1)
 
 def parse_list(arg):
-    # Pisahkan string seperti '1,2,3' menjadi ['1', '2', '3']
     parts = []
     for a in arg:
         parts.extend(a.split(","))
@@ -29,38 +28,30 @@ delta_pressure = parse_list([sys.argv[5]])
 model_path = os.path.join(f"{model_name}")
 
 if not os.path.exists(model_path):
-    print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}), file=sys.stderr)
+    print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}), file=sys.stderr, flush=True)
     sys.exit(1)
 
 try:
     model = pickle.load(open(model_path, "rb"))
 except Exception as e:
-    print(json.dumps({"error": f"Gagal load model: {str(e)}"}), file=sys.stderr)
+    print(json.dumps({"error": f"Gagal load model: {str(e)}"}), file=sys.stderr, flush=True)
     sys.exit(1)
 
 try:
     try:
-        # Percobaan pertama
         pred = model.predict(sensor_locations, normal_pressure, drop_pressure, "test")
     except Exception as e1:
-        print(json.dumps({"warn": f"Prediksi utama gagal, mencoba dengan delta_pressure: {str(e1)}"}), file=sys.stderr)
-        # Fallback ke delta_pressure
+        print(json.dumps({"warn": f"Prediksi utama gagal, mencoba dengan delta_pressure: {str(e1)}"}), file=sys.stderr, flush=True)
         titik_list = [float(x) for x in delta_pressure]
         pred = model.predict([titik_list])
 
-    print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr)
+    print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr, flush=True)
 
-    if hasattr(pred, "__len__"):
-        pred_values = np.ravel(pred).tolist()
-    else:
-        pred_values = [float(pred)]
-
-    print(f"[DEBUG] pred_values: {pred_values}", file=sys.stderr)
+    pred_values = [float(x) for x in np.ravel(pred)]
+    print(f"[DEBUG] pred_values: {pred_values}", file=sys.stderr, flush=True)
 
 except Exception as e:
-    print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}), file=sys.stderr)
+    print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}), file=sys.stderr, flush=True)
     sys.exit(1)
 
-print(json.dumps({
-    "result": pred_values
-}))
+print(json.dumps({"result": pred_values}), flush=True)
