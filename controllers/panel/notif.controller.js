@@ -901,16 +901,23 @@ const predictLeak = (ml, loc, normal, drop) => {
         const py = spawn(pythonBin, args)
 
         let data = ""
+        let errorOutput = ""
         py.stdout.on("data", (chunk) => {
             data += chunk.toString()
         })
 
         py.stderr.on("data", (err) => {
-            console.error("Python error:", err.toString())
+            const msg = err.toString()
+            errorOutput += msg
+            console.error("Python error:", msg)
         })
 
         py.on("close", async () => {
             try {
+                if (errorOutput.trim() !== "") {
+                    return reject(new Error(errorOutput.trim()))
+                }
+                
                 if (data.trim() === "") {
                     return resolve({ message: "No output from Python" })
                 }
