@@ -38,7 +38,8 @@ try:
     except Exception as e1:
         print(json.dumps({"warn": f"Prediksi utama gagal, mencoba dengan delta_pressure: {str(e1)}"}), file=sys.stderr)
         # Fallback ke delta_pressure
-        pred = model.predict(delta_pressure)
+        titik_list = [float(x) for x in delta_pressure]
+        pred = model.predict([titik_list])
 
     print(f"[DEBUG] Raw prediction: {pred}", file=sys.stderr)
 
