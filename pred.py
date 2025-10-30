@@ -13,11 +13,18 @@ if len(sys.argv) < 6:
     }), file=sys.stderr)
     sys.exit(1)
 
+def parse_list(arg):
+    # Pisahkan string seperti '1,2,3' menjadi ['1', '2', '3']
+    parts = []
+    for a in arg:
+        parts.extend(a.split(","))
+    return [float(x) for x in parts if x.strip() != ""]
+
 model_name = sys.argv[1]
-sensor_locations = sys.argv[2:]
-normal_pressure = sys.argv[3:]
-drop_pressure = sys.argv[4:]
-delta_pressure = sys.argv[5:]
+sensor_locations = parse_list([sys.argv[2]])
+normal_pressure = parse_list([sys.argv[3]])
+drop_pressure = parse_list([sys.argv[4]])
+delta_pressure = parse_list([sys.argv[5]])
 
 model_path = os.path.join(f"{model_name}")
 
