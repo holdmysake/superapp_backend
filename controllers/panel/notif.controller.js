@@ -872,8 +872,20 @@ export const predict = async (req, res) => {
     try {
         const { ml, loc = [], normal = [], drop = [] } = req.body
 
-        const result = await predictLeak(ml, loc, normal, drop)
-        res.json(result)
+        const maxLen = Math.max(...normal.map(arr => arr.length))
+
+        const results = []
+        for (let i = 0; i < maxLen; i++) {
+            const currentNormal = normal.map(arr => arr[i] ?? 0)
+            const currentDrop = drop.map(arr => arr[i] ?? 0)
+            console.log("Current Input:", currentInput)
+
+            const result = await predictLeak(ml, loc, currentNormal, currentDrop)
+            results.push(result)
+        }
+
+        console.log(results)
+        res.json({ results })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
