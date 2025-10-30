@@ -903,9 +903,9 @@ const predictLeak = (ml, loc, normal, drop) => {
                 }
 
                 const parsed = JSON.parse(data)
-                if (!parsed.result) {
-                    return resolve({ messages: ["Python tidak mengembalikan hasil (result undefined)"] })
-                }
+                // if (!parsed.result) {
+                //     return resolve({ messages: ["Python tidak mengembalikan hasil (result undefined)"] })
+                // }
                 const results = parsed.result
 
                 // const tlineData = await PredValue.findOne({
