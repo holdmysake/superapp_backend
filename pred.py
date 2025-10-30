@@ -10,7 +10,7 @@ DATA_DIR = os.path.join(BASE_DIR, "data", "pred")
 if len(sys.argv) < 5:
     print(json.dumps({
         "error": "Usage: python predict.py <model_name>"
-    }))
+    }), file=sys.stderr)
     sys.exit(1)
 
 model_name = sys.argv[1]
@@ -21,13 +21,13 @@ drop_pressure = sys.argv[4:]
 model_path = os.path.join(f"{model_name}")
 
 if not os.path.exists(model_path):
-    print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}))
+    print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}), file=sys.stderr)
     sys.exit(1)
 
 try:
     model = pickle.load(open(model_path, "rb"))
 except Exception as e:
-    print(json.dumps({"error": f"Gagal load model: {str(e)}"}))
+    print(json.dumps({"error": f"Gagal load model: {str(e)}"}), file=sys.stderr)
     sys.exit(1)
 
 try:
@@ -42,7 +42,7 @@ try:
     print(f"[DEBUG] pred_values: {pred_values}", file=sys.stderr)
 
 except Exception as e:
-    print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}))
+    print(json.dumps({"error": f"Gagal melakukan prediksi: {str(e)}"}), file=sys.stderr)
     sys.exit(1)
 
 print(json.dumps({
