@@ -61,6 +61,10 @@ const Spot = sequelize.define('spot', {
         type: DataTypes.INTEGER,
         allowNull: true
     },
+    kp_pos: {
+        type: DataTypes.FLOAT,
+        allowNull: true
+    }
 }, {
     tableName: 'spot',
     timestamps: false,
