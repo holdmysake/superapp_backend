@@ -672,7 +672,7 @@ const leak = (tline_id, inputs, model_type) => {
                                 const ratio = (r - dist) / segLen
                                 const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
                                 const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
-                                leakCoord = [lon, lat]
+                                // leakCoord = [lon, lat]
                                 gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
                                 break
                             }
