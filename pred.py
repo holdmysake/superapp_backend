@@ -18,7 +18,7 @@ sensor_locations = sys.argv[2:]
 normal_pressure = sys.argv[3:]
 drop_pressure = sys.argv[4:]
 
-model_path = os.path.join(f"{model_name}.sav")
+model_path = os.path.join(f"{model_name}")
 
 if not os.path.exists(model_path):
     print(json.dumps({"error": f"Model '{model_name}' tidak ditemukan di folder data/"}))
