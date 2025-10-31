@@ -4,6 +4,7 @@ import path from 'path'
 import { models } from '../models/index.js'
 import makeWASocket, { DisconnectReason } from '@whiskeysockets/baileys'
 import { useMultiFileAuthState } from '@whiskeysockets/baileys/lib/Utils/index.js'
+import qrcode from "qrcode-terminal"
 
 // const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
@@ -82,6 +83,10 @@ async function ensureSession(field_id, io) {
 	fs.mkdirSync(dir, { recursive: true })
 	const { state, saveCreds } = await useMultiFileAuthState(dir)
 
+	if (!fs.existsSync(path.join(dir, 'creds.json'))) {
+		console.log(`[WA][${field_id}] Belum ada kredensial, QR akan dibuat`)
+	}
+
 	const sock = makeWASocket({
 		auth: state,
 		printQRInTerminal: false,
@@ -100,14 +105,14 @@ async function ensureSession(field_id, io) {
 	s.sock.ev.on('creds.update', saveCreds)
 
 	s.sock.ev.on('connection.update', (update) => {
+		console.log(`[${field_id}] connection.update`, JSON.stringify(update, null, 2))
+		log(`update::: `, update)
 		const { connection, lastDisconnect, qr } = update
 		log(`[WA][conn.update] field_id=${field_id} conn=${connection} hasQR=${!!qr}`)
 
 		// 🔹 LOG saat QR baru diterima dari WhatsApp
-		if (qr && !s.lastStatus?.connected) {
-			const qrPreview = qr.slice(0, 20) + '...' // untuk keamanan, potong biar tidak terlalu panjang
-			log(`[WA][QR][RECEIVED] field_id=${field_id} qrLen=${qr.length} preview="${qrPreview}"`)
-
+		if (qr) {
+			qrcode.generate(qr, { small: true })
 			s.lastQR = qr
 			emitStatus(io, field_id)
 		}
@@ -123,6 +128,13 @@ async function ensureSession(field_id, io) {
 		}
 
 		if (connection === 'close') {
+			const reason = new Boom(lastDisconnect?.error)?.output?.statusCode
+			if (reason === DisconnectReason.loggedOut) {
+				clearDirContents(dir)
+				console.log(`[WA][${field_id}] Dihapus karena logout`)
+				setTimeout(() => ensureSession(field_id, io), 1000)
+			}
+
 			const err = lastDisconnect?.error
 			const code =
 				err?.output?.statusCode ??
