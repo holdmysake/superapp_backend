@@ -12,7 +12,7 @@
   "description": "",
   "dependencies": {
     "@mapbox/togeojson": "^0.16.2",
-    "@whiskeysockets/baileys": "^6.7.20",
+    "@whiskeysockets/baileys": "^7.0.0-rc.6",
     "adm-zip": "^0.5.16",
     "archiver": "^7.0.1",
     "axios": "^1.12.2",
