@@ -5,6 +5,7 @@ import { models } from '../models/index.js'
 import makeWASocket, { DisconnectReason } from '@whiskeysockets/baileys'
 import { useMultiFileAuthState } from '@whiskeysockets/baileys/lib/Utils/index.js'
 import qrcode from "qrcode-terminal"
+import { Boom } from '@hapi/boom'
 
 // const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
 
