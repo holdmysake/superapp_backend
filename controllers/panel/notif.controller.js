@@ -872,13 +872,14 @@ export const predict = async (req, res) => {
     try {
         const { ml, loc = [], normal = [], drop = [] } = req.body
 
-        const maxLen = Math.max(...normal.map(arr => arr.length))
+        const maxLen = Math.max(...drop.map(arr => arr.length))
 
         const results = []
         for (let i = 0; i < maxLen; i++) {
-            const currentNormal = normal.map(arr => arr[i] ?? 0)
+            const currentNormal = normal
             const currentDrop = drop.map(arr => arr[i] ?? 0)
-            const currentDelta = currentNormal.map((val, idx) => val - (currentDrop[idx] || 0))
+            const currentDelta = normal.map((val, idx) => val - (currentDrop[idx] || 0))
+            
             console.log("Current Input:", currentNormal, currentDrop, currentDelta)
 
             const result = await predictLeak(ml, loc, currentNormal, currentDrop, currentDelta)
