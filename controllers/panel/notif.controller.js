@@ -897,98 +897,151 @@ const predictLeak = (ml, loc, normal, drop, delta) => {
     return new Promise((resolve, reject) => {
         const pythonBin = process.env.PYTHON_BIN || "python"
         const scriptPath = path.resolve("./pred.py")
-        const args = [scriptPath, ml, loc.map(String), normal.map(String), drop.map(String), delta.map(String)]
+        const args = [
+            scriptPath,
+            ml,
+            loc.map(String),
+            normal.map(String),
+            drop.map(String),
+            delta.map(String)
+        ]
+
         const py = spawn(pythonBin, args)
 
         let data = ""
         let errorOutput = ""
+
         py.stdout.on("data", (chunk) => {
             data += chunk.toString()
         })
 
         py.stderr.on("data", (err) => {
             const msg = err.toString()
+            // kumpulkan warning, tapi jangan langsung reject
             errorOutput += msg
-            console.error("Python error:", msg)
+            console.warn("Python stderr:", msg)
         })
 
         py.on("close", async () => {
             try {
-                if (errorOutput.trim() !== "") {
-                    return reject(new Error(errorOutput.trim()))
-                }
-
                 if (data.trim() === "") {
-                    return resolve({ message: "No output from Python" })
+                    return resolve({
+                        success: false,
+                        message: errorOutput.trim() || "No output from Python"
+                    })
                 }
 
                 const parsed = JSON.parse(data)
-                // if (!parsed.result) {
-                //     return resolve({ messages: ["Python tidak mengembalikan hasil (result undefined)"] })
-                // }
-                // const results = parsed.result
-
-                // const tlineData = await PredValue.findOne({
-                //     where: { tline_id },
-                //     attributes: ["tline_id", "tline_length", "pu"],
-                //     include: {
-                //         model: Spot,
-                //         as: "spot",
-                //         attributes: ["spot_id", "spot_name"]
-                //     }
-                // })
-
-                // const validResults = results.filter(r => r >= 0 && r <= tlineData.tline_length)
-
-                // const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
-                // let gmapsLinks = []
-
-                // if (fs.existsSync(geojsonFilePath)) {
-                //     const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
-
-                //     for (const r of validResults) {
-                //         let gmapsLink = null
-                //         let dist = 0
-
-                //         for (let i = 0; i < coords.length - 1; i++) {
-                //             const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
-                //             const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
-                //             const segLen = haversine(p1, p2) / 1000
-
-                //             if (dist + segLen >= r) {
-                //                 const ratio = (r - dist) / segLen
-                //                 const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
-                //                 const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
-                //                 leakCoord = [lon, lat]
-                //                 gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
-                //                 break
-                //             }
-                //             dist += segLen
-                //         }
-
-                //         gmapsLinks.push(gmapsLink)
-                //     }
-                // }
-
-                // const formula = tlineData.pu.replace(/\s+/g, "")
-                // const messages = validResults.map((r, idx) => {
-                //     let finalValue = null
-                //     try { finalValue = math.evaluate(formula, { y: r }) } catch {}
-                //     let msg = `Indikasi kebocoran pada titik ${r} KM dari ${tlineData.spot.spot_name}`
-                //     if (finalValue != null) msg += ` (KM ${finalValue} Jalan PU)`
-                //     return msg
-                // })
 
                 return resolve({
-                    // messages,
-                    // gmaps: gmapsLinks,
-                    // results: validResults
-                    parsed
+                    success: true,
+                    stderr: errorOutput.trim(),
+                    ...parsed
                 })
             } catch (err) {
-                console.error("Error on close:", err)
+                console.error("Error parsing Python output:", err)
                 reject(err)
             }
         })
     })
 }
+
+// const predictLeak = (ml, loc, normal, drop, delta) => {
+//     return new Promise((resolve, reject) => {
+//         const pythonBin = process.env.PYTHON_BIN || "python"
+//         const scriptPath = path.resolve("./pred.py")
+//         const args = [scriptPath, ml, loc.map(String), normal.map(String), drop.map(String), delta.map(String)]
+//         const py = spawn(pythonBin, args)
+
+//         let data = ""
+//         let errorOutput = ""
+//         py.stdout.on("data", (chunk) => {
+//             data += chunk.toString()
+//         })
+
+//         py.stderr.on("data", (err) => {
+//             const msg = err.toString()
+//             errorOutput += msg
+//             console.error("Python error:", msg)
+//         })
+
+//         py.on("close", async () => {
+//             try {
+//                 if (errorOutput.trim() !== "") {
+//                     return reject(new Error(errorOutput.trim()))
+//                 }
+
+//                 if (data.trim() === "") {
+//                     return resolve({ message: "No output from Python" })
+//                 }
+
+//                 const parsed = JSON.parse(data)
+//                 // if (!parsed.result) {
+//                 //     return resolve({ messages: ["Python tidak mengembalikan hasil (result undefined)"] })
+//                 // }
+//                 // const results = parsed.result
+
+//                 // const tlineData = await PredValue.findOne({
+//                 //     where: { tline_id },
+//                 //     attributes: ["tline_id", "tline_length", "pu"],
+//                 //     include: {
+//                 //         model: Spot,
+//                 //         as: "spot",
+//                 //         attributes: ["spot_id", "spot_name"]
+//                 //     }
+//                 // })
+
+//                 // const validResults = results.filter(r => r >= 0 && r <= tlineData.tline_length)
+
+//                 // const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
+//                 // let gmapsLinks = []
+
+//                 // if (fs.existsSync(geojsonFilePath)) {
+//                 //     const coords = JSON.parse(fs.readFileSync(geojsonFilePath, "utf8"))
+
+//                 //     for (const r of validResults) {
+//                 //         let gmapsLink = null
+//                 //         let dist = 0
+
+//                 //         for (let i = 0; i < coords.length - 1; i++) {
+//                 //             const p1 = { latitude: coords[i][1], longitude: coords[i][0] }
+//                 //             const p2 = { latitude: coords[i + 1][1], longitude: coords[i + 1][0] }
+//                 //             const segLen = haversine(p1, p2) / 1000
+
+//                 //             if (dist + segLen >= r) {
+//                 //                 const ratio = (r - dist) / segLen
+//                 //                 const lon = coords[i][0] + (coords[i + 1][0] - coords[i][0]) * ratio
+//                 //                 const lat = coords[i][1] + (coords[i + 1][1] - coords[i][1]) * ratio
+//                 //                 leakCoord = [lon, lat]
+//                 //                 gmapsLink = `https://www.google.com/maps?q=${lat},${lon}`
+//                 //                 break
+//                 //             }
+//                 //             dist += segLen
+//                 //         }
+
+//                 //         gmapsLinks.push(gmapsLink)
+//                 //     }
+//                 // }
+
+//                 // const formula = tlineData.pu.replace(/\s+/g, "")
+//                 // const messages = validResults.map((r, idx) => {
+//                 //     let finalValue = null
+//                 //     try { finalValue = math.evaluate(formula, { y: r }) } catch {}
+//                 //     let msg = `Indikasi kebocoran pada titik ${r} KM dari ${tlineData.spot.spot_name}`
+//                 //     if (finalValue != null) msg += ` (KM ${finalValue} Jalan PU)`
+//                 //     return msg
+//                 // })
+
+//                 return resolve({
+//                     // messages,
+//                     // gmaps: gmapsLinks,
+//                     // results: validResults
+//                     parsed
+//                 })
+//             } catch (err) {
+//                 console.error("Error on close:", err)
+//                 reject(err)
+//             }
+//         })
+//     })
+// }
