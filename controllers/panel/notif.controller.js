@@ -887,7 +887,7 @@ export const predict = async (req, res) => {
         }
 
         console.log(results)
-        res.json(results)
+        res.json({ results })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: error.message })
