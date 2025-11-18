@@ -17,8 +17,6 @@ import { initSocket } from './socket.js'
 import http from "http"
 import { startJobs } from './cron/deviceCheck.js'
 import { bootstrapWhatsAppSessions, initWhatsAppSocket } from './bot/bot.js'
-import aedes from "aedes"
-import net from "net"
 
 dotenv.config()
 
@@ -44,23 +42,6 @@ const io = initSocket(server)
 initWhatsAppSocket(io)
 
 const PORT = process.env.PORT
-const mqttPort = 1883
-const aedesBroker = aedes()
-const mqttServer = net.createServer(aedesBroker.handle)
-
-mqttServer.listen(mqttPort, () => {
-    console.log(`MQTT broker running on port ${mqttPort}`)
-})
-
-aedesBroker.on("clientReady", (client) => {
-    console.log("MQTT connected:", client.id)
-})
-
-aedesBroker.on("publish", (packet, client) => {
-    if (client) {
-        console.log(`MQTT message from ${client.id} → ${packet.topic} : ${packet.payload.toString()}`)
-    }
-})
 
 sequelize.sync({ force: false })
     .then(async () => {
