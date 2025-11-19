@@ -17,6 +17,7 @@ import { initSocket } from './socket.js'
 import http from "http"
 import { startJobs } from './cron/deviceCheck.js'
 import { bootstrapWhatsAppSessions, initWhatsAppSocket } from './bot/bot.js'
+import { startSubscriber } from './config/subscriber.js'
 
 dotenv.config()
 
@@ -51,6 +52,7 @@ sequelize.sync({ force: false })
     .catch(err => console.error('Database error:', err))
 
 startJobs()
+startSubscriber()
 
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`)
