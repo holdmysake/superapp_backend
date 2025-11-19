@@ -16,9 +16,11 @@ export const startSubscriber = () => {
                 console.error(`Subscription error: ${err}`)
             }
         })
+    })
 
-        client.on("message", (topic, message) => {
-            console.log(`Received message on topic ${topic}: ${message.toString()}`)
-        })
+    client.on("message", (topic, message) => {
+        const serverTime = new Date().toISOString()
+
+        console.log(`[${serverTime}] Topic ${topic}: ${message.toString()}`)
     })
 }
