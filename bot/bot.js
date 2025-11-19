@@ -114,7 +114,7 @@ async function ensureSession(field_id, io) {
 		// 🔹 LOG saat QR baru diterima dari WhatsApp
 		if (qr) {
 			console.log(`qr code received for field_id=${field_id}`)
-			qrcode.generate(qr, { small: true })
+			// qrcode.generate(qr, { small: true })
 			s.lastQR = qr
 			emitStatus(io, field_id)
 		}
