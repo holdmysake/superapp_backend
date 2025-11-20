@@ -20,10 +20,10 @@ export const startSubscriber = () => {
     })
 
     client.on("message", (topic, message) => {
-        const serverTime = new Date().toISOString()
+        // const serverTime = new Date().toISOString()
 
-        console.log(`[${serverTime}] Topic ${topic}: ${message.toString()}`)
+        // console.log(`[${serverTime}] Topic ${topic}: ${message.toString()}`)
 
-        // storeMQTT(message.toString())
+        storeMQTT(message.toString())
     })
 }
