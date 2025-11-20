@@ -24,6 +24,6 @@ export const startSubscriber = () => {
 
         // console.log(`[${serverTime}] Topic ${topic}: ${message.toString()}`)
 
-        // storeMQTT(message.toString())
+        storeMQTT(message.toString())
     })
 }
