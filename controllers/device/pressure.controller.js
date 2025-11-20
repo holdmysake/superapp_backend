@@ -138,7 +138,7 @@ export const storeMQTT = async (payload) => {
             timestamp
         })
 
-        console.log('Pressure from MQTT: ', press)
+        console.log('Pressure from MQTT: ', press.toJSON())
     } catch (error) {
         console.error(error)
     }
