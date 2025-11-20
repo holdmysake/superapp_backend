@@ -1,6 +1,6 @@
 import mqtt from "mqtt"
 import dotenv from "dotenv"
-import { storeMQTT } from "../controllers/device/pressure.controller"
+import { storeMQTT } from "../controllers/device/pressure.controller.js"
 
 dotenv.config()
 
@@ -20,6 +20,10 @@ export const startSubscriber = () => {
     })
 
     client.on("message", (topic, message) => {
-        storeMQTT(message.toString())
+        const serverTime = new Date().toISOString()
+
+        console.log(`[${serverTime}] Topic ${topic}: ${message.toString()}`)
+
+        // storeMQTT(message.toString())
     })
 }
