@@ -116,3 +116,30 @@ export const storeBulk = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const storeMQTT = async (payload) => {
+    try {
+        const cleaned = payload.replace(/[{}]/g, "").trim()
+
+        const parts = cleaned.split(";").map(x => x.trim())
+
+        const field_id = parts[0] || null
+        const spot_id  = parts[1] || null
+        const psi      = parts[2] || null
+
+        const tableName = `pressure_${field_id}`
+        const Pressure = defineUserDataModel(tableName)
+
+        const timestamp = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
+
+        const press = await Pressure.create({
+            spot_id,
+            psi,
+            timestamp
+        })
+
+        console.log('Pressure from MQTT: ', press)
+    } catch (error) {
+        console.error(error)
+    }
+}
