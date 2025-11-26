@@ -138,6 +138,14 @@ export const storeMQTT = async (payload) => {
             timestamp
         })
 
+        getIO().to(`field_${field_id}`).emit("pressure:new", {
+            field_id,
+            spot_id,
+            psi,
+            batt: null,
+            timestamp
+        })
+
         console.log('Pressure from MQTT: ', press.toJSON())
     } catch (error) {
         console.error(error)
