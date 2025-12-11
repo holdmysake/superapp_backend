@@ -36,7 +36,7 @@ export const startSubscriberForGPS = () => {
     client.on("connect", () => {
         client.subscribe(topic, (err) => {
             if (!err) {
-                console.log(`Subscribed to topic: ${topic}`)
+                console.log(`[[ connect ]] Subscribed to topic: ${topic}`)
             } else {
                 console.error(`Subscription error: ${err}`)
             }
