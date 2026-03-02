@@ -975,6 +975,13 @@ export const predictLeak = async (ml, loc, normal, drop, delta, tline_id) => {
 
         // Filter hasil valid
         const validResults = results.filter(r => r >= 0 && r <= tlineData.tline_length)
+        if (validResults.length === 0) {
+            return {
+                messages: ["Tidak ada indikasi kebocoran pada trunkline ini"],
+                gmaps: [],
+                results: []
+            }
+        }
 
         // Hitung koordinat lokasi bocor
         const geojsonFilePath = path.resolve(`data/maps/${tline_id}.json`)
