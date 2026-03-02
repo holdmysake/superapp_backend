@@ -942,6 +942,8 @@ export const predictLeak = async (ml, loc, normal, drop, delta, tline_id) => {
             })
         })
 
+        console.log("Python result:", result)
+
         if (!result.result) {
             return {
                 messages: ["Python tidak mengembalikan hasil (result undefined)"],
