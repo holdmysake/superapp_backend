@@ -8,7 +8,6 @@ import dataRoute from './routes/frontend/data.route.js'
 import dataPanelRoute from './routes/panel/data.route.js'
 import notifRoute from './routes/panel/notif.route.js'
 import waRoute from './routes/panel/wa.route.js'
-// import fe from './routes/frontend/pipe.route.js'
 import cors from 'cors'
 import { models } from './models/index.js'
 import defineAssociations from './models/association.js'
@@ -36,7 +35,6 @@ app.use('/api/panel/', notifRoute)
 app.use('/api/panel/', waRoute)
 app.use('/api', pressRoute)
 app.use('/api/fe/', dataRoute)
-// app.use('/api/', fe)
 
 const server = http.createServer(app)
 const io = initSocket(server)
