@@ -896,3 +896,17 @@ export const getSpotsByField = async (req, res) => {
         return res.status(500).json({ message: error.message })
     }
 }
+
+export const getFields = async (req, res) => {
+    try {
+        const fields = await Field.findAll()
+
+        res.json({
+            success: true,
+            fields
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
