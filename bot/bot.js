@@ -2,12 +2,14 @@ import fs from 'fs'
 import path from 'path'
 // import pkg from '@whiskeysockets/baileys'
 import { models } from '../models/index.js'
-import makeWASocket, { DisconnectReason } from '@whiskeysockets/baileys'
-import { useMultiFileAuthState } from '@whiskeysockets/baileys/lib/Utils/index.js'
+import * as baileys from '@whiskeysockets/baileys'
 import qrcode from "qrcode-terminal"
 import { Boom } from '@hapi/boom'
 
-// const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = pkg
+const makeWASocket = baileys.makeWASocket || baileys.default?.makeWASocket || baileys.default?.default || baileys.default
+const useMultiFileAuthState = baileys.useMultiFileAuthState || baileys.default?.useMultiFileAuthState
+const DisconnectReason = baileys.DisconnectReason || baileys.default?.DisconnectReason
+const fetchLatestBaileysVersion = baileys.fetchLatestBaileysVersion || baileys.default?.fetchLatestBaileysVersion
 
 const LOG = process.env.LOG_SOCKET !== '0'
 

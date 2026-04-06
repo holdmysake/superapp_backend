@@ -12,7 +12,7 @@
   "description": "",
   "dependencies": {
     "@mapbox/togeojson": "^0.16.2",
-    "@whiskeysockets/baileys": "^7.0.0-rc.6",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "adm-zip": "^0.5.16",
     "aedes": "^0.51.3",
     "archiver": "^7.0.1",
@@ -45,6 +45,7 @@
     "numpy": "^0.0.1",
     "openai": "^6.0.0",
     "path": "^0.12.7",
+    "pino": "^10.3.1",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "rate": "^0.1.1",
