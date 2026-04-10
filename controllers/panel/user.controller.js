@@ -123,6 +123,71 @@ export const updatePwBySA = async (req, res) => {
     }
 }
 
+export const updatePwByAdmin = async (req, res) => {
+    try {
+        const { user_id, password } = req.body
+
+        // cek jika user adalah user yang 1 field dengan admin, jika tidak maka tidak bisa update password
+        const token = req.headers.authorization?.split(' ')[1]
+        const decoded = jwt.verify(token, JWT_SECRET)
+        const admin = await User.findOne({
+            where: {
+                user_id: decoded.user_id
+            }
+        })
+
+        const user = await User.findOne({
+            where: {
+                user_id
+            }
+        })
+
+        if (admin.field_id != user.field_id) {
+            return res.status(403).json({ message: 'Anda tidak memiliki akses untuk mengubah password user ini!' })
+        }
+
+        const newPw = await bcrypt.hash(password, 10)
+        user.update({
+            password: newPw
+        })
+
+        res.json({ message: 'Password berhasil diubah!' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const updatePwByUser = async (req, res) => {
+    try {
+        const { old_password, new_password } = req.body
+
+        const token = req.headers.authorization?.split(' ')[1]
+        const decoded = jwt.verify(token, JWT_SECRET)
+
+        const user = await User.findOne({
+            where: {
+                user_id: decoded.user_id
+            }
+        })
+
+        const isMatch = await bcrypt.compare(old_password, user.password)
+
+        if (!isMatch) return res.status(401).json({ message: 'Password lama salah!' })
+
+        const newPw = await bcrypt.hash(new_password, 10)
+
+        user.update({
+            password: newPw
+        })
+
+        res.json({ message: 'Password berhasil diubah!' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const deleteUser = async (req, res) => {
     try {
         const { user_id } = req.body

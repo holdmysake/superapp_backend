@@ -4,6 +4,8 @@ import {
     createUser,
     updateUser,
     updatePwBySA,
+    updatePwByAdmin,
+    updatePwByUser,
     deleteUser,
     getUsers,
     getRole
@@ -20,6 +22,8 @@ router.post('/login', login)
 router.post('/createUser', verifyTokenAdmin, createUser)
 router.post('/updateUser', verifyTokenAdmin, updateUser)
 router.post('/updatePwBySA', verifyTokenSA, updatePwBySA)
+router.post('/updatePwByAdmin', verifyTokenAdmin, updatePwByAdmin)
+router.post('/updatePwByUser', verifyTokenUser, updatePwByUser)
 router.post('/deleteUser', verifyTokenAdmin, deleteUser)
 router.post('/getUsers', verifyTokenAdmin, getUsers)
 router.post('/getRole', verifyTokenAdmin, getRole)
