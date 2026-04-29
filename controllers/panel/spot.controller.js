@@ -919,3 +919,54 @@ export const getFields = async (req, res) => {
         res.status(500).json({ message: error.message })
     }
 }
+
+export const createMLNew = async (req, res) => {
+    try {
+        const { ml_id, ml_name, tline_id, ml_url } = req.body
+
+        const ml = await MLNew.create({
+            ml_id,
+            ml_name,
+            tline_id,
+            ml_url
+        })
+
+        res.json({ message: 'ML berhasil dibuat', ml })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const updateMLNew = async (req, res) => {
+    try {
+        const { id, ml_id, ml_name, tline_id, ml_url } = req.body
+
+        const ml = await MLNew.findByPk(id)
+
+        await ml.update({
+            ml_id,
+            ml_name,
+            tline_id,
+            ml_url
+        })
+
+        res.json({ message: 'ML berhasil diperbarui', ml })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const deleteMLNew = async (req, res) => {
+    try {
+        const { ml_id } = req.body
+
+        await MLNew.destroy({ where: { ml_id } })
+
+        res.json({ message: 'ML berhasil dihapus' })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({ message: error.message })
+    }
+}
