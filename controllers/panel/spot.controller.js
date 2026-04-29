@@ -17,6 +17,7 @@ import https from "https"
 import ExcelJS from "exceljs"
 import archiver from "archiver"
 import ML from '../../models/ml.model.js'
+import MLNew from '../../models/ml_new.model.js'
 
 const JWT_SECRET = process.env.JWT_SECRET
 
@@ -506,8 +507,12 @@ export const getAllSpots = async (req, res) => {
                         separate: true,
                         order: [['sort', 'ASC']]
                     },
+                    // {
+                    //     model: MLNew,
+                    //     as: 'mls'
+                    // }
                     {
-                        model: ML,
+                        model: MLNew,
                         as: 'mls'
                     }
                 ]
@@ -591,8 +596,12 @@ export const getAllSpotsPredict = async (req, res) => {
                         where: { is_seen: true },
                         order: [['sort', 'ASC']]
                     },
+                    // {
+                    //     model: MLNew,
+                    //     as: 'mls'
+                    // }
                     {
-                        model: ML,
+                        model: MLNew,
                         as: 'mls'
                     }
                 ]

@@ -85,6 +85,18 @@ const defineAssociations = models => {
         as: 'trunkline'
     })
 
+    // Trunkline -> ML New
+    models.Trunkline.hasMany(models.MLNew, {
+        foreignKey: 'tline_id',
+        sourceKey: 'tline_id',
+        as: 'mls'
+    })
+    models.MLNew.belongsTo(models.Trunkline, {
+        foreignKey: 'tline_id',
+        targetKey: 'tline_id',
+        as: 'trunkline'
+    })
+
     // Pressure -> Spot
     // models.Pressure.belongsTo(models.Spot, {
     //     foreignKey: 'spot_id',

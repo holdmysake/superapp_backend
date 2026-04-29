@@ -5,6 +5,7 @@ import Spot from './spot.model.js'
 import PredValue from './pred_value.model.js'
 // import TrainingModels from './models.model.js'
 import ML from './ml.model.js'
+import MLNew from './ml_new.model.js'
 
 const models = {
     User,
@@ -13,7 +14,8 @@ const models = {
     Spot,
     PredValue,
     // TrainingModels,
-    ML
+    ML,
+    MLNew
 }
 
 export {
