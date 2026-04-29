@@ -922,10 +922,12 @@ export const getFields = async (req, res) => {
 
 export const createMLNew = async (req, res) => {
     try {
-        const { ml_id, ml_name, tline_id, ml_url } = req.body
+        const { ml_name, tline_id, ml_url } = req.body
+
+        const ml_id_char = `ML${tline_id}${Math.random().toString(36).substring(2, 7).toUpperCase()}`.substring(0, 15)
 
         const ml = await MLNew.create({
-            ml_id,
+            ml_id: ml_id_char,
             ml_name,
             tline_id,
             ml_url
