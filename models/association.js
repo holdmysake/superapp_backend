@@ -74,16 +74,16 @@ const defineAssociations = models => {
     })
 
     // Trunkline -> ML
-    models.Trunkline.hasMany(models.ML, {
-        foreignKey: 'tline_id',
-        sourceKey: 'tline_id',
-        as: 'mls'
-    })
-    models.ML.belongsTo(models.Trunkline, {
-        foreignKey: 'tline_id',
-        targetKey: 'tline_id',
-        as: 'trunkline'
-    })
+    // models.Trunkline.hasMany(models.ML, {
+    //     foreignKey: 'tline_id',
+    //     sourceKey: 'tline_id',
+    //     as: 'mls'
+    // })
+    // models.ML.belongsTo(models.Trunkline, {
+    //     foreignKey: 'tline_id',
+    //     targetKey: 'tline_id',
+    //     as: 'trunkline'
+    // })
 
     // Trunkline -> ML New
     models.Trunkline.hasMany(models.MLNew, {
