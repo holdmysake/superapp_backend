@@ -378,14 +378,18 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        let startOfDay, endOfDay
-        if (Array.isArray(timestamp) && timestamp.length === 2) {
-			startOfDay = moment.tz(timestamp[0], 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
-			endOfDay = moment.tz(timestamp[1], 'YYYY-MM-DD', 'Asia/Jakarta').endOf('day')
-		} else {
-			startOfDay = moment.tz(timestamp, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day')
-			endOfDay = moment(startOfDay).add(1, 'day')
-		}
+        // timestamp bisa single string atau array of dates bebas
+        const dateArray = Array.isArray(timestamp) ? timestamp : [timestamp]
+
+        if (dateArray.length === 0) {
+            return res.status(400).json({ message: 'Timestamp is required' })
+        }
+
+        // Buat array of { start, end } per tanggal
+        const dateRanges = dateArray.map(d => ({
+            start: moment.tz(d, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day'),
+            end: moment.tz(d, 'YYYY-MM-DD', 'Asia/Jakarta').endOf('day'),
+        }))
 
         const tlineArray = Array.isArray(tline_id) ? tline_id : [tline_id]
 
@@ -395,19 +399,32 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
         })
         const spotIds = spots.map(s => s.spot_id)
 
+        if (spotIds.length === 0) {
+            return res.status(404).json({ message: 'No spots found' })
+        }
+
+        // Buat kondisi OR per tanggal
+        const dateConditions = dateRanges
+            .map(() => `(timestamp BETWEEN :start_? AND :end_?)`)
+            .map((_, i) => `(timestamp BETWEEN :start_${i} AND :end_${i})`)
+            .join(' OR ')
+
+        const replacements = { spotIds }
+        dateRanges.forEach(({ start, end }, i) => {
+            replacements[`start_${i}`] = start.format('YYYY-MM-DD HH:mm:ss')
+            replacements[`end_${i}`] = end.format('YYYY-MM-DD HH:mm:ss')
+        })
+
         const query = `
             SELECT spot_id, timestamp, psi
             FROM ${tableName}
             WHERE spot_id IN(:spotIds)
-                AND timestamp BETWEEN :start AND :end
+                AND (${dateConditions})
             ORDER BY timestamp ASC
         `
+
         const pressureData = await sequelize.query(query, {
-            replacements: {
-                spotIds,
-                start: startOfDay.format('YYYY-MM-DD HH:mm:ss'),
-                end: endOfDay.format('YYYY-MM-DD HH:mm:ss')
-            },
+            replacements,
             type: QueryTypes.SELECT,
             raw: true,
             logging: false
@@ -424,7 +441,7 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
             const ts = moment(entry.timestamp)
             const time = ts.format('HH-mm-ss')
             const date = ts.format('YYYY-MM-DD')
-            const key = `${time}|${date}`
+            const key = `${date}|${time}`
 
             if (!dataMap.has(key)) {
                 dataMap.set(key, { date, time })
@@ -432,7 +449,6 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
 
             const row = dataMap.get(key)
             row[entry.spot_id] = entry.psi
-
             spotSet.add(entry.spot_id)
         }
 
@@ -440,9 +456,12 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
         const headers = ['date', 'time', ...sortedSpotIds]
         const rows = Array.from(dataMap.values())
 
-        const dateStart = moment(startOfDay).format('DD_MM_YYYY')
-        const dateEnd = moment(endOfDay).format('DD_MM_YYYY')
-        const baseFileName = `pressure_${field_id}_${dateStart}_to_${dateEnd}`
+        // Nama file berdasarkan tanggal-tanggal yang dipilih
+        const sortedDates = [...dateArray].sort()
+        const fileLabel = sortedDates.length === 1
+            ? moment(sortedDates[0]).format('DD_MM_YYYY')
+            : sortedDates.map(d => moment(d).format('DD_MM_YYYY')).join('_')
+        const baseFileName = `pressure_${field_id}_${fileLabel}`
 
         const parser = new Parser({ fields: headers })
         const csv = parser.parse(rows)
@@ -459,7 +478,6 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
 
         const archive = archiver('zip')
         archive.pipe(res)
-
         archive.append(csv, { name: `${baseFileName}.csv` })
         archive.append(excelBuffer, { name: `${baseFileName}.xlsx` })
 
