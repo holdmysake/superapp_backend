@@ -378,14 +378,12 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
         const tableName = `pressure_${field_id}`
         const Pressure = defineUserDataModel(tableName)
 
-        // timestamp bisa single string atau array of dates bebas
         const dateArray = Array.isArray(timestamp) ? timestamp : [timestamp]
 
         if (dateArray.length === 0) {
             return res.status(400).json({ message: 'Timestamp is required' })
         }
 
-        // Buat array of { start, end } per tanggal
         const dateRanges = dateArray.map(d => ({
             start: moment.tz(d, 'YYYY-MM-DD', 'Asia/Jakarta').startOf('day'),
             end: moment.tz(d, 'YYYY-MM-DD', 'Asia/Jakarta').endOf('day'),
@@ -403,7 +401,6 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
             return res.status(404).json({ message: 'No spots found' })
         }
 
-        // Buat kondisi OR per tanggal
         const dateConditions = dateRanges
             .map(() => `(timestamp BETWEEN :start_? AND :end_?)`)
             .map((_, i) => `(timestamp BETWEEN :start_${i} AND :end_${i})`)
@@ -435,7 +432,6 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
         }
 
         const dataMap = new Map()
-        const spotSet = new Set()
 
         for (const entry of pressureData) {
             const ts = moment(entry.timestamp)
@@ -444,24 +440,24 @@ export const downloadDataCSVMultiFaster = async (req, res) => {
             const key = `${date}|${time}`
 
             if (!dataMap.has(key)) {
-                dataMap.set(key, { date, time })
+                const emptyRow = { date, time }
+                for (const sid of spotIds) emptyRow[sid] = null
+                dataMap.set(key, emptyRow)
             }
 
             const row = dataMap.get(key)
             row[entry.spot_id] = entry.psi
-            spotSet.add(entry.spot_id)
         }
 
-        const sortedSpotIds = Array.from(spotSet).sort((a, b) => a - b)
+        const sortedSpotIds = [...spotIds].sort((a, b) => a - b)
         const headers = ['date', 'time', ...sortedSpotIds]
         const rows = Array.from(dataMap.values())
 
-        // Nama file berdasarkan tanggal-tanggal yang dipilih
         const sortedDates = [...dateArray].sort()
         const fileLabel = sortedDates.length === 1
             ? moment(sortedDates[0]).format('DD_MM_YYYY')
             : sortedDates.map(d => moment(d).format('DD_MM_YYYY')).join('_')
-        const baseFileName = `pressure_${field_id}_${fileLabel}`
+        const baseFileName = `pressure_${field_id}_${tline_id}_${fileLabel}`
 
         const parser = new Parser({ fields: headers })
         const csv = parser.parse(rows)
