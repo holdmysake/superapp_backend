@@ -24,20 +24,20 @@ export const checkDeviceOff = async () => {
     try {
         const fields = await Field.findAll({ attributes: ['field_id'] })
 
-        for (f of fields) {
+        for (const f of fields) {
             const Pressure = defineUserDataModel(`pressure_${f.field_id}`)
             const trunklines = await Trunkline.findAll({
                 where: { field_id: f.field_id },
                 attributes: ['tline_id']
             })
             
-            for (t of trunklines) {
+            for (const t of trunklines) {
                 const spots = await Spot.findAll({
                     where: { tline_id: t.tline_id },
                     attributes: ['spot_id']
                 })
 
-                for (s of spots) {
+                for (const s of spots) {
                     const spot_status = await SpotStatus.findOne({
                         where: {
                             spot_id: s.spot_id,
