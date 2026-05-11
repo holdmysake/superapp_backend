@@ -8,7 +8,8 @@ import {
     uploadMLFile,
     updateMLFile,
     deleteMLFile,
-    predict
+    predict,
+    getOffDevice
 } from '../../controllers/panel/notif.controller.js'
 import {
     verifyTokenSA,
@@ -27,5 +28,6 @@ router.post('/updateMLFile', verifyTokenAdmin, updateMLFile)
 router.post('/deleteMLFile', verifyTokenAdmin, deleteMLFile)
 router.post('/predict', predict)
 router.post('/leakCheck', leakCheck)
+router.post('/getOffDevice', getOffDevice)
 
 export default router
