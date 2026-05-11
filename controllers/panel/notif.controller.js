@@ -15,37 +15,75 @@ import { create, all } from "mathjs"
 import haversine from "haversine-distance"
 import { models } from "../../models/index.js"
 import ML from "../../models/ml.model.js"
+import Field from "../../models/field.model.js"
 import multer from "multer"
 moment.locale('id')
 const math = create(all)
 
 export const checkDeviceOff = async () => {
     try {
-        // const spots = await Field.findAll({
-        //     include: {
-        //         model: Trunkline,
-        //         as: 'trunklines',
-        //         include: [
-        //             {
-        //                 model: PredValue,
-        //                 as: 'pred_value',
-        //                 include: {
-        //                     model: Spot,
-        //                     as: 'spot',
-        //                     attributes: ['spot_id', 'spot_name']
-        //                 }
-        //             },
-        //             {
-        //                 model: Spot,
-        //                 as: 'spots',
-        //                 separate: true,
-        //                 order: [['sort', 'ASC']]
-        //             }
-        //         ]
-        //     }
-        // })
+        const fields = await Field.findAll({ attributes: ['field_id'] })
 
-        // console.log("Checking device off...")
+        for (f of fields) {
+            const Pressure = defineUserDataModel(`pressure_${f.field_id}`)
+            const trunklines = await Trunkline.findAll({
+                where: { field_id: f.field_id },
+                attributes: ['tline_id']
+            })
+            
+            for (t of trunklines) {
+                const spots = await Spot.findAll({
+                    where: { tline_id: t.tline_id },
+                    attributes: ['spot_id']
+                })
+
+                for (s of spots) {
+                    const spot_status = await SpotStatus.findOne({
+                        where: {
+                            spot_id: s.spot_id,
+                            type: 'device'
+                        }
+                    })
+
+                    const lastData = await Pressure.findOne({
+                        where: { spot_id: s.spot_id },
+                        attributes: ['timestamp'],
+                        order: [['timestamp', 'DESC']]
+                    })
+
+                    if (!lastData) {
+                        console.log(`No data for spot ${s.spot_id} in field ${f.field_id}`)
+                        continue
+                    }
+
+                    const lastSeenMoment = moment.tz(lastData.timestamp, 'Asia/Jakarta')
+                    const now = moment.tz('Asia/Jakarta')
+                    const diffMinutes = now.diff(lastSeenMoment, 'minutes')
+
+                    if (spot_status.status === 'on' && diffMinutes > 5) {
+                        SpotStatus.create({
+                            spot_id: s.spot_id,
+                            field_id: f.field_id,
+                            type: 'device',
+                            status: 'off',
+                            timestamp: now.toDate()
+                        })
+
+                        console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned off due to inactivity (${diffMinutes} minutes)`)
+                    } else if (spot_status.status === 'off' && diffMinutes <= 5) {
+                        SpotStatus.create({
+                            spot_id: s.spot_id,
+                            field_id: f.field_id,
+                            type: 'device',
+                            status: 'on',
+                            timestamp: now.toDate()
+                        })
+
+                        console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned on due to recent activity (${diffMinutes} minutes)`)
+                    }
+                }
+            }
+        }
     } catch (error) {
         console.error(error)
     }
