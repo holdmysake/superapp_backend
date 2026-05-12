@@ -22,7 +22,12 @@ const math = create(all)
 
 export const checkDeviceOff = async () => {
     try {
-        const fields = await Field.findAll({ attributes: ['field_id'] })
+        const fields = await Field.findAll({ 
+            where: {
+                field_id: 'jbi'
+            },
+            attributes: ['field_id'] 
+        })
 
         for (const f of fields) {
             const Pressure = defineUserDataModel(`pressure_${f.field_id}`)
