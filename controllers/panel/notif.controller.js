@@ -41,7 +41,7 @@ export const checkDeviceOff = async () => {
             for (const t of trunklines) {
                 const spots = await Spot.findAll({
                     where: { tline_id: t.tline_id },
-                    attributes: ['spot_id']
+                    attributes: ['spot_id', 'spot_name']
                 })
 
                 for (const s of spots) {
@@ -79,7 +79,7 @@ export const checkDeviceOff = async () => {
 
                         sendNotif(
                             'device',
-                            `FOL di spot ${s.spot_id} nonaktif sejak ${moment(lastData.timestamp).format("YYYY-MM-DD HH:mm:ss")}`,
+                            `FOL di spot ${s.spot_id} (${s.spot_name}) nonaktif sejak ${moment(lastData.timestamp).format("YYYY-MM-DD HH:mm:ss")}`,
                             f.field_id
                         )
 
@@ -97,7 +97,7 @@ export const checkDeviceOff = async () => {
 
                         sendNotif(
                             'device',
-                            `FOL di spot ${s.spot_id} nonaktif sejak ${moment(lastData.timestamp).format("YYYY-MM-DD HH:mm:ss")}`,
+                            `FOL di spot ${s.spot_id} (${s.spot_name}) nonaktif sejak ${moment(lastData.timestamp).format("YYYY-MM-DD HH:mm:ss")}`,
                             f.field_id
                         )
 
@@ -113,7 +113,7 @@ export const checkDeviceOff = async () => {
 
                         sendNotif(
                             'device',
-                            `FOL di spot ${s.spot_id} aktif kembali`,
+                            `FOL di spot ${s.spot_id} (${s.spot_name}) aktif kembali`,
                             f.field_id
                         )
 
