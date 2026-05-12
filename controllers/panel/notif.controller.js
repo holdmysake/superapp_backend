@@ -111,6 +111,12 @@ export const checkDeviceOff = async () => {
                             timestamp: lastData.timestamp
                         })
 
+                        sendNotif(
+                            'device',
+                            `FOL di spot ${s.spot_id} aktif kembali`,
+                            f.field_id
+                        )
+
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned on due to recent activity (${diffMinutes} minutes)`)
                     }
                 }
