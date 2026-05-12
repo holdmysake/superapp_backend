@@ -78,8 +78,8 @@ export const checkDeviceOff = async () => {
                         })
 
                         sendNotif(
-                            'device,'
-                            `FOL di spot ${s.spot_id} nonaktif sejak ${lastData.timestamp.format("YYYY-MM-DD HH:mm")}`,
+                            'device',
+                            `FOL di spot ${s.spot_id} nonaktif sejak ${moment(lastData.timestamp).format("YYYY-MM-DD HH:mm:ss")}`,
                             f.field_id
                         )
 
@@ -96,8 +96,8 @@ export const checkDeviceOff = async () => {
                         })
 
                         sendNotif(
-                            'device,'
-                            `FOL di spot ${s.spot_id} nonaktif sejak ${lastData.timestamp.format("YYYY-MM-DD HH:mm")}`,
+                            'device',
+                            `FOL di spot ${s.spot_id} nonaktif sejak ${moment(lastData.timestamp).format("YYYY-MM-DD HH:mm:ss")}`,
                             f.field_id
                         )
 
