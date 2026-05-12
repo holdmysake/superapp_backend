@@ -22,6 +22,8 @@ const math = create(all)
 
 export const checkDeviceOff = async () => {
     try {
+        const toleratedMinutes = 30
+
         const fields = await Field.findAll({ 
             where: {
                 field_id: 'jbi'
@@ -66,7 +68,7 @@ export const checkDeviceOff = async () => {
                     const now = moment.tz('Asia/Jakarta')
                     const diffMinutes = now.diff(lastSeenMoment, 'minutes')
 
-                    if (!spot_status && diffMinutes > 5) {
+                    if (!spot_status && diffMinutes > toleratedMinutes) {
                         SpotStatus.create({
                             spot_id: s.spot_id,
                             field_id: f.field_id,
@@ -78,7 +80,7 @@ export const checkDeviceOff = async () => {
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned off due to inactivity (${diffMinutes} minutes)`)
                     } else if (!spot_status && diffMinutes <= 5) {
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} is active with recent data (${diffMinutes} minutes)`)
-                    } else if (spot_status.status === 'on' && diffMinutes > 5) {
+                    } else if (spot_status.status === 'on' && diffMinutes > toleratedMinutes) {
                         SpotStatus.create({
                             spot_id: s.spot_id,
                             field_id: f.field_id,
@@ -88,7 +90,7 @@ export const checkDeviceOff = async () => {
                         })
 
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned off due to inactivity (${diffMinutes} minutes)`)
-                    } else if (spot_status.status === 'off' && diffMinutes <= 5) {
+                    } else if (spot_status.status === 'off' && diffMinutes <= toleratedMinutes) {
                         SpotStatus.create({
                             spot_id: s.spot_id,
                             field_id: f.field_id,
