@@ -42,7 +42,8 @@ export const checkDeviceOff = async () => {
                         where: {
                             spot_id: s.spot_id,
                             type: 'device'
-                        }
+                        },
+                        order: [['timestamp', 'DESC']]
                     })
 
                     const lastData = await Pressure.findOne({
