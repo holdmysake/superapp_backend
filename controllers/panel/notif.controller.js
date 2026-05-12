@@ -72,7 +72,7 @@ export const checkDeviceOff = async () => {
                             field_id: f.field_id,
                             type: 'device',
                             status: 'off',
-                            timestamp: lastSeenMoment
+                            timestamp: moment.tz(lastData.timestamp)
                         })
 
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned off due to inactivity (${diffMinutes} minutes)`)
@@ -84,7 +84,7 @@ export const checkDeviceOff = async () => {
                             field_id: f.field_id,
                             type: 'device',
                             status: 'off',
-                            timestamp: lastSeenMoment
+                            timestamp: moment.tz(lastData.timestamp)
                         })
 
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned off due to inactivity (${diffMinutes} minutes)`)
@@ -94,7 +94,7 @@ export const checkDeviceOff = async () => {
                             field_id: f.field_id,
                             type: 'device',
                             status: 'on',
-                            timestamp: lastSeenMoment
+                            timestamp: moment.tz(lastData.timestamp)
                         })
 
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned on due to recent activity (${diffMinutes} minutes)`)
