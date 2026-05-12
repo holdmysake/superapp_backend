@@ -77,6 +77,12 @@ export const checkDeviceOff = async () => {
                             timestamp: lastData.timestamp
                         })
 
+                        sendNotif(
+                            'device,'
+                            `FOL di spot ${s.spot_id} nonaktif sejak ${lastData.timestamp.format("YYYY-MM-DD HH:mm")}`,
+                            f.field_id
+                        )
+
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned off due to inactivity (${diffMinutes} minutes)`)
                     } else if (!spot_status && diffMinutes <= 5) {
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} is active with recent data (${diffMinutes} minutes)`)
@@ -88,6 +94,12 @@ export const checkDeviceOff = async () => {
                             status: 'off',
                             timestamp: lastData.timestamp
                         })
+
+                        sendNotif(
+                            'device,'
+                            `FOL di spot ${s.spot_id} nonaktif sejak ${lastData.timestamp.format("YYYY-MM-DD HH:mm")}`,
+                            f.field_id
+                        )
 
                         console.log(`Device at spot ${s.spot_id} in field ${f.field_id} turned off due to inactivity (${diffMinutes} minutes)`)
                     } else if (spot_status.status === 'off' && diffMinutes <= toleratedMinutes) {
