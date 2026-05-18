@@ -593,7 +593,6 @@ export const getAllSpotsPredict = async (req, res) => {
                         model: Spot,
                         as: 'spots',
                         separate: true,
-                        where: { is_seen: true },
                         order: [['sort', 'ASC']]
                     },
                     // {
