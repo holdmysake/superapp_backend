@@ -117,6 +117,60 @@ export const storeBulk = async (req, res) => {
     }
 }
 
+export const storeMany = async (req, res) => {
+    try {
+        const { data } = req.body
+
+        if (!Array.isArray(data)) {
+            return res.status(400).json({ message: "Data must be an array" })
+        }
+
+        const timestamp = moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss')
+        const results = []
+
+        for (const item of data) {
+            const { field_id, spot_id, psi, batt } = item
+
+            const tableName = `pressure_${field_id}`
+            const Pressure = defineUserDataModel(tableName)
+
+            const press = await Pressure.create({
+                spot_id,
+                psi,
+                timestamp
+            })
+
+            let battery
+            if (batt) {
+                battery = await Battery.upsert({
+                    spot_id,
+                    batt,
+                    timestamp
+                })
+            }
+
+            getIO().to(`field_${field_id}`).emit("pressure:new", {
+                field_id,
+                spot_id,
+                psi,
+                batt,
+                timestamp
+            })
+
+            const notifData = {
+                field_id, spot_id, psi, timestamp
+            }
+            const pred = await onoffNotif(notifData)
+
+            results.push({ press, battery, pred })
+        }
+
+        res.json({ results })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 export const storeMQTT = async (payload) => {
     try {
         const cleaned = payload.replace(/[{}]/g, "").trim()
