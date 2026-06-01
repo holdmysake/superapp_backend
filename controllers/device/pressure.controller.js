@@ -129,40 +129,45 @@ export const storeMany = async (req, res) => {
         const results = []
 
         for (const item of data) {
-            const { field_id, spot_id, psi, batt } = item
+            try {
+                const { field_id, spot_id, psi, batt } = item
 
-            const tableName = `pressure_${field_id}`
-            const Pressure = defineUserDataModel(tableName)
+                const tableName = `pressure_${field_id}`
+                const Pressure = defineUserDataModel(tableName)
 
-            const press = await Pressure.create({
-                spot_id,
-                psi,
-                timestamp
-            })
-
-            let battery
-            if (batt) {
-                battery = await Battery.upsert({
+                const press = await Pressure.create({
                     spot_id,
+                    psi,
+                    timestamp
+                })
+
+                let battery
+                if (batt) {
+                    battery = await Battery.upsert({
+                        spot_id,
+                        batt,
+                        timestamp
+                    })
+                }
+
+                getIO().to(`field_${field_id}`).emit("pressure:new", {
+                    field_id,
+                    spot_id,
+                    psi,
                     batt,
                     timestamp
                 })
+
+                const notifData = {
+                    field_id, spot_id, psi, timestamp
+                }
+                const pred = await onoffNotif(notifData)
+
+                results.push({ spot_id, press, battery, pred, status: 'success' })
+            } catch (err) {
+                console.error(`Error processing spot_id ${item.spot_id}:`, err.message)
+                results.push({ spot_id: item.spot_id, status: 'error', message: err.message })
             }
-
-            getIO().to(`field_${field_id}`).emit("pressure:new", {
-                field_id,
-                spot_id,
-                psi,
-                batt,
-                timestamp
-            })
-
-            const notifData = {
-                field_id, spot_id, psi, timestamp
-            }
-            const pred = await onoffNotif(notifData)
-
-            results.push({ press, battery, pred })
         }
 
         res.json({ results })
