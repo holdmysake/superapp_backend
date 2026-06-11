@@ -558,17 +558,17 @@ export const getAllSpots = async (req, res) => {
 
 export const getAllSpotsHome = async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1]
+        // const token = req.headers.authorization?.split(' ')[1]
 
-        const decoded = jwt.verify(token, JWT_SECRET)
+        // const decoded = jwt.verify(token, JWT_SECRET)
 
-        const user = await User.findOne({
-            where: {
-                user_id: decoded.user_id
-            }
-        })
+        // const user = await User.findOne({
+        //     where: {
+        //         user_id: decoded.user_id
+        //     }
+        // })
 
-        const isSA = user.role === 'superadmin'
+        // const isSA = user.role === 'superadmin'
 
         const queryOptions = {
             include: {
@@ -593,13 +593,15 @@ export const getAllSpotsHome = async (req, res) => {
                         }
                     },
                 ],
-                where: {}
+                where: {
+                    field_id: 'jbi'
+                }
             }
         }
 
-        if (!isSA) {
-            queryOptions.where = { field_id: user.field_id }
-        }
+        // if (!isSA) {
+        //     queryOptions.where = { field_id: user.field_id }
+        // }
 
         const fields = await Field.findAll(queryOptions)
 
