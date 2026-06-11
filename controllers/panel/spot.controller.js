@@ -507,10 +507,6 @@ export const getAllSpots = async (req, res) => {
                         separate: true,
                         order: [['sort', 'ASC']]
                     },
-                    // {
-                    //     model: MLNew,
-                    //     as: 'mls'
-                    // }
                     {
                         model: MLNew,
                         as: 'mls'
@@ -556,6 +552,83 @@ export const getAllSpots = async (req, res) => {
 
         res.json(result)
     } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
+export const getAllSpotsHome = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1]
+
+        const decoded = jwt.verify(token, JWT_SECRET)
+
+        const user = await User.findOne({
+            where: {
+                user_id: decoded.user_id
+            }
+        })
+
+        const isSA = user.role === 'superadmin'
+
+        const queryOptions = {
+            include: {
+                model: Trunkline,
+                as: 'trunklines',
+                order: [['id', 'DESC']],
+                separate: true,
+                include: [
+                    {
+                        model: Spot,
+                        as: 'spots',
+                        separate: true,
+                        order: [['sort', 'ASC']]
+                    },
+                    {
+                        model: PredValue,
+                        as: 'pred_value',
+                        include: {
+                            model: Spot,
+                            as: 'spot',
+                            attributes: ['spot_id', 'spot_name']
+                        }
+                    },
+                ],
+                where: {}
+            }
+        }
+
+        if (!isSA) {
+            queryOptions.where = { field_id: user.field_id }
+        }
+
+        const fields = await Field.findAll(queryOptions)
+
+        const result = fields.map(field => {
+            const f = field.toJSON()
+            f.trunklines = f.trunklines.map(tline => {
+                const geojsonFilePath = path.resolve(`data/maps/${tline.tline_id}.json`)
+
+                if (tline.pred_value) {
+                    if (fs.existsSync(geojsonFilePath)) {
+                        try {
+                            tline.pred_value.geojson = JSON.parse(fs.readFileSync(geojsonFilePath, 'utf8'))
+                        } catch (err) {
+                            console.error(`Error reading geojson for ${tline.tline_id}:`, err)
+                            tline.pred_value.geojson = null
+                        }
+                    } else {
+                        tline.pred_value.geojson = null
+                    }
+                }
+
+                return tline || null
+            })
+            return f
+        })
+
+        res.json(result)
+    } catch (error) {
+        console.error(error)
         res.status(500).json({ message: error.message })
     }
 }
