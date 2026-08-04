@@ -3,9 +3,35 @@ import defineUserDataModel from "../../models/pressure.model.js"
 import moment from 'moment-timezone'
 import { getIO } from "../../socket.js"
 import { onoffNotif } from "../panel/notif.controller.js"
+import { Op } from 'sequelize'
+import { sendWaText } from "../../bot/bot.js"
 
 export const getTimestamp = (req, res) => {
     res.json(moment().tz('Asia/Jakarta').format('YYYY-MM-DD HH:mm:ss'))
+}
+
+const getMinuteAgo = async (field_id, spot_id) => {
+    const minuteAgo = moment().tz('Asia/Jakarta').subtract(1, 'minute').format('YYYY-MM-DD HH:mm:ss')
+
+    const tableName = `pressure_${field_id}`
+    const Pressure = defineUserDataModel(tableName)
+
+    const pressureDataAvg = await Pressure.findAll({
+        where: {
+            spot_id,
+            timestamp: {
+                [Op.gte]: minuteAgo
+            }
+        },
+        order: [["timestamp", "DESC"]]
+    })
+
+    if (!pressureDataAvg || pressureDataAvg.length === 0) {
+        return 0
+    }
+
+    const sum = pressureDataAvg.reduce((acc, curr) => acc + Number(curr.psi || 0), 0)
+    return sum / pressureDataAvg.length
 }
 
 export const store = async (req, res) => {
@@ -22,6 +48,23 @@ export const store = async (req, res) => {
             psi,
             timestamp
         })
+
+        const minuteAgoData = await getMinuteAgo(field_id, spot_id)
+
+        let percentDiff = 0
+        if (minuteAgoData) {
+            percentDiff = ((psi - minuteAgoData) / minuteAgoData) * 100
+        }
+
+        if (percentDiff > 2.5) {
+            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+            try {
+                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+            } catch (err) {
+                console.error("Failed to send WA message:", err.message)
+            }
+        }
 
         let battery
         if (batt) {
@@ -80,6 +123,22 @@ export const storeBulk = async (req, res) => {
                 psi: p.psi,
                 timestamp: p.timestamp
             })
+
+            const minuteAgoData = await getMinuteAgo(field_id, spot_id)
+            let percentDiff = 0
+            if (minuteAgoData) {
+                percentDiff = ((p.psi - minuteAgoData) / minuteAgoData) * 100
+            }
+
+            if (percentDiff > 2.5) {
+                const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${p.psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+                try {
+                    await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                    await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                } catch (err) {
+                    console.error("Failed to send WA message:", err.message)
+                }
+            }
 
             pressData.push(pressEntry)
 
@@ -141,6 +200,23 @@ export const storeMany = async (req, res) => {
                     timestamp
                 })
 
+                const minuteAgoData = await getMinuteAgo(field_id, spot_id)
+
+                let percentDiff = 0
+                if (minuteAgoData) {
+                    percentDiff = ((psi - minuteAgoData) / minuteAgoData) * 100
+                }
+
+                if (percentDiff > 2.5) {
+                    const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+                    try {
+                        await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                        await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                    } catch (err) {
+                        console.error("Failed to send WA message:", err.message)
+                    }
+                }
+
                 let battery
                 if (batt) {
                     battery = await Battery.upsert({
@@ -197,6 +273,23 @@ export const storeMQTT = async (payload) => {
             psi,
             timestamp
         })
+
+        const minuteAgoData = await getMinuteAgo(field_id, spot_id)
+
+        let percentDiff = 0
+        if (minuteAgoData) {
+            percentDiff = ((psi - minuteAgoData) / minuteAgoData) * 100
+        }
+
+        if (percentDiff > 2.5) {
+            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+            try {
+                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+            } catch (err) {
+                console.error("Failed to send WA message:", err.message)
+            }
+        }
 
         getIO().to(`field_${field_id}`).emit("pressure:new", {
             field_id,
