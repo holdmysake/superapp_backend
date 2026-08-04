@@ -59,8 +59,8 @@ export const store = async (req, res) => {
         if (percentDiff > 2.5) {
             const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
             try {
-                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
             } catch (err) {
                 console.error("Failed to send WA message:", err.message)
             }
@@ -133,8 +133,8 @@ export const storeBulk = async (req, res) => {
             if (percentDiff > 2.5) {
                 const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${p.psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
                 try {
-                    await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                    await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                    // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                    // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
                 } catch (err) {
                     console.error("Failed to send WA message:", err.message)
                 }
@@ -210,8 +210,8 @@ export const storeMany = async (req, res) => {
                 if (percentDiff > 2.5) {
                     const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
                     try {
-                        await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                        await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                        // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                        // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
                     } catch (err) {
                         console.error("Failed to send WA message:", err.message)
                     }
@@ -284,8 +284,8 @@ export const storeMQTT = async (payload) => {
         if (percentDiff > 2.5) {
             const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
             try {
-                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
+                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
             } catch (err) {
                 console.error("Failed to send WA message:", err.message)
             }
