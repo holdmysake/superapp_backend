@@ -57,7 +57,7 @@ export const store = async (req, res) => {
         }
 
         if (percentDiff > 2.5) {
-            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
             try {
                 await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
                 await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
@@ -131,7 +131,7 @@ export const storeBulk = async (req, res) => {
             }
 
             if (percentDiff > 2.5) {
-                const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${p.psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+                const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${p.psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
                 try {
                     await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
                     await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
@@ -208,7 +208,7 @@ export const storeMany = async (req, res) => {
                 }
 
                 if (percentDiff > 2.5) {
-                    const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+                    const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
                     try {
                         await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
                         await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
@@ -282,7 +282,7 @@ export const storeMQTT = async (payload) => {
         }
 
         if (percentDiff > 2.5) {
-            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
+            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
             try {
                 await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
                 await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
