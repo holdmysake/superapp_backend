@@ -78,7 +78,7 @@ const checkDrop = async (field_id, spot_id, psi) => {
         }
     } else if (spot_id === 'sgl') {
         if (psi > 100) {
-            threshold = 7
+            threshold = 0
         } else if (psi < 50) {
             threshold = 10
         }
