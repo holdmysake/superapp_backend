@@ -38,6 +38,8 @@ const sendMessageDrop = async (message) => {
     try {
         await sendWaText("jbi", getIO(), { to: '0895401582299', text: message })
         await sendWaText("jbi", getIO(), { to: '0895401582299', text: message })
+
+        getIO().to(`field_jbi`).emit("notif", message)
     } catch (err) {
         console.error("Failed to send WA message:", err.message)
     }
