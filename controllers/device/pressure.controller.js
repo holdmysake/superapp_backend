@@ -34,6 +34,81 @@ const getMinuteAgo = async (field_id, spot_id) => {
     return sum / pressureDataAvg.length
 }
 
+const sendMessageDrop = async (message) => {
+    try {
+        await sendWaText("jbi", getIO(), { to: '082289002445', text: message })
+        await sendWaText("jbi", getIO(), { to: '082289002445', text: message })
+    } catch (err) {
+        console.error("Failed to send WA message:", err.message)
+    }
+}
+
+const checkDrop = async (field_id, spot_id, psi) => {
+    if (field_id !== 'jbi') return
+
+    // 1. Tentukan ambang batas penurunan berdasarkan spot_id dan nilai psi saat ini
+    let threshold = null
+    if (spot_id === 'bjg' && psi > 110) {
+        threshold = 2.5
+    } else if (spot_id === 'bjg2' && psi > 80) {
+        threshold = 2.5
+    } else if (spot_id === 'bjg4') {
+        if (psi > 25) {
+            threshold = 5.5
+        } else if (psi < 20) {
+            threshold = 8.0
+        }
+    } else if (spot_id === 'kas') {
+        if (psi > 130) {
+            threshold = 5
+        } else if (psi < 20) {
+            threshold = 30
+        }
+    } else if (spot_id === 'kas3') {
+        if (psi > 80) {
+            threshold = 3.8
+        } else if (psi < 10) {
+            threshold = 50
+        }
+    } else if (spot_id === 'kas4') {
+        if (psi > 50) {
+            threshold = 3
+        }
+    } else if (spot_id === 'tr1') {
+        if (psi > 35) {
+            threshold = 4
+        }
+    } else if (spot_id === 'sgl') {
+        if (psi > 100) {
+            threshold = 3
+        } else if (psi < 50) {
+            threshold = 10
+        }
+    } else if (spot_id === 'ktt') {
+        if (psi >150) {
+            threshold = 2
+        } else if (psi < 15) {
+            threshold = 30
+        }
+    }
+
+    // Jika psi tidak memicu ambang batas apa pun, hentikan eksekusi tanpa memanggil DB
+    if (threshold === null) return
+
+    // 2. Ambil data rata-rata 1 menit sebelumnya
+    const minuteAgoData = await getMinuteAgo(field_id, spot_id)
+    if (!minuteAgoData) return
+
+    // 3. Hitung persentase penurunan (pastikan hanya penurunan: rata-rata lama > psi baru)
+    const percentDiff = ((minuteAgoData - psi) / minuteAgoData) * 100
+
+    // 4. Kirim pesan jika persentase penurunan melebihi ambang batas
+    if (percentDiff > threshold) {
+        const message = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan (Penurunan): ${percentDiff.toFixed(2)}%`
+        sendMessageDrop(message)
+    }
+}
+
 export const store = async (req, res) => {
     try {
         const { field_id, spot_id, psi, batt } = req.body
@@ -49,22 +124,7 @@ export const store = async (req, res) => {
             timestamp
         })
 
-        const minuteAgoData = await getMinuteAgo(field_id, spot_id)
-
-        let percentDiff = 0
-        if (minuteAgoData) {
-            percentDiff = ((psi - minuteAgoData) / minuteAgoData) * 100
-        }
-
-        if (percentDiff > 2.5) {
-            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
-            try {
-                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-            } catch (err) {
-                console.error("Failed to send WA message:", err.message)
-            }
-        }
+        await checkDrop(field_id, spot_id, psi)
 
         let battery
         if (batt) {
@@ -124,21 +184,7 @@ export const storeBulk = async (req, res) => {
                 timestamp: p.timestamp
             })
 
-            const minuteAgoData = await getMinuteAgo(field_id, spot_id)
-            let percentDiff = 0
-            if (minuteAgoData) {
-                percentDiff = ((p.psi - minuteAgoData) / minuteAgoData) * 100
-            }
-
-            if (percentDiff > 2.5) {
-                const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${p.psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
-                try {
-                    // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                    // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                } catch (err) {
-                    console.error("Failed to send WA message:", err.message)
-                }
-            }
+            await checkDrop(field_id, spot_id, p.psi)
 
             pressData.push(pressEntry)
 
@@ -200,22 +246,7 @@ export const storeMany = async (req, res) => {
                     timestamp
                 })
 
-                const minuteAgoData = await getMinuteAgo(field_id, spot_id)
-
-                let percentDiff = 0
-                if (minuteAgoData) {
-                    percentDiff = ((psi - minuteAgoData) / minuteAgoData) * 100
-                }
-
-                if (percentDiff > 2.5) {
-                    const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
-                    try {
-                        // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                        // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                    } catch (err) {
-                        console.error("Failed to send WA message:", err.message)
-                    }
-                }
+                await checkDrop(field_id, spot_id, psi)
 
                 let battery
                 if (batt) {
@@ -274,22 +305,7 @@ export const storeMQTT = async (payload) => {
             timestamp
         })
 
-        const minuteAgoData = await getMinuteAgo(field_id, spot_id)
-
-        let percentDiff = 0
-        if (minuteAgoData) {
-            percentDiff = ((psi - minuteAgoData) / minuteAgoData) * 100
-        }
-
-        if (percentDiff > 2.5) {
-            const waMessage = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan: ${percentDiff.toFixed(2)}%`
-            try {
-                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-                // await sendWaText(field_id, getIO(), { to: '082289002445', text: waMessage })
-            } catch (err) {
-                console.error("Failed to send WA message:", err.message)
-            }
-        }
+        await checkDrop(field_id, spot_id, psi)
 
         getIO().to(`field_${field_id}`).emit("pressure:new", {
             field_id,
