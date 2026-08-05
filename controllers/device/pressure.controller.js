@@ -36,8 +36,8 @@ const getMinuteAgo = async (field_id, spot_id) => {
 
 const sendMessageDrop = async (message) => {
     try {
-        await sendWaText("jbi", getIO(), { to: '082289002445', text: message })
-        await sendWaText("jbi", getIO(), { to: '082289002445', text: message })
+        await sendWaText("jbi", getIO(), { to: '0895401582299', text: message })
+        await sendWaText("jbi", getIO(), { to: '0895401582299', text: message })
     } catch (err) {
         console.error("Failed to send WA message:", err.message)
     }
