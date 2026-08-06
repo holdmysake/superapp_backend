@@ -38,6 +38,8 @@ const sendMessageDrop = async (message) => {
     try {
         await sendWaText("jbi", getIO(), { to: '0895401582299', text: message })
         await sendWaText("jbi", getIO(), { to: '0895401582299', text: message })
+        await sendWaText("jbi", getIO(), { to: '0895414264902', text: message })
+        await sendWaText("jbi", getIO(), { to: '0895414264902', text: message })
 
         getIO().to(`field_jbi`).emit("notif", message)
     } catch (err) {
@@ -45,49 +47,66 @@ const sendMessageDrop = async (message) => {
     }
 }
 
+const spot_data = {
+    bjg: {
+        high: 110,
+        drop_high: 2.5
+    },
+    bjg2: {
+        high: 80,
+        drop_high: 2.5
+    },
+    bjg4: {
+        high: 25,
+        drop_high: 5.5,
+        low: 20,
+        drop_low: 8.0
+    },
+    kas: {
+        high: 130,
+        drop_high: 5,
+        low: 20,
+        drop_low: 30
+    },
+    kas3: {
+        high: 80,
+        drop_high: 3.8,
+        low: 10,
+        drop_low: 50
+    },
+    kas4: {
+        high: 50,
+        drop_high: 3
+    },
+    sgl: {
+        high: 100,
+        drop_high: 7,
+        low: 50,
+        drop_low: 30
+    },
+    ktt: {
+        high: 150,
+        drop_high: 2,
+        low: 15,
+        drop_low: 30
+    }
+}
+
 const checkDrop = async (field_id, spot_id, psi) => {
     if (field_id !== 'jbi') return
 
     // 1. Tentukan ambang batas penurunan berdasarkan spot_id dan nilai psi saat ini
+    const config = spot_data[spot_id]
+    if (!config) return
+
     let threshold = null
-    if (spot_id === 'bjg' && psi > 110) {
-        threshold = 2.5
-    } else if (spot_id === 'bjg2' && psi > 80) {
-        threshold = 2.5
-    } else if (spot_id === 'bjg4') {
-        if (psi > 25) {
-            threshold = 5.5
-        } else if (psi < 20) {
-            threshold = 8.0
-        }
-    } else if (spot_id === 'kas') {
-        if (psi > 130) {
-            threshold = 5
-        } else if (psi < 20) {
-            threshold = 30
-        }
-    } else if (spot_id === 'kas3') {
-        if (psi > 80) {
-            threshold = 3.8
-        } else if (psi < 10) {
-            threshold = 50
-        }
-    } else if (spot_id === 'kas4') {
-        if (psi > 50) {
-            threshold = 3
-        }
-    } else if (spot_id === 'sgl') {
-        if (psi > 100) {
-            threshold = 7
-        } else if (psi < 50) {
-            threshold = 30
-        }
-    } else if (spot_id === 'ktt') {
-        if (psi >150) {
-            threshold = 2
-        } else if (psi < 15) {
-            threshold = 30
-        }
+    let status = null
+    if (config.high !== undefined && psi > config.high) {
+        threshold = config.drop_high
+        status = 'on'
+    } else if (config.low !== undefined && psi < config.low) {
+        threshold = config.drop_low
+        status = 'off'
     }
 
     // Jika psi tidak memicu ambang batas apa pun, hentikan eksekusi tanpa memanggil DB
@@ -104,6 +123,34 @@ const checkDrop = async (field_id, spot_id, psi) => {
     if (percentDiff > threshold) {
         const message = `⚠️ *Peringatan Tekanan* ⚠️\nSpot: ${spot_id}\nField: ${field_id}\nTekanan: ${psi} PSI\nRata-rata Tekanan: ${minuteAgoData.toFixed(2)} PSI\nPerubahan (Penurunan): ${percentDiff.toFixed(2)}%`
         sendMessageDrop(message)
+
+        // await predictNotif(field_id, spot_id, status)
+    }
+}
+
+const predictNotif = async (field_id, spot_id, status) => {
+    const tableName = `pressure_${field_id}`
+    const Pressure = defineUserDataModel(tableName)
+
+    const config = spot_data[spot_id]
+    if (!config) return
+
+    if (status === 'on') {
+        const normalData = await Pressure.findAll({
+            where: {
+                spot_id,
+                psi: {
+                    [Op.gt]: config.high
+                }
+            },
+            limit: 10,
+            order: [["timestamp", "DESC"]]
+        })
+
+        const sum = normalData.reduce((acc, curr) => acc + curr.psi, 0)
+        const avg = sum / normalData.length
+            
+
     }
 }
 
